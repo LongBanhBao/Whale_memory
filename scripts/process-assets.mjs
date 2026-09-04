@@ -7,18 +7,35 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const sourceRoot = path.resolve(projectRoot, '..');
 const photoSource = path.join(sourceRoot, 'Picture');
 const whaleSource = path.join(sourceRoot, 'whale');
+const sceneSource = path.join(sourceRoot, 'LK');
 const publicRoot = path.join(projectRoot, 'public', 'assets');
 const fullOutput = path.join(publicRoot, 'images', 'full');
 const thumbOutput = path.join(publicRoot, 'images', 'thumb');
 const whaleOutput = path.join(publicRoot, 'whale');
+const sceneOutput = path.join(publicRoot, 'scene');
 const dataOutput = path.join(projectRoot, 'src', 'data');
 
 await Promise.all([
   mkdir(fullOutput, { recursive: true }),
   mkdir(thumbOutput, { recursive: true }),
   mkdir(whaleOutput, { recursive: true }),
+  mkdir(sceneOutput, { recursive: true }),
   mkdir(dataOutput, { recursive: true }),
 ]);
+
+const sceneAssets = [
+  { source: 'Water.png', output: 'water.webp', width: 1536, quality: 84 },
+  { source: 'BR.png', output: 'blue-room.webp', width: 1400, quality: 84 },
+  { source: 'VS.png', output: 'halo.webp', width: 1536, quality: 86 },
+];
+
+await Promise.all(sceneAssets.map(({ source, output, width, quality }) => (
+  sharp(path.join(sceneSource, source), { limitInputPixels: false })
+    .rotate()
+    .resize({ width, withoutEnlargement: true })
+    .webp({ quality, effort: 6, smartSubsample: true })
+    .toFile(path.join(sceneOutput, output))
+)));
 
 const sourcePhotos = (await readdir(photoSource))
   .filter((file) => /^p\d+\.png$/i.test(file))
@@ -274,4 +291,5 @@ await writeFile(
 );
 
 console.log(`Đã xử lý ${imageManifest.length} ảnh Pastel và ${frameBuffers.length} frame cá voi.`);
+console.log(`Đã tối ưu ${sceneAssets.length} ảnh nền cho cảnh mở đầu.`);
 console.log(`Sprite cá voi: ${frameWidth} × ${frameHeight} px/frame, ${columns} × ${rows}.`);

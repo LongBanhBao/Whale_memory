@@ -6,7 +6,6 @@ const axePath = require.resolve('axe-core/axe.min.js');
 
 test('không có lỗi accessibility nghiêm trọng', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#skip-intro').click();
   await page.waitForTimeout(250);
   await page.addScriptTag({ path: axePath });
   const violations = await page.evaluate(async () => {

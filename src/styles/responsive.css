@@ -26,12 +26,8 @@
     padding: 0 12px;
   }
 
-  .hold-control {
-    top: 48%;
-  }
-
-  .intro-ocean {
-    height: 29%;
+  .intro-halo {
+    width: 150vw;
   }
 
   .falling-memory {
@@ -185,11 +181,6 @@
     display: none;
   }
 
-  .hold-control {
-    top: 45%;
-    transform: translate(-50%, -50%) scale(0.82);
-  }
-
   .portal {
     width: 74vh;
   }
@@ -267,13 +258,13 @@
     display: none;
   }
 
+  .scene--intro,
   .scene--journey,
   .scene--storm,
   .scene--finale {
     height: 180vh;
   }
 
-  .transition-ribbon,
   .memory-whale,
   .portal,
   .memory-shard,

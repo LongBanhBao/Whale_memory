@@ -25,7 +25,8 @@ npm run test:e2e
 
 - Ảnh nguồn: `../Picture/p1.png` đến `../Picture/p19.png`.
 - Cá voi nguồn: `../whale/frames/png/`.
-- `npm run assets` tạo WebP, AVIF, thumbnail, placeholder và sprite cá voi 2× đã crop/khử viền alpha.
+- Ảnh dựng cảnh đầu: `../LK/Water.png`, `../LK/BR.png` và `../LK/VS.png`.
+- `npm run assets` tạo WebP, AVIF, thumbnail, placeholder, ảnh nền cảnh đầu và sprite cá voi 2× đã crop/khử viền alpha.
 - Ảnh nguồn không bị ghi đè.
 - Asset sinh ra nằm trong `public/assets/`; manifest nằm tại `src/data/assets.generated.js`.
 
@@ -33,10 +34,10 @@ Khi video được bổ sung, đặt bản nguồn trong thư mục `../Video`. 
 
 ## Tương tác
 
-- Nhấn giữ để mở cảnh đầu.
-- Cuộn qua hành trình, vùng biển tối và cảnh kết.
+- Cuộn xuyên suốt cả bốn cảnh; cảnh đầu không khóa trang và không có thao tác bỏ qua riêng.
+- Năm giọt ký ức lần lượt rơi xuống mặt nước, làm sáng đại dương rồi bay ngược vào vầng sáng để gọi cá voi xuất hiện.
 - Nhấn “Gửi một ánh sáng” ở cảnh cuối.
 - Sau đoạn kết có thể xem lại hành trình, mở thư tri ân hoặc xem toàn bộ thư viện ảnh.
-- Có nút bỏ qua intro, thao tác bàn phím và luồng “Tiếp tục” riêng cho `prefers-reduced-motion`.
+- Có luồng “Tiếp tục” riêng cho `prefers-reduced-motion`.
 
 Mỗi lần push lên nhánh `main`, workflow GitHub Actions sẽ build và triển khai thư mục `dist` lên GitHub Pages.
