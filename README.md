@@ -1,5 +1,7 @@
 # The Blue Voyage
 
+Website: [https://longbanhbao.github.io/Whale_memory/](https://longbanhbao.github.io/Whale_memory/)
+
 Website frontend tri ân Pastel, kể chuyện bằng bốn cảnh cuộn liên tục. Phiên bản hiện tại tập trung vào giao diện, chuyển động và hình ảnh; chưa gắn năm, cột mốc hoặc video.
 
 ## Chạy dự án
