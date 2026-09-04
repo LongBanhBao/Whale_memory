@@ -35,8 +35,8 @@
   }
 
   .falling-memory {
-    width: 76px;
-    height: 76px;
+    width: clamp(86px, 25vw, 104px);
+    height: clamp(86px, 25vw, 104px);
   }
 
   .water-ripple {
@@ -46,7 +46,7 @@
 
   .portal {
     top: 49%;
-    width: min(114vw, 610px);
+    width: clamp(410px, 72vw, 680px);
   }
 
   .portal__ring {
@@ -73,6 +73,11 @@
     bottom: 5%;
   }
 
+  .portal--foreground .portal-card--foreground {
+    right: 13%;
+    bottom: 3%;
+  }
+
   .drift-memory {
     width: 62px;
   }
@@ -82,18 +87,27 @@
   }
 
   .memory-whale {
-    top: 43%;
-    width: 111vw;
+    top: 39%;
+    width: clamp(350px, 77vw, 1050px);
   }
 
   .memory-grid {
     grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(7, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+  }
+
+  .tribute-sequence {
+    right: 26px;
+    left: 26px;
+  }
+
+  .tribute-sequence p {
+    font-size: clamp(19px, 6.4vw, 28px);
   }
 
   .finale-copy {
     right: var(--safe-right);
-    bottom: 128px;
+    bottom: 112px;
     left: var(--safe-left);
     max-width: none;
     text-align: center;
@@ -109,6 +123,51 @@
     left: 50%;
     min-height: 50px;
     transform: translate(-50%, calc((1 - var(--button-reveal, 0)) * 18px));
+    white-space: nowrap;
+  }
+
+  .final-trail {
+    top: 40%;
+    left: 39%;
+    width: 57vw;
+  }
+
+  .outro-actions {
+    right: var(--safe-right);
+    bottom: var(--safe-bottom);
+    left: var(--safe-left);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .outro-actions button {
+    min-height: 52px;
+    padding: 6px;
+    font-size: 6.5px;
+    letter-spacing: 0.08em;
+    line-height: 1.45;
+  }
+
+  .memory-dialog {
+    width: calc(100vw - 24px);
+    max-height: calc(100svh - 24px);
+    padding: 34px 22px;
+    border-radius: 18px;
+  }
+
+  .memory-dialog--gallery {
+    padding: 26px 14px;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .reduced-next {
+    right: 50%;
+    max-width: calc(100vw - 32px);
+    transform: translateX(50%);
     white-space: nowrap;
   }
 }
@@ -136,11 +195,52 @@
   }
 
   .memory-whale {
-    width: 72vw;
+    top: 42%;
+    width: min(56vw, 80vh);
   }
 
   .finale-copy {
-    bottom: 44px;
+    right: auto;
+    bottom: 30px;
+    left: 28px;
+    max-width: 38vw;
+    text-align: left;
+  }
+
+  .finale-copy h2 {
+    font-size: clamp(38px, 8vw, 60px);
+  }
+
+  .tribute-sequence {
+    top: 46%;
+  }
+
+  .tribute-sequence p {
+    font-size: clamp(17px, 3.5vw, 25px);
+  }
+
+  .light-button {
+    right: 24px;
+    bottom: 24px;
+    left: auto;
+    transform: translateY(calc((1 - var(--button-reveal, 0)) * 18px));
+  }
+
+  .outro-actions {
+    right: 20px;
+    bottom: 16px;
+    left: auto;
+    display: grid;
+    width: min(42vw, 330px);
+    grid-template-columns: 1fr;
+  }
+
+  .outro-actions button {
+    min-height: 36px;
+  }
+
+  .storm-copy {
+    top: 11%;
   }
 }
 
@@ -161,7 +261,9 @@
   .film-grain,
   .storm-current,
   .cosmic-current,
-  .depth-haze {
+  .depth-haze,
+  .ascent-lines,
+  .breakthrough-flash {
     display: none;
   }
 
@@ -169,5 +271,14 @@
   .scene--storm,
   .scene--finale {
     height: 180vh;
+  }
+
+  .transition-ribbon,
+  .memory-whale,
+  .portal,
+  .memory-shard,
+  .companion-whale,
+  .suspended-drop {
+    transition: none !important;
   }
 }

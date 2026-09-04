@@ -233,8 +233,8 @@ export const images = [
 export const whale = {
   "sprite": "assets/whale/blue-whale-sprite.webp",
   "still": "assets/whale/blue-whale-still.webp",
-  "frameWidth": 377,
-  "frameHeight": 320,
+  "frameWidth": 754,
+  "frameHeight": 640,
   "columns": 4,
   "rows": 2,
   "frameCount": 8,

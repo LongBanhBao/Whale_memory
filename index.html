@@ -9,6 +9,14 @@
       content="The Blue Voyage — một hành trình ký ức dành cho Pastel."
     />
     <title>The Blue Voyage — Pastel</title>
+    <script>
+      (() => {
+        const emergencyUnlock = () => document.body?.classList.remove('is-intro-locked');
+        window.__blueVoyageEmergencyUnlock = emergencyUnlock;
+        window.addEventListener('error', emergencyUnlock, true);
+        window.__blueVoyageEmergencyTimer = window.setTimeout(emergencyUnlock, 45000);
+      })();
+    </script>
   </head>
   <body class="is-intro-locked">
     <a class="skip-link" href="#blue-road">Bỏ qua phần mở đầu</a>
@@ -49,7 +57,10 @@
               <circle class="hold-control__track" cx="60" cy="60" r="54"></circle>
               <circle id="hold-progress" class="hold-control__progress" cx="60" cy="60" r="54"></circle>
             </svg>
-            <span class="hold-control__drop" aria-hidden="true"><i></i></span>
+            <span class="hold-control__drop" aria-hidden="true">
+              <img id="hold-memory-image" alt="" />
+              <i></i>
+            </span>
             <span id="hold-label" class="hold-control__label">NHẤN VÀ GIỮ</span>
           </button>
           <p id="hold-status" class="sr-only" aria-live="polite">Nhấn và giữ để bắt đầu hành trình.</p>
@@ -60,6 +71,14 @@
             <span class="intro-ocean__glow"></span>
             <span class="intro-ocean__surface"></span>
             <span class="intro-ocean__reflection"></span>
+          </div>
+
+          <div id="intro-transition" class="intro-transition" aria-hidden="true">
+            <div id="transition-ribbons" class="transition-ribbons"></div>
+            <span class="transition-wave transition-wave--one"></span>
+            <span class="transition-wave transition-wave--two"></span>
+            <span class="transition-depth"></span>
+            <span class="transition-spark"></span>
           </div>
 
           <div class="scroll-cue intro-scroll-cue" aria-hidden="true">
@@ -75,7 +94,20 @@
           <div class="depth-haze depth-haze--one" aria-hidden="true"></div>
           <div class="depth-haze depth-haze--two" aria-hidden="true"></div>
           <div id="portal-layer" class="portal-layer" aria-hidden="true"></div>
+          <div id="foreground-layer" class="foreground-layer" aria-hidden="true"></div>
           <div id="drift-layer" class="drift-layer" aria-hidden="true"></div>
+          <div class="locked-gate" aria-hidden="true">
+            <span class="locked-gate__halo"></span>
+            <span class="locked-gate__ring"></span>
+            <span class="locked-gate__seal"></span>
+            <span class="locked-gate__crack locked-gate__crack--one"></span>
+            <span class="locked-gate__crack locked-gate__crack--two"></span>
+            <span class="locked-gate__crack locked-gate__crack--three"></span>
+            <span class="locked-gate__fragment locked-gate__fragment--one"></span>
+            <span class="locked-gate__fragment locked-gate__fragment--two"></span>
+            <span class="locked-gate__fragment locked-gate__fragment--three"></span>
+          </div>
+          <div class="journey-color-drain" aria-hidden="true"></div>
           <div class="journey-vignette" aria-hidden="true"></div>
           <div class="scroll-cue journey-scroll-cue" aria-hidden="true"><i></i></div>
         </div>
@@ -86,8 +118,15 @@
           <div class="storm-current storm-current--one" aria-hidden="true"></div>
           <div class="storm-current storm-current--two" aria-hidden="true"></div>
           <div id="shard-field" class="shard-field" aria-hidden="true"></div>
+          <div id="memory-particles" class="memory-particles" aria-hidden="true"></div>
           <div id="companion-whales" class="companion-whales" aria-hidden="true"></div>
+          <div class="storm-copy" aria-live="polite">
+            <p class="storm-copy__line storm-copy__line--one">Bạn đã từng dẫn chúng tôi đi qua những ngày tối nhất.</p>
+            <p class="storm-copy__line storm-copy__line--two">Lần này, hãy để chúng tôi trở thành dòng nước đưa bạn tiến về phía trước.</p>
+          </div>
+          <div id="ascent-lines" class="ascent-lines" aria-hidden="true"></div>
           <div class="surface-rift" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div id="suspended-drops" class="suspended-drops" aria-hidden="true"></div>
           <div id="breakthrough-flash" class="breakthrough-flash" aria-hidden="true"></div>
         </div>
       </section>
@@ -96,6 +135,13 @@
         <div class="scene__sticky finale-world">
           <div class="cosmic-current cosmic-current--one" aria-hidden="true"></div>
           <div class="cosmic-current cosmic-current--two" aria-hidden="true"></div>
+
+          <div id="tribute-sequence" class="tribute-sequence" aria-live="polite">
+            <p>Cảm ơn vì đã bắt đầu.</p>
+            <p>Cảm ơn vì đã lựa chọn tiếp tục.</p>
+            <p>Cảm ơn vì đã trở thành một phần thanh xuân của chúng tôi.</p>
+            <p>Dù hành trình đưa bạn đến đâu, đại dương này vẫn sẽ nhớ.</p>
+          </div>
 
           <div id="memory-whale" class="memory-whale" role="img" aria-label="Cá voi được tạo nên từ những khoảnh khắc của Pastel">
             <div id="memory-grid" class="memory-grid"></div>
@@ -106,17 +152,47 @@
           <div class="finale-copy">
             <p class="eyebrow">THE OCEAN REMEMBERS</p>
             <h2>PASTEL</h2>
-            <p id="final-message" class="finale-copy__message">Hành trình vẫn đang tiếp tục.</p>
+            <p id="final-message" class="finale-copy__message" aria-live="polite">Hành trình vẫn đang tiếp tục.</p>
           </div>
 
-          <button id="send-light" class="light-button" type="button">
+          <button id="send-light" class="light-button" type="button" disabled>
             <span class="light-button__orb" aria-hidden="true"></span>
             <span>GỬI MỘT ÁNH SÁNG</span>
           </button>
+          <div class="final-trail" aria-hidden="true"><i></i><span>PASTEL</span></div>
+          <nav id="outro-actions" class="outro-actions" aria-label="Lựa chọn sau hành trình">
+            <button id="replay-journey" type="button">XEM LẠI HÀNH TRÌNH</button>
+            <button id="open-letter" type="button">MỞ THƯ TRI ÂN</button>
+            <button id="open-gallery" type="button">XEM TOÀN BỘ KÝ ỨC</button>
+          </nav>
           <div id="light-layer" class="light-layer" aria-hidden="true"></div>
         </div>
       </section>
     </main>
+
+    <button id="reduced-next" class="reduced-next" type="button" hidden>
+      <span>TIẾP TỤC</span><i aria-hidden="true"></i>
+    </button>
+
+    <dialog id="letter-dialog" class="memory-dialog memory-dialog--letter">
+      <button class="dialog-close" type="button" data-close-dialog aria-label="Đóng thư tri ân">×</button>
+      <div class="letter-mark" aria-hidden="true"></div>
+      <p class="eyebrow">A LETTER FOR PASTEL</p>
+      <h2>Đại dương này vẫn nhớ.</h2>
+      <p>Mỗi ký ức là một giọt nước. Những giọt nước đã tạo nên một đại dương, và đại dương ấy sẽ luôn ghi nhớ hành trình của người đã không ngừng bơi về phía trước.</p>
+      <p>Cảm ơn vì đã bắt đầu, đã lựa chọn tiếp tục và đã trở thành một phần thanh xuân của chúng tôi.</p>
+    </dialog>
+
+    <dialog id="gallery-dialog" class="memory-dialog memory-dialog--gallery">
+      <header>
+        <div>
+          <p class="eyebrow">MEMORY ARCHIVE</p>
+          <h2>Những mảnh ký ức</h2>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog aria-label="Đóng thư viện ảnh">×</button>
+      </header>
+      <div id="gallery-grid" class="gallery-grid"></div>
+    </dialog>
 
     <noscript>
       <div class="noscript-message">Website cần JavaScript để hiển thị hành trình hình ảnh.</div>

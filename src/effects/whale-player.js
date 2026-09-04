@@ -74,6 +74,10 @@ export function createWhalePlayer(canvas, manifest, spriteUrl, reducedMotion = f
   sprite.onload = () => {
     ready = true;
   };
+  sprite.onerror = () => {
+    canvas.classList.add('is-unavailable');
+    window.__blueVoyageEmergencyUnlock?.();
+  };
   sprite.src = spriteUrl;
   resize();
   window.addEventListener('resize', resize, { passive: true });

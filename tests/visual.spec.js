@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const pause = (page) => page.waitForTimeout(550);
 
@@ -23,16 +23,28 @@ test('chụp các cảnh chính để kiểm tra trực quan', async ({ page }) 
   await page.screenshot({ path: 'test-results/intro-holding.png' });
   await page.mouse.up();
 
-  await page.locator('#skip-intro').click();
-  await pause(page);
+  await page.mouse.down();
+  await page.waitForTimeout(4_350);
+  await page.screenshot({ path: 'test-results/intro-transforming.png' });
+  await page.mouse.up();
+  await expect(page.locator('body')).not.toHaveClass(/is-intro-locked/, { timeout: 2_000 });
   await goToProgress(page, '#blue-road', 0.39);
   await page.screenshot({ path: 'test-results/journey-desktop.png' });
 
-  await goToProgress(page, '#storm', 0.68);
+  await goToProgress(page, '#blue-road', 0.92);
+  await page.screenshot({ path: 'test-results/journey-gate-desktop.png' });
+
+  await goToProgress(page, '#storm', 0.53);
   await page.screenshot({ path: 'test-results/storm-desktop.png' });
 
-  await goToProgress(page, '#ocean-remembers', 0.82);
+  await goToProgress(page, '#storm', 0.93);
+  await page.screenshot({ path: 'test-results/storm-breakthrough-desktop.png' });
+
+  await goToProgress(page, '#ocean-remembers', 0.92);
   await page.screenshot({ path: 'test-results/finale-desktop.png' });
+  await page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' }).click();
+  await page.waitForTimeout(1_800);
+  await page.screenshot({ path: 'test-results/finale-outro-desktop.png' });
 });
 
 test('chụp cảnh đầu trên mobile', async ({ browser }) => {
@@ -45,7 +57,10 @@ test('chụp cảnh đầu trên mobile', async ({ browser }) => {
   await pause(page);
   await goToProgress(page, '#blue-road', 0.39);
   await page.screenshot({ path: 'test-results/journey-mobile.png' });
-  await goToProgress(page, '#ocean-remembers', 0.82);
+  await goToProgress(page, '#ocean-remembers', 0.92);
   await page.screenshot({ path: 'test-results/finale-mobile.png' });
+  await page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' }).click();
+  await page.waitForTimeout(1_800);
+  await page.screenshot({ path: 'test-results/finale-outro-mobile.png' });
   await context.close();
 });

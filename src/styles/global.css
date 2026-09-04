@@ -110,6 +110,12 @@ img {
 
 .whale-canvas {
   z-index: 18;
+  transition: opacity 320ms ease;
+}
+
+.whale-canvas.is-hidden,
+.whale-canvas.is-unavailable {
+  opacity: 0;
 }
 
 .film-grain {
@@ -297,6 +303,50 @@ img {
   border: 1px solid #5ee9ff;
   background: #071423;
   text-align: center;
+}
+
+.reduced-next {
+  position: fixed;
+  z-index: 120;
+  right: var(--safe-right);
+  bottom: var(--safe-bottom);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid rgba(151, 235, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(5, 23, 41, 0.88);
+  box-shadow: 0 12px 42px rgba(0, 0, 0, 0.35), 0 0 22px rgba(74, 213, 255, 0.1);
+  color: rgba(235, 252, 255, 0.84);
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  backdrop-filter: blur(12px);
+}
+
+.reduced-next[hidden] {
+  display: none;
+}
+
+.reduced-next i {
+  width: 17px;
+  height: 1px;
+  background: currentColor;
+}
+
+.reduced-next i::after {
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  margin-left: 10px;
+  transform: rotate(45deg);
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  content: '';
 }
 
 @keyframes grain-shift {

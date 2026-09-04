@@ -91,12 +91,66 @@ if (!whaleFrames.length) {
 
 const frameBuffers = [];
 let union = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
+let sourceFrameWidth = 0;
+let sourceFrameHeight = 0;
+
+function softenTransparentEdge(data, info) {
+  const source = Buffer.from(data);
+  const alphaAt = (x, y) => {
+    if (x < 0 || y < 0 || x >= info.width || y >= info.height) return 0;
+    return source[(y * info.width + x) * info.channels + 3];
+  };
+
+  for (let y = 0; y < info.height; y += 1) {
+    for (let x = 0; x < info.width; x += 1) {
+      const offset = (y * info.width + x) * info.channels;
+      if (source[offset + 3] <= 4) continue;
+
+      let touchesTransparency = false;
+      for (let oy = -1; oy <= 1 && !touchesTransparency; oy += 1) {
+        for (let ox = -1; ox <= 1; ox += 1) {
+          if (alphaAt(x + ox, y + oy) <= 4) {
+            touchesTransparency = true;
+            break;
+          }
+        }
+      }
+      if (!touchesTransparency) continue;
+
+      let best = null;
+      for (let oy = -2; oy <= 2; oy += 1) {
+        for (let ox = -2; ox <= 2; ox += 1) {
+          const candidateAlpha = alphaAt(x + ox, y + oy);
+          if (candidateAlpha <= 32) continue;
+          let neighbours = 0;
+          for (let ny = -1; ny <= 1; ny += 1) {
+            for (let nx = -1; nx <= 1; nx += 1) {
+              if (alphaAt(x + ox + nx, y + oy + ny) > 32) neighbours += 1;
+            }
+          }
+          const score = neighbours * 256 + candidateAlpha;
+          if (!best || score > best.score) best = { x: x + ox, y: y + oy, score };
+        }
+      }
+
+      if (best) {
+        const bestOffset = (best.y * info.width + best.x) * info.channels;
+        data[offset] = source[bestOffset];
+        data[offset + 1] = source[bestOffset + 1];
+        data[offset + 2] = source[bestOffset + 2];
+        data[offset + 3] = Math.min(source[offset + 3], 205);
+      }
+    }
+  }
+}
 
 for (const file of whaleFrames) {
   const { data, info } = await sharp(path.join(frameDirectory, file))
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
+  sourceFrameWidth = info.width;
+  sourceFrameHeight = info.height;
   let left = info.width;
   let top = info.height;
   let right = 0;
@@ -104,7 +158,26 @@ for (const file of whaleFrames) {
 
   for (let y = 0; y < info.height; y += 1) {
     for (let x = 0; x < info.width; x += 1) {
-      const alpha = data[(y * info.width + x) * info.channels + 3];
+      const offset = (y * info.width + x) * info.channels;
+      const alpha = data[offset + 3];
+      if (alpha <= 4) {
+        data[offset] = 0;
+        data[offset + 1] = 0;
+        data[offset + 2] = 0;
+        data[offset + 3] = 0;
+        continue;
+      }
+
+      // Khử nền trắng còn lưu trong RGB của các pixel bán trong suốt.
+      // Việc này loại bỏ quầng trắng khi sprite được phóng lớn trên nền biển tối.
+      if (alpha < 255) {
+        const coverage = alpha / 255;
+        for (let channel = 0; channel < 3; channel += 1) {
+          const unmatted = (data[offset + channel] - 255 * (1 - coverage)) / coverage;
+          data[offset + channel] = Math.round(Math.max(0, Math.min(255, unmatted)));
+        }
+      }
+
       if (alpha > 4) {
         left = Math.min(left, x);
         top = Math.min(top, y);
@@ -114,27 +187,36 @@ for (const file of whaleFrames) {
     }
   }
 
+  softenTransparentEdge(data, info);
+
   union.left = Math.min(union.left, left);
   union.top = Math.min(union.top, top);
   union.right = Math.max(union.right, right);
   union.bottom = Math.max(union.bottom, bottom);
-  frameBuffers.push(path.join(frameDirectory, file));
+  frameBuffers.push({ data, info });
 }
 
 const padding = 8;
 union.left = Math.max(0, union.left - padding);
 union.top = Math.max(0, union.top - padding);
-union.right = Math.min(383, union.right + padding);
-union.bottom = Math.min(511, union.bottom + padding);
-const frameWidth = union.right - union.left + 1;
-const frameHeight = union.bottom - union.top + 1;
+union.right = Math.min(sourceFrameWidth - 1, union.right + padding);
+union.bottom = Math.min(sourceFrameHeight - 1, union.bottom + padding);
+const sourceCropWidth = union.right - union.left + 1;
+const sourceCropHeight = union.bottom - union.top + 1;
+const whaleScale = 2;
+const frameWidth = sourceCropWidth * whaleScale;
+const frameHeight = sourceCropHeight * whaleScale;
 const columns = 4;
 const rows = Math.ceil(frameBuffers.length / columns);
 const composites = [];
 
-for (const [index, file] of frameBuffers.entries()) {
-  const input = await sharp(file)
-    .extract({ left: union.left, top: union.top, width: frameWidth, height: frameHeight })
+for (const [index, frame] of frameBuffers.entries()) {
+  const input = await sharp(frame.data, {
+    raw: { width: frame.info.width, height: frame.info.height, channels: frame.info.channels },
+  })
+    .extract({ left: union.left, top: union.top, width: sourceCropWidth, height: sourceCropHeight })
+    .resize(frameWidth, frameHeight, { kernel: sharp.kernel.lanczos3 })
+    .sharpen({ sigma: 0.55, m1: 0.35, m2: 0.7 })
     .png()
     .toBuffer();
   composites.push({
@@ -156,8 +238,16 @@ await sharp({
   .webp({ quality: 88, alphaQuality: 96, effort: 6 })
   .toFile(path.join(whaleOutput, 'blue-whale-sprite.webp'));
 
-await sharp(frameBuffers[0])
-  .extract({ left: union.left, top: union.top, width: frameWidth, height: frameHeight })
+await sharp(frameBuffers[0].data, {
+  raw: {
+    width: frameBuffers[0].info.width,
+    height: frameBuffers[0].info.height,
+    channels: frameBuffers[0].info.channels,
+  },
+})
+  .extract({ left: union.left, top: union.top, width: sourceCropWidth, height: sourceCropHeight })
+  .resize(frameWidth, frameHeight, { kernel: sharp.kernel.lanczos3 })
+  .sharpen({ sigma: 0.55, m1: 0.35, m2: 0.7 })
   .webp({ quality: 86, alphaQuality: 96, effort: 6 })
   .toFile(path.join(whaleOutput, 'blue-whale-still.webp'));
 
