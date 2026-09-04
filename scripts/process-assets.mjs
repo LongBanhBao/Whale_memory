@@ -37,6 +37,14 @@ await Promise.all(sceneAssets.map(({ source, output, width, quality }) => (
     .toFile(path.join(sceneOutput, output))
 )));
 
+// Cắt riêng giọt lớn trong Water.png để làm lớp kính cho các giọt ký ức.
+// Phần nền đen được loại bằng mix-blend-mode: screen trên giao diện.
+await sharp(path.join(sceneSource, 'Water.png'), { limitInputPixels: false })
+  .extract({ left: 610, top: 24, width: 316, height: 382 })
+  .resize({ width: 260, withoutEnlargement: true })
+  .webp({ quality: 90, effort: 6, smartSubsample: true })
+  .toFile(path.join(sceneOutput, 'water-drop.webp'));
+
 const sourcePhotos = (await readdir(photoSource))
   .filter((file) => /^p\d+\.png$/i.test(file))
   .sort((a, b) => Number(a.match(/\d+/)[0]) - Number(b.match(/\d+/)[0]));

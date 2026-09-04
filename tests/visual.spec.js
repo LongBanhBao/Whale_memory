@@ -4,6 +4,7 @@ const pause = (page) => page.waitForTimeout(550);
 
 async function goToProgress(page, selector, progress) {
   await page.evaluate(({ selector: sectionSelector, progress: sectionProgress }) => {
+    document.body.classList.remove('is-intro-locked');
     document.documentElement.style.scrollBehavior = 'auto';
     const section = document.querySelector(sectionSelector);
     window.scrollTo(0, section.offsetTop + (section.offsetHeight - innerHeight) * sectionProgress);
@@ -15,13 +16,16 @@ test('chụp các cảnh chính để kiểm tra trực quan', async ({ page }) 
   await page.goto('/');
   await pause(page);
   await page.screenshot({ path: 'test-results/intro-dark.png' });
-  await goToProgress(page, '#memory-drops', 0.19);
+  await page.locator('#hold-control').hover();
+  await page.mouse.down();
+  await page.waitForTimeout(620);
   await page.screenshot({ path: 'test-results/intro-drops.png' });
-  await goToProgress(page, '#memory-drops', 0.51);
+  await page.waitForTimeout(6_030);
+  await page.mouse.up();
   await page.screenshot({ path: 'test-results/intro-ocean.png' });
-  await goToProgress(page, '#memory-drops', 0.68);
+  await page.waitForTimeout(1_700);
   await page.screenshot({ path: 'test-results/intro-return.png' });
-  await goToProgress(page, '#memory-drops', 0.9);
+  await page.waitForTimeout(4_700);
   await page.screenshot({ path: 'test-results/intro-whale.png' });
   await goToProgress(page, '#blue-road', 0.39);
   await page.screenshot({ path: 'test-results/journey-desktop.png' });
@@ -48,9 +52,12 @@ test('chụp cảnh đầu trên mobile', async ({ browser }) => {
   await page.goto('/');
   await pause(page);
   await page.screenshot({ path: 'test-results/intro-mobile.png' });
-  await goToProgress(page, '#memory-drops', 0.51);
+  await page.locator('#hold-control').hover();
+  await page.mouse.down();
+  await page.waitForTimeout(6_650);
+  await page.mouse.up();
   await page.screenshot({ path: 'test-results/intro-ocean-mobile.png' });
-  await goToProgress(page, '#memory-drops', 0.9);
+  await page.waitForTimeout(6_300);
   await page.screenshot({ path: 'test-results/intro-whale-mobile.png' });
   await goToProgress(page, '#blue-road', 0.39);
   await page.screenshot({ path: 'test-results/journey-mobile.png' });

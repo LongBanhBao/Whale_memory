@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 async function goToProgress(page, selector, progress) {
   await page.evaluate(({ selector: sectionSelector, progress: sectionProgress }) => {
+    document.body.classList.remove('is-intro-locked');
     document.documentElement.style.scrollBehavior = 'auto';
     const section = document.querySelector(sectionSelector);
     window.scrollTo(0, section.offsetTop + (section.offsetHeight - innerHeight) * sectionProgress);
@@ -9,7 +10,7 @@ async function goToProgress(page, selector, progress) {
   await page.waitForTimeout(220);
 }
 
-test('tải đủ bốn cảnh và toàn bộ asset mà không khóa phần mở đầu', async ({ page }) => {
+test('tải đủ bốn cảnh và toàn bộ asset của phần mở đầu', async ({ page }) => {
   const failedResponses = [];
   const runtimeErrors = [];
   page.on('response', (response) => {
@@ -19,16 +20,18 @@ test('tải đủ bốn cảnh và toàn bộ asset mà không khóa phần mở
 
   await page.goto('/');
   await expect(page).toHaveTitle(/The Blue Voyage/);
-  await expect(page.locator('body')).not.toHaveClass(/is-intro-locked/);
+  await expect(page.locator('body')).toHaveClass(/is-intro-locked/);
   await expect(page.locator('.scene')).toHaveCount(4);
-  await expect(page.locator('#hold-control, #skip-intro')).toHaveCount(0);
+  await expect(page.locator('#hold-control')).toBeVisible();
+  await expect(page.locator('#skip-intro')).toHaveCount(0);
   await expect(page.locator('.falling-memory')).toHaveCount(5);
   await expect(page.locator('.water-ripple')).toHaveCount(5);
   await expect(page.locator('#portal-layer > .portal')).toHaveCount(4);
   await expect(page.locator('.memory-tile')).toHaveCount(48);
   await expect.poll(() => page.locator('#intro-backdrop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
+  await expect.poll(() => page.locator('#hold-water-drop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
 
-  await page.locator('#ocean-remembers').scrollIntoViewIfNeeded();
+  await goToProgress(page, '#ocean-remembers', 0.9);
   await page.waitForTimeout(350);
   await expect(page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' })).toBeAttached();
   expect(failedResponses).toEqual([]);
@@ -42,6 +45,9 @@ test('chế độ giảm chuyển động dùng nút chuyển cảnh đơn giả
   });
   const page = await context.newPage();
   await page.goto('/');
+  await expect(page.locator('#hold-label')).toHaveText('CHẠM ĐỂ BẮT ĐẦU');
+  await page.locator('#hold-control').click();
+  await expect(page.locator('body')).not.toHaveClass(/is-intro-locked/, { timeout: 3_000 });
   const nextButton = page.locator('#reduced-next');
   await expect(nextButton).toBeVisible();
   await expect(nextButton).toContainText('CON ĐƯỜNG MÀU XANH');
@@ -58,27 +64,36 @@ test('chế độ giảm chuyển động dùng nút chuyển cảnh đơn giả
 test('năm giọt làm cảnh sáng dần rồi bay ngược vào vầng sáng', async ({ page }) => {
   await page.goto('/');
   const intro = page.locator('.intro-world');
-  const backdrop = page.locator('#intro-backdrop');
+  const darkness = page.locator('.intro-darkness');
+  const hold = page.locator('#hold-control');
 
   await expect(intro).toHaveAttribute('data-stage', 'drops');
   await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--intro-light')))).toBe(0);
-  await expect(backdrop).toHaveCSS('opacity', '0');
+  await expect(darkness).toHaveCSS('opacity', '1');
+  await expect.poll(() => page.locator('.falling-memory').evaluateAll((drops) => (
+    drops.every((drop) => getComputedStyle(drop).opacity === '0')
+  ))).toBe(true);
 
-  await goToProgress(page, '#memory-drops', 0.18);
-  await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--intro-light')))).toBeGreaterThan(0.18);
+  await hold.hover();
+  await page.mouse.down();
+  await page.waitForTimeout(1_350);
+  await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--intro-light')))).toBeGreaterThanOrEqual(0.2);
+  await expect.poll(() => darkness.evaluate((element) => Number.parseFloat(getComputedStyle(element).opacity))).toBeLessThanOrEqual(0.8);
+  await expect(page.locator('.water-ripple.is-active')).toHaveCount(1);
 
-  await goToProgress(page, '#memory-drops', 0.51);
-  await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--intro-light')))).toBeGreaterThan(0.98);
-  await expect(intro).toHaveAttribute('data-stage', 'ocean');
-  await expect.poll(() => page.locator('#intro-backdrop').evaluate((element) => Number.parseFloat(getComputedStyle(element).opacity))).toBeGreaterThan(0.9);
+  const axes = await page.locator('.falling-memory').evaluateAll((drops) => drops.map((drop) => getComputedStyle(drop).left));
+  expect(new Set(axes).size).toBe(1);
 
-  await goToProgress(page, '#memory-drops', 0.67);
-  await expect(intro).toHaveAttribute('data-stage', 'return');
-  await expect(page.locator('.falling-memory.is-ascending')).toHaveCount(3);
-
-  await goToProgress(page, '#memory-drops', 0.9);
+  await page.waitForTimeout(5_300);
+  await page.mouse.up();
+  await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--intro-light')))).toBe(1);
+  await expect(darkness).toHaveCSS('opacity', '0');
+  await expect(page.locator('.water-ripple.is-active')).toHaveCount(5);
+  await expect(page.locator('body')).not.toHaveClass(/is-intro-locked/, { timeout: 8_000 });
   await expect(intro).toHaveAttribute('data-stage', 'whale');
-  await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--whale-emerge')))).toBeGreaterThan(0.65);
+  await expect(intro).toHaveAttribute('data-arrivals', '5');
+  await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--halo-growth')))).toBe(1);
+  await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--whale-emerge')))).toBeGreaterThan(0.98);
 });
 
 test('ánh sáng cuối hành trình nhập vào cá voi ký ức', async ({ page }) => {
@@ -115,7 +130,8 @@ test('đoạn kết mở thư viện và có thể bắt đầu lại', async ({
   await page.getByRole('button', { name: 'Đóng thư viện ảnh' }).click();
   await page.getByRole('button', { name: 'XEM LẠI HÀNH TRÌNH' }).click();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
-  await expect(page.locator('body')).not.toHaveClass(/is-intro-locked/);
+  await expect(page.locator('body')).toHaveClass(/is-intro-locked/);
+  await expect(page.locator('#hold-control')).toBeEnabled();
   await expect(page.locator('.falling-memory')).toHaveCount(5);
 });
 

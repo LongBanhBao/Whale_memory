@@ -25,9 +25,13 @@ const bell = (value, start, peak, end) => (
 const introSection = document.querySelector('#memory-drops');
 const introWorld = document.querySelector('.intro-world');
 const introBackdrop = document.querySelector('#intro-backdrop');
-const introWaterArt = document.querySelector('#intro-water-art');
 const introHalo = document.querySelector('#intro-halo');
 const dropLayer = document.querySelector('#drop-layer');
+const holdControl = document.querySelector('#hold-control');
+const holdProgressRing = document.querySelector('#hold-progress');
+const holdLabel = document.querySelector('#hold-label');
+const holdStatus = document.querySelector('#hold-status');
+const holdWaterDrop = document.querySelector('#hold-water-drop');
 const portalLayer = document.querySelector('#portal-layer');
 const foregroundLayer = document.querySelector('#foreground-layer');
 const driftLayer = document.querySelector('#drift-layer');
@@ -267,9 +271,9 @@ for (const id of dropIds) {
 }
 
 introBackdrop.src = assetUrl('assets/scene/blue-room.webp');
-introWaterArt.src = assetUrl('assets/scene/water.webp');
 introHalo.src = assetUrl('assets/scene/halo.webp');
-for (const artwork of [introBackdrop, introWaterArt, introHalo]) {
+holdWaterDrop.src = assetUrl('assets/scene/water-drop.webp');
+for (const artwork of [introBackdrop, introHalo, holdWaterDrop]) {
   artwork.loading = 'eager';
   artwork.fetchPriority = 'high';
   artwork.decoding = 'async';
@@ -281,114 +285,241 @@ buildMemoryWhale();
 buildGallery();
 outroButtons.forEach((button) => { button.disabled = true; });
 
-const DROP_X = [25, 37.5, 50, 62.5, 75];
-const DROP_FALL_STARTS = [0.035, 0.125, 0.215, 0.305, 0.395];
-const DROP_ABSORB_STARTS = [0.56, 0.605, 0.65, 0.695, 0.74];
-const DROP_FALL_DURATION = 0.095;
-const DROP_ABSORB_DURATION = 0.055;
+const DROP_FALL_STARTS = [0, 0.2, 0.4, 0.6, 0.8];
+const DROP_FALL_DURATION = 0.16;
+const DROP_IMPACTS = DROP_FALL_STARTS.map((start) => start + DROP_FALL_DURATION);
+const HOLD_DURATION = reducedMotion ? 700 : 6500;
+const HOLD_RING_LENGTH = 2 * Math.PI * 67;
 let activeScene = 0;
 let lightSent = false;
 let finalTimeline = null;
 let previousStormProgress = 0;
 let flashPlayed = false;
+let holding = false;
+let holdProgress = 0;
+let heldAt = 0;
+let accumulatedHoldMs = 0;
+let landedCount = 0;
+let introComplete = false;
+let postStarted = false;
+let postTimeline = null;
 
 function buildIntroDrops() {
   return dropIds.map((id, index) => {
     const image = imageById.get(id);
     const wrapper = document.createElement('div');
     const drop = document.createElement('div');
+    const photoFrame = document.createElement('span');
     const ripple = document.createElement('span');
     const dropImage = makeImage(image);
+    const glass = document.createElement('img');
 
     wrapper.className = 'falling-memory';
     wrapper.dataset.drop = `${index + 1}`;
     drop.className = 'memory-drop';
+    photoFrame.className = 'memory-drop__photo';
     dropImage.loading = 'eager';
     dropImage.fetchPriority = 'high';
+    glass.className = 'memory-drop__glass';
+    glass.src = assetUrl('assets/scene/water-drop.webp');
+    glass.alt = '';
+    glass.loading = 'eager';
+    glass.decoding = 'async';
     ripple.className = 'water-ripple';
-    ripple.style.setProperty('--drop-x', `${DROP_X[index]}%`);
-    ripple.append(document.createElement('i'), document.createElement('i'));
-    drop.append(dropImage);
+    ripple.dataset.drop = `${index + 1}`;
+    ripple.append(document.createElement('i'), document.createElement('i'), document.createElement('i'));
+    photoFrame.append(dropImage);
+    drop.append(photoFrame, glass);
     wrapper.append(drop);
     dropLayer.append(ripple, wrapper);
-    return { wrapper, ripple };
+    return { wrapper, ripple, photoFrame };
   });
 }
 
 const introDrops = buildIntroDrops();
 
-function renderIntroScene(progress) {
+function triggerRipple(index) {
+  const ripple = introDrops[index].ripple;
+  ripple.classList.remove('is-active');
+  void ripple.offsetWidth;
+  ripple.classList.add('is-active');
+}
+
+function renderHoldProgress(progress) {
   const viewportHeight = window.innerHeight;
-  const viewportWidth = window.innerWidth;
   const fallDistance = viewportHeight * 0.55;
-  const haloDistance = viewportHeight * 0.28;
   let sceneLight = 0;
-  let impactStrength = 0;
 
-  introDrops.forEach(({ wrapper, ripple }, index) => {
+  introDrops.forEach(({ wrapper }, index) => {
     const fallStart = DROP_FALL_STARTS[index];
-    const fallEnd = fallStart + DROP_FALL_DURATION;
-    const absorbStart = DROP_ABSORB_STARTS[index];
-    const fall = smoothstep((progress - fallStart) / DROP_FALL_DURATION);
-    const absorb = smoothstep((progress - absorbStart) / DROP_ABSORB_DURATION);
-    const landed = smoothstep((progress - (fallEnd - 0.018)) / 0.025);
-    const visible = progress >= fallStart ? 1 - smoothstep((absorb - 0.62) / 0.38) : 0;
-    const squash = bell(progress, fallEnd - 0.014, fallEnd, fallEnd + 0.025);
-    const xShift = (DROP_X[index] - 50) * viewportWidth * 0.01 * fall * (1 - absorb);
-    const yShift = lerp(fallDistance * fall, haloDistance, absorb);
-    const scale = lerp(1, 0.13, absorb);
-    const rotation = (index % 2 ? 4 : -4) * fall * (1 - absorb);
-    const scaleX = scale * (1 + squash * 0.26);
-    const scaleY = scale * (1 - squash * 0.38);
-    const rippleAge = clamp((progress - fallEnd) / 0.075);
-    const rippleOpacity = progress < fallEnd
-      ? 0
-      : (0.12 + (1 - rippleAge) * 0.72) * (1 - absorb);
-    const pulse = bell(progress, fallEnd - 0.012, fallEnd + 0.01, fallEnd + 0.064);
+    const local = clamp((progress - fallStart) / DROP_FALL_DURATION);
+    const hasStarted = progress > fallStart && progress < DROP_IMPACTS[index];
+    const fall = smoothstep(local);
+    const photoReveal = smoothstep(local / 0.3);
+    const impactFade = smoothstep((local - 0.88) / 0.12);
+    const stretch = Math.sin(fall * Math.PI) * 0.11;
+    const squash = bell(local, 0.78, 0.94, 1);
 
-    wrapper.style.opacity = `${visible}`;
-    wrapper.style.transform = `translate(-50%, -50%) translate3d(${xShift}px, ${yShift}px, 0) rotate(${rotation}deg) scale(${scaleX}, ${scaleY})`;
-    wrapper.classList.toggle('is-landed', landed > 0.65 && absorb < 0.05);
-    wrapper.classList.toggle('is-ascending', absorb > 0.02);
-    ripple.style.opacity = `${rippleOpacity}`;
-    ripple.style.transform = `translate(-50%, -50%) scale(${0.12 + rippleAge * (0.9 + index * 0.08)})`;
-    sceneLight += landed * 0.2;
-    if (pulse > impactStrength) {
-      impactStrength = pulse;
-    }
+    wrapper.style.setProperty('--photo-reveal', photoReveal.toFixed(4));
+    wrapper.style.opacity = hasStarted ? `${1 - impactFade}` : '0';
+    wrapper.style.transform = `translate(-50%, -50%) translate3d(0, ${fallDistance * fall}px, 0) scale(${1 - stretch + squash * 0.18}, ${1 + stretch - squash * 0.28})`;
+    sceneLight += smoothstep((progress - (DROP_IMPACTS[index] - 0.006)) / 0.012) * 0.2;
   });
 
-  const backdropReveal = smoothstep((progress - 0.475) / 0.035);
-  const haloReveal = smoothstep((progress - 0.515) / 0.075);
-  const titleReveal = bell(progress, 0.47, 0.535, 0.68);
-  const emerge = smoothstep((progress - 0.79) / 0.18);
-  const whaleArc = Math.sin(emerge * Math.PI);
-
-  introWorld.style.setProperty('--intro-progress', progress.toFixed(4));
   introWorld.style.setProperty('--intro-light', clamp(sceneLight).toFixed(4));
-  introWorld.style.setProperty('--backdrop-reveal', backdropReveal.toFixed(4));
-  introWorld.style.setProperty('--water-impact', impactStrength.toFixed(4));
-  introWorld.style.setProperty('--halo-reveal', haloReveal.toFixed(4));
-  introWorld.style.setProperty('--title-reveal', titleReveal.toFixed(4));
-  introWorld.style.setProperty('--whale-emerge', emerge.toFixed(4));
-  introWorld.dataset.stage = emerge > 0.02
-    ? 'whale'
-    : progress >= DROP_ABSORB_STARTS[0] ? 'return' : backdropReveal > 0.25 ? 'ocean' : 'drops';
-  ambient.setMood('intro', 0.08 + clamp(sceneLight) * 0.5 + haloReveal * 0.18);
+  introWorld.dataset.stage = 'drops';
+  holdProgressRing.style.strokeDashoffset = `${HOLD_RING_LENGTH * (1 - progress)}`;
+  holdControl.classList.toggle('has-started', progress > 0.002);
+  ambient.setMood('intro', 0.08 + clamp(sceneLight) * 0.5);
 
+  while (landedCount < DROP_IMPACTS.length && progress >= DROP_IMPACTS[landedCount]) {
+    triggerRipple(landedCount);
+    landedCount += 1;
+  }
+}
+
+function setWhaleEmergence(progress) {
+  const eased = smoothstep(progress);
+  introWorld.style.setProperty('--whale-emerge', eased.toFixed(4));
   whalePlayer.setPose({
-    x: 0.5 + whaleArc * 0.085 - emerge * 0.02,
-    y: lerp(0.47, 0.54, emerge),
-    scale: lerp(0.16, 0.9, emerge),
-    rotation: lerp(-9, -2, emerge),
-    opacity: smoothstep(emerge / 0.28) * 0.97,
-    glow: lerp(0.94, 0.68, emerge),
-    brightness: lerp(1.28, 1.04, emerge),
+    x: 0.5 + Math.sin(eased * Math.PI) * 0.075 - eased * 0.02,
+    y: lerp(0.48, 0.54, eased),
+    scale: lerp(0.12, 0.9, eased),
+    rotation: lerp(-8, -2, eased),
+    opacity: smoothstep(eased / 0.24) * 0.97,
+    glow: lerp(1, 0.68, eased),
+    brightness: lerp(1.3, 1.04, eased),
   });
 }
 
+function unlockIntro() {
+  introComplete = true;
+  introSection.classList.add('is-complete');
+  document.body.classList.remove('is-intro-locked');
+  holdControl.disabled = true;
+  holdControl.setAttribute('inert', '');
+  holdStatus.textContent = 'Cá voi đã xuất hiện. Cuộn để tiếp tục hành trình.';
+  updateReducedNext();
+  window.setTimeout(() => ScrollTrigger.refresh(), 80);
+}
+
+function startReturnSequence() {
+  if (postStarted) return;
+  postStarted = true;
+  holding = false;
+  holdProgress = 1;
+  accumulatedHoldMs = HOLD_DURATION;
+  renderHoldProgress(1);
+  introWorld.dataset.stage = 'pause';
+  holdControl.classList.add('is-complete');
+  holdLabel.textContent = 'ĐẠI DƯƠNG ĐÃ THỨC GIẤC';
+  holdStatus.textContent = 'Năm giọt ký ức đã chạm mặt nước.';
+
+  if (reducedMotion) {
+    introWorld.style.setProperty('--halo-growth', '1');
+    introWorld.style.setProperty('--title-reveal', '0');
+    introWorld.dataset.arrivals = `${introDrops.length}`;
+    introWorld.dataset.stage = 'whale';
+    introDrops.forEach(({ wrapper }) => { wrapper.style.opacity = '0'; });
+    setWhaleEmergence(1);
+    window.setTimeout(unlockIntro, 120);
+    return;
+  }
+
+  const fallDistance = window.innerHeight * 0.55;
+  const haloDistance = window.innerHeight * 0.28;
+  const whaleState = { progress: 0 };
+  const firstReturnAt = 0.8;
+  const returnSpacing = 0.72;
+  const returnDuration = 0.55;
+
+  introDrops.forEach(({ wrapper }) => {
+    wrapper.classList.add('is-returning');
+    wrapper.style.removeProperty('transform');
+    wrapper.style.setProperty('--photo-reveal', '1');
+    gsap.set(wrapper, {
+      xPercent: -50,
+      yPercent: -50,
+      x: 0,
+      y: fallDistance,
+      scale: 0.92,
+      opacity: 0,
+      rotation: 0,
+    });
+  });
+
+  postTimeline = gsap.timeline({ onComplete: unlockIntro })
+    .to(introWorld, { '--title-reveal': 1, duration: 0.65 }, 0.15);
+
+  introDrops.forEach(({ wrapper }, index) => {
+    const start = firstReturnAt + index * returnSpacing;
+    postTimeline
+      .to(wrapper, { opacity: 1, duration: 0.1 }, start)
+      .to(wrapper, {
+        y: haloDistance,
+        scale: 0.42,
+        duration: returnDuration,
+        ease: 'power2.inOut',
+      }, start + 0.05)
+      .call(() => {
+        introWorld.style.setProperty('--halo-growth', `${(index + 1) / introDrops.length}`);
+        introWorld.dataset.arrivals = `${index + 1}`;
+      }, null, start + 0.05 + returnDuration * 0.86)
+      .to(wrapper, {
+        opacity: 0,
+        scale: 0.1,
+        duration: 0.14,
+        ease: 'power2.in',
+      }, start + 0.05 + returnDuration);
+  });
+
+  const whaleStart = firstReturnAt + (introDrops.length - 1) * returnSpacing + returnDuration + 0.48;
+  postTimeline
+    .to(introWorld, { '--title-reveal': 0, duration: 0.45 }, whaleStart - 0.2)
+    .call(() => { introWorld.dataset.stage = 'whale'; }, null, whaleStart)
+    .to(whaleState, {
+      progress: 1,
+      duration: 1.45,
+      ease: 'power2.out',
+      onUpdate: () => setWhaleEmergence(whaleState.progress),
+    }, whaleStart);
+}
+
+function renderHoldFrame(now) {
+  if (holding && !postStarted) {
+    holdProgress = clamp((accumulatedHoldMs + now - heldAt) / HOLD_DURATION);
+    renderHoldProgress(holdProgress);
+    if (holdProgress >= 1) startReturnSequence();
+  }
+  requestAnimationFrame(renderHoldFrame);
+}
+
+function beginHolding(event) {
+  if (postStarted || introComplete || reducedMotion) return;
+  if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) return;
+  event.preventDefault();
+  if (holding) return;
+  holding = true;
+  heldAt = performance.now();
+  holdControl.classList.add('is-holding');
+  holdLabel.textContent = 'ĐANG THẢ KÝ ỨC';
+  holdStatus.textContent = 'Tiếp tục giữ để thả đủ năm giọt ký ức.';
+  if (event.pointerId !== undefined) holdControl.setPointerCapture?.(event.pointerId);
+}
+
+function endHolding(event) {
+  if (!holding || postStarted) return;
+  if (event.type === 'keyup' && !['Enter', ' '].includes(event.key)) return;
+  accumulatedHoldMs += performance.now() - heldAt;
+  holding = false;
+  heldAt = 0;
+  holdControl.classList.remove('is-holding');
+  holdLabel.textContent = holdProgress > 0 ? 'GIỮ TIẾP ĐỂ ĐÁNH THỨC ĐẠI DƯƠNG' : 'NHẤN VÀ GIỮ';
+  holdStatus.textContent = 'Tiến trình đã được giữ lại. Nhấn giữ để tiếp tục.';
+}
+
 function updateReducedNext() {
-  if (!reducedMotion || activeScene >= 3) {
+  if (!reducedMotion || !introComplete || activeScene >= 3) {
     reducedNext.hidden = true;
     return;
   }
@@ -407,17 +538,28 @@ function setActiveScene(index) {
   updateReducedNext();
 }
 
-ScrollTrigger.create({
-  trigger: introSection,
-  start: 'top top',
-  end: 'bottom bottom',
-  onEnter: () => setActiveScene(0),
-  onEnterBack: () => setActiveScene(0),
-  onUpdate: ({ progress }) => renderIntroScene(progress),
-});
+holdControl.addEventListener('pointerdown', beginHolding);
+holdControl.addEventListener('pointerup', endHolding);
+holdControl.addEventListener('pointercancel', endHolding);
+holdControl.addEventListener('keydown', beginHolding);
+holdControl.addEventListener('keyup', endHolding);
+window.addEventListener('blur', endHolding);
 
-renderIntroScene(0);
-updateReducedNext();
+if (reducedMotion) {
+  holdLabel.textContent = 'CHẠM ĐỂ BẮT ĐẦU';
+  holdControl.addEventListener('click', () => {
+    if (postStarted) return;
+    holdProgress = 1;
+    renderHoldProgress(1);
+    startReturnSequence();
+  });
+}
+
+holdProgressRing.style.strokeDasharray = `${HOLD_RING_LENGTH}`;
+holdProgressRing.style.strokeDashoffset = `${HOLD_RING_LENGTH}`;
+renderHoldProgress(0);
+setWhaleEmergence(0);
+requestAnimationFrame(renderHoldFrame);
 
 function updateDocumentProgress() {
   const maximum = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
@@ -678,7 +820,14 @@ for (const dialog of [letterDialog, galleryDialog]) {
 
 function resetJourney() {
   finalTimeline?.kill();
+  postTimeline?.kill();
   gsap.killTweensOf(breakthroughFlash);
+  introDrops.forEach(({ wrapper, ripple }) => {
+    gsap.killTweensOf(wrapper);
+    wrapper.classList.remove('is-returning');
+    wrapper.removeAttribute('style');
+    ripple.classList.remove('is-active');
+  });
   for (const dialog of [letterDialog, galleryDialog]) if (dialog.open) dialog.close();
   window.scrollTo({ top: 0, behavior: 'auto' });
   lightLayer.replaceChildren();
@@ -694,10 +843,30 @@ function resetJourney() {
   sendLight.disabled = true;
   sendLight.classList.remove('is-ready');
   outroButtons.forEach((button) => { button.disabled = true; });
+  holding = false;
+  holdProgress = 0;
+  heldAt = 0;
+  accumulatedHoldMs = 0;
+  landedCount = 0;
+  introComplete = false;
+  postStarted = false;
+  postTimeline = null;
+  introSection.classList.remove('is-complete');
+  introWorld.dataset.stage = 'drops';
+  delete introWorld.dataset.arrivals;
+  introWorld.style.setProperty('--halo-growth', '0');
+  introWorld.style.setProperty('--title-reveal', '0');
+  holdControl.disabled = false;
+  holdControl.removeAttribute('inert');
+  holdControl.classList.remove('is-complete', 'is-holding', 'has-started');
+  holdLabel.textContent = reducedMotion ? 'CHẠM ĐỂ BẮT ĐẦU' : 'NHẤN VÀ GIỮ';
+  holdStatus.textContent = 'Nhấn và giữ để thả những giọt ký ức.';
+  document.body.classList.add('is-intro-locked');
   setActiveScene(0);
   whaleCanvas.classList.remove('is-hidden');
-  renderIntroScene(0);
-  window.setTimeout(() => ScrollTrigger.update(), 80);
+  renderHoldProgress(0);
+  setWhaleEmergence(0);
+  window.setTimeout(() => ScrollTrigger.refresh(), 80);
 }
 
 replayJourney.addEventListener('click', resetJourney);

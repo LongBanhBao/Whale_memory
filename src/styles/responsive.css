@@ -32,12 +32,15 @@
 
   .falling-memory {
     width: clamp(86px, 25vw, 104px);
-    height: clamp(86px, 25vw, 104px);
   }
 
   .water-ripple {
-    width: 52vw;
-    height: 42px;
+    width: 76vw;
+    height: 38px;
+  }
+
+  .hold-control {
+    transform: translate(-50%, -72px) scale(0.9);
   }
 
   .portal {
@@ -181,6 +184,10 @@
     display: none;
   }
 
+  .hold-control {
+    transform: translate(-50%, -72px) scale(0.72);
+  }
+
   .portal {
     width: 74vh;
   }
@@ -258,7 +265,6 @@
     display: none;
   }
 
-  .scene--intro,
   .scene--journey,
   .scene--storm,
   .scene--finale {

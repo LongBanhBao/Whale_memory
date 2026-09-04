@@ -38,6 +38,11 @@ body {
   overscroll-behavior-y: none;
 }
 
+body.is-intro-locked {
+  height: 100svh;
+  overflow: hidden;
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
@@ -190,7 +195,7 @@ img {
 }
 
 .scene--intro {
-  height: 460vh;
+  min-height: 100svh;
 }
 
 .scene--journey {
