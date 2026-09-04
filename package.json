@@ -1,0 +1,25 @@
+{
+  "name": "the-blue-voyage",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "assets": "node scripts/process-assets.mjs",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "axe-core": "^4.13.0",
+    "sharp": "^0.35.4",
+    "vite": "^8.2.2"
+  }
+}
