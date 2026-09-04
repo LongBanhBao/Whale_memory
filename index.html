@@ -9,6 +9,7 @@
       content="The Blue Voyage — một hành trình ký ức dành cho Pastel."
     />
     <title>The Blue Voyage — Pastel</title>
+    <link rel="stylesheet" href="./app/main.css" />
   </head>
   <body>
     <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
@@ -164,6 +165,14 @@
       <div class="noscript-message">Website cần JavaScript để hiển thị hành trình hình ảnh.</div>
     </noscript>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module">
+      const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      if (isDevelopment) {
+        await import('/src/main.js');
+      } else {
+        window.__BLUE_VOYAGE_ASSET_ROOT__ = './public/';
+        await import('./app/main.js');
+      }
+    </script>
   </body>
 </html>

@@ -9,7 +9,7 @@ import { createAmbientCanvas } from './effects/ambient-canvas.js';
 gsap.registerPlugin(ScrollTrigger);
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
+const assetUrl = (path) => `${window.__BLUE_VOYAGE_ASSET_ROOT__ ?? import.meta.env.BASE_URL}${path}`;
 const imageById = new Map(images.map((image) => [image.id, image]));
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const lerp = (from, to, amount) => from + (to - from) * amount;

@@ -21,6 +21,10 @@ npm run build
 npm run test:e2e
 ```
 
+Lệnh build tạo hai đầu ra tương đương: `dist/` cho GitHub Actions và bundle
+`app/` ở thư mục gốc cho trường hợp GitHub Pages đang xuất bản trực tiếp từ
+nhánh `main`. Nhờ vậy cả hai chế độ đều tải đủ CSS, JavaScript và hình ảnh.
+
 ## Asset
 
 - Ảnh nguồn: `../Picture/p1.png` đến `../Picture/p19.png`.
