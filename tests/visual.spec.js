@@ -25,7 +25,9 @@ test('chụp các cảnh chính để kiểm tra trực quan', async ({ page }) 
   await page.screenshot({ path: 'test-results/intro-ocean.png' });
   await page.waitForTimeout(1_700);
   await page.screenshot({ path: 'test-results/intro-return.png' });
-  await page.waitForTimeout(4_700);
+  await page.waitForTimeout(2_250);
+  await page.screenshot({ path: 'test-results/intro-whale-emerging.png' });
+  await page.waitForTimeout(2_450);
   await page.screenshot({ path: 'test-results/intro-whale.png' });
   await goToProgress(page, '#blue-road', 0.39);
   await page.screenshot({ path: 'test-results/journey-desktop.png' });

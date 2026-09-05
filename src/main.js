@@ -26,6 +26,9 @@ const introSection = document.querySelector('#memory-drops');
 const introWorld = document.querySelector('.intro-world');
 const introBackdrop = document.querySelector('#intro-backdrop');
 const introHalo = document.querySelector('#intro-halo');
+const introMemoryLight = document.querySelector('#intro-memory-light');
+const introWhaleSwimmer = document.querySelector('#intro-whale-swimmer');
+const introWhaleStill = document.querySelector('#intro-whale-still');
 const dropLayer = document.querySelector('#drop-layer');
 const holdControl = document.querySelector('#hold-control');
 const holdProgressRing = document.querySelector('#hold-progress');
@@ -272,8 +275,9 @@ for (const id of dropIds) {
 
 introBackdrop.src = assetUrl('assets/scene/blue-room.webp');
 introHalo.src = assetUrl('assets/scene/halo.webp');
+introWhaleStill.src = assetUrl(whale.still);
 holdWaterDrop.src = assetUrl('assets/scene/water-drop.webp');
-for (const artwork of [introBackdrop, introHalo, holdWaterDrop]) {
+for (const artwork of [introBackdrop, introHalo, introWhaleStill, holdWaterDrop]) {
   artwork.loading = 'eager';
   artwork.fetchPriority = 'high';
   artwork.decoding = 'async';
@@ -345,6 +349,13 @@ function triggerRipple(index) {
   ripple.classList.add('is-active');
 }
 
+function triggerMemoryBloom(level) {
+  introWorld.style.setProperty('--memory-glow', level.toFixed(3));
+  introMemoryLight.classList.remove('is-pulsing');
+  void introMemoryLight.offsetWidth;
+  introMemoryLight.classList.add('is-pulsing');
+}
+
 function renderHoldProgress(progress) {
   const viewportHeight = window.innerHeight;
   const fallDistance = viewportHeight * 0.55;
@@ -380,16 +391,21 @@ function renderHoldProgress(progress) {
 
 function setWhaleEmergence(progress) {
   const eased = smoothstep(progress);
+  const retreat = smoothstep((eased - 0.04) / 0.88);
+  const horizontalWave = Math.sin(eased * Math.PI * 3) * (1 - eased) * 0.058;
+  const verticalWave = Math.sin(eased * Math.PI * 2) * (1 - eased * 0.45) * 0.04;
+  const rotationWave = Math.sin(eased * Math.PI * 3) * (1 - eased) * 9;
+  const scale = lerp(0.045, 1.02, eased ** 0.78);
+
   introWorld.style.setProperty('--whale-emerge', eased.toFixed(4));
-  whalePlayer.setPose({
-    x: 0.5 + Math.sin(eased * Math.PI) * 0.075 - eased * 0.02,
-    y: lerp(0.48, 0.54, eased),
-    scale: lerp(0.12, 0.9, eased),
-    rotation: lerp(-8, -2, eased),
-    opacity: smoothstep(eased / 0.24) * 0.97,
-    glow: lerp(1, 0.68, eased),
-    brightness: lerp(1.3, 1.04, eased),
-  });
+  introWorld.style.setProperty('--portal-retreat', retreat.toFixed(4));
+  introWhaleSwimmer.style.setProperty('--whale-x', `${(0.5 + horizontalWave + eased * 0.035) * 100}%`);
+  introWhaleSwimmer.style.setProperty('--whale-y', `${(0.49 + verticalWave + eased * 0.055) * 100}%`);
+  introWhaleSwimmer.style.setProperty('--whale-scale', scale.toFixed(4));
+  introWhaleSwimmer.style.setProperty('--whale-rotation', `${lerp(-16, -7, eased) + rotationWave}deg`);
+  introWhaleSwimmer.style.setProperty('--whale-opacity', `${smoothstep(eased / 0.14) * 0.98}`);
+  introWhaleSwimmer.style.setProperty('--whale-depth', eased.toFixed(4));
+  introWhaleSwimmer.style.setProperty('--whale-bend', `${Math.sin(eased * Math.PI * 4) * (1 - eased) * 2.2}deg`);
 }
 
 function unlockIntro() {
@@ -414,9 +430,11 @@ function startReturnSequence() {
   holdControl.classList.add('is-complete');
   holdLabel.textContent = 'ĐẠI DƯƠNG ĐÃ THỨC GIẤC';
   holdStatus.textContent = 'Năm giọt ký ức đã chạm mặt nước.';
+  whalePlayer.setPose({ opacity: 0 });
 
   if (reducedMotion) {
     introWorld.style.setProperty('--halo-growth', '1');
+    introWorld.style.setProperty('--memory-glow', '1');
     introWorld.style.setProperty('--title-reveal', '0');
     introWorld.dataset.arrivals = `${introDrops.length}`;
     introWorld.dataset.stage = 'whale';
@@ -429,9 +447,9 @@ function startReturnSequence() {
   const fallDistance = window.innerHeight * 0.55;
   const haloDistance = window.innerHeight * 0.28;
   const whaleState = { progress: 0 };
-  const firstReturnAt = 0.8;
-  const returnSpacing = 0.72;
-  const returnDuration = 0.55;
+  const firstReturnAt = 0.68;
+  const returnSpacing = 0.46;
+  const returnDuration = 0.34;
 
   introDrops.forEach(({ wrapper }) => {
     wrapper.classList.add('is-returning');
@@ -462,25 +480,27 @@ function startReturnSequence() {
         ease: 'power2.inOut',
       }, start + 0.05)
       .call(() => {
-        introWorld.style.setProperty('--halo-growth', `${(index + 1) / introDrops.length}`);
+        const growth = (index + 1) / introDrops.length;
+        introWorld.style.setProperty('--halo-growth', `${growth}`);
         introWorld.dataset.arrivals = `${index + 1}`;
+        triggerMemoryBloom(growth);
       }, null, start + 0.05 + returnDuration * 0.86)
       .to(wrapper, {
         opacity: 0,
         scale: 0.1,
-        duration: 0.14,
+        duration: 0.1,
         ease: 'power2.in',
       }, start + 0.05 + returnDuration);
   });
 
-  const whaleStart = firstReturnAt + (introDrops.length - 1) * returnSpacing + returnDuration + 0.48;
+  const whaleStart = firstReturnAt + (introDrops.length - 1) * returnSpacing + returnDuration + 0.38;
   postTimeline
     .to(introWorld, { '--title-reveal': 0, duration: 0.45 }, whaleStart - 0.2)
     .call(() => { introWorld.dataset.stage = 'whale'; }, null, whaleStart)
     .to(whaleState, {
       progress: 1,
-      duration: 1.45,
-      ease: 'power2.out',
+      duration: 2.65,
+      ease: 'none',
       onUpdate: () => setWhaleEmergence(whaleState.progress),
     }, whaleStart);
 }
@@ -855,7 +875,10 @@ function resetJourney() {
   introWorld.dataset.stage = 'drops';
   delete introWorld.dataset.arrivals;
   introWorld.style.setProperty('--halo-growth', '0');
+  introWorld.style.setProperty('--memory-glow', '0');
+  introWorld.style.setProperty('--portal-retreat', '0');
   introWorld.style.setProperty('--title-reveal', '0');
+  introMemoryLight.classList.remove('is-pulsing');
   holdControl.disabled = false;
   holdControl.removeAttribute('inert');
   holdControl.classList.remove('is-complete', 'is-holding', 'has-started');
@@ -864,6 +887,7 @@ function resetJourney() {
   document.body.classList.add('is-intro-locked');
   setActiveScene(0);
   whaleCanvas.classList.remove('is-hidden');
+  whalePlayer.setPose({ opacity: 0 });
   renderHoldProgress(0);
   setWhaleEmergence(0);
   window.setTimeout(() => ScrollTrigger.refresh(), 80);

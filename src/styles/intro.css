@@ -1,6 +1,8 @@
 .intro-world {
   --intro-light: 0;
   --halo-growth: 0;
+  --memory-glow: 0;
+  --portal-retreat: 0;
   --title-reveal: 0;
   --whale-emerge: 0;
   isolation: isolate;
@@ -52,14 +54,14 @@
   left: 50%;
   width: min(124vw, 1640px);
   height: min(100svh, 1080px);
-  transform: translate(-50%, -50%) scale(calc(0.08 + var(--halo-growth) * 0.92));
+  transform: translate(-50%, -50%) scale(calc(0.08 + var(--halo-growth) * 0.92 - var(--portal-retreat) * 0.76));
   object-fit: contain;
-  opacity: calc(var(--halo-growth) * 0.82 * (1 - var(--whale-emerge) * 0.38));
+  opacity: calc(var(--halo-growth) * 0.82 * (1 - var(--portal-retreat)));
   filter: brightness(1.12) saturate(0.9) hue-rotate(-6deg);
   mix-blend-mode: screen;
   mask-image: radial-gradient(ellipse at center, #000 14%, rgba(0, 0, 0, 0.94) 55%, transparent 87%);
   transform-origin: center;
-  transition: transform 420ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 360ms ease;
+  transition: transform 320ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 180ms linear;
 }
 
 .intro-halo-core {
@@ -69,14 +71,138 @@
   left: 50%;
   width: clamp(52px, 11vw, 170px);
   aspect-ratio: 1;
-  transform: translate(-50%, -50%) scale(calc(0.12 + var(--halo-growth) * 0.9));
+  transform: translate(-50%, -50%) scale(calc(0.12 + var(--halo-growth) * 0.9 - var(--portal-retreat) * 0.84));
   border-radius: 50%;
   background: radial-gradient(circle, rgba(248, 254, 255, 0.98), rgba(105, 229, 255, 0.42) 21%, transparent 70%);
   box-shadow: 0 0 75px rgba(78, 215, 255, 0.44);
-  opacity: calc(var(--halo-growth) * (1 - var(--whale-emerge) * 0.82));
+  opacity: calc(var(--halo-growth) * (1 - var(--portal-retreat)));
   filter: blur(4px);
   pointer-events: none;
-  transition: transform 420ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 360ms ease;
+  transition: transform 320ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 180ms linear;
+}
+
+.intro-memory-light {
+  position: absolute;
+  z-index: 28;
+  top: 49%;
+  left: 50%;
+  width: min(86vmin, 860px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.memory-light__bloom,
+.memory-light__afterglow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.memory-light__bloom {
+  width: 54%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(calc(0.12 + var(--memory-glow) * 0.88 - var(--portal-retreat) * 0.58));
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.72) 0 2%, rgba(239, 252, 255, 0.26) 13%, transparent 55%),
+    conic-gradient(from 18deg, transparent, rgba(255, 255, 255, 0.16), transparent 9%, transparent 22%, rgba(222, 249, 255, 0.13), transparent 32%, transparent 100%);
+  box-shadow: 0 0 80px rgba(232, 251, 255, 0.18);
+  opacity: calc(var(--memory-glow) * (1 - var(--portal-retreat) * 0.88));
+  filter: blur(1.5px);
+  mask-image: radial-gradient(circle, #000 0 31%, rgba(0, 0, 0, 0.62) 47%, transparent 70%);
+  transition: transform 300ms ease, opacity 180ms linear;
+}
+
+.memory-light__afterglow {
+  width: 25%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(calc(0.58 + var(--portal-retreat) * 0.44));
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.52), rgba(226, 248, 255, 0.14) 19%, transparent 68%);
+  box-shadow: 0 0 90px rgba(233, 252, 255, 0.2);
+  opacity: calc(var(--memory-glow) * (0.13 + var(--portal-retreat) * 0.18));
+  filter: blur(8px);
+}
+
+.intro-memory-light i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  transform: rotate(var(--mote-angle)) translateX(calc(42px + var(--memory-glow) * 21vmin));
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 9px rgba(231, 251, 255, 0.9);
+  opacity: calc(var(--memory-glow) * (1 - var(--portal-retreat) * 0.72));
+  animation: memory-mote 2.6s var(--mote-delay) ease-in-out infinite;
+  transform-origin: 0 0;
+}
+
+.intro-memory-light.is-pulsing .memory-light__bloom {
+  animation: memory-bloom 420ms ease-out;
+}
+
+@keyframes memory-bloom {
+  0% { filter: blur(4px) brightness(1); }
+  32% { filter: blur(1px) brightness(1.85); }
+  100% { filter: blur(1.5px) brightness(1); }
+}
+
+@keyframes memory-mote {
+  0%, 100% { margin: -4px 0 0 -4px; scale: 0.65; }
+  50% { margin: 5px 0 0 5px; scale: 1.35; }
+}
+
+.intro-whale-swimmer {
+  --whale-x: 50%;
+  --whale-y: 49%;
+  --whale-scale: 0.045;
+  --whale-rotation: -16deg;
+  --whale-opacity: 0;
+  --whale-depth: 0;
+  --whale-bend: 0deg;
+  position: absolute;
+  z-index: 30;
+  top: var(--whale-y);
+  left: var(--whale-x);
+  width: min(52vw, 760px);
+  transform: translate(-50%, -50%) rotate(var(--whale-rotation)) scale(var(--whale-scale));
+  transform-origin: 52% 52%;
+  opacity: var(--whale-opacity);
+  filter:
+    blur(calc((1 - var(--whale-depth)) * 5px))
+    brightness(calc(1.03 + (1 - var(--whale-depth)) * 0.72))
+    drop-shadow(0 0 calc(18px + (1 - var(--whale-depth)) * 36px) rgba(226, 251, 255, 0.5));
+  pointer-events: none;
+  will-change: top, left, transform, opacity, filter;
+}
+
+.intro-whale-swimmer img {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  transform: skewY(var(--whale-bend));
+  transform-origin: 64% 52%;
+  filter: saturate(0.94) contrast(1.02);
+}
+
+.intro-whale__wake {
+  position: absolute;
+  z-index: 1;
+  top: 49%;
+  left: -12%;
+  width: 66%;
+  height: 24%;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, rgba(225, 250, 255, 0.08) 45%, rgba(245, 254, 255, 0.35));
+  box-shadow: 20px 0 36px rgba(222, 249, 255, 0.18);
+  opacity: calc(var(--whale-depth) * 0.72);
+  filter: blur(8px);
+  mask-image: linear-gradient(90deg, transparent, #000);
 }
 
 .intro-copy {

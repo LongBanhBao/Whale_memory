@@ -30,6 +30,14 @@
     width: 150vw;
   }
 
+  .intro-memory-light {
+    width: 108vmin;
+  }
+
+  .intro-whale-swimmer {
+    width: min(86vw, 680px);
+  }
+
   .falling-memory {
     width: clamp(86px, 25vw, 104px);
   }
@@ -186,6 +194,10 @@
 
   .hold-control {
     transform: translate(-50%, -72px) scale(0.72);
+  }
+
+  .intro-whale-swimmer {
+    width: min(58vw, 540px);
   }
 
   .portal {

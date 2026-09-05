@@ -30,6 +30,7 @@ test('tải đủ bốn cảnh và toàn bộ asset của phần mở đầu', a
   await expect(page.locator('.memory-tile')).toHaveCount(48);
   await expect.poll(() => page.locator('#intro-backdrop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
   await expect.poll(() => page.locator('#hold-water-drop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
+  await expect.poll(() => page.locator('#intro-whale-still').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
 
   await goToProgress(page, '#ocean-remembers', 0.9);
   await page.waitForTimeout(350);
@@ -94,6 +95,11 @@ test('năm giọt làm cảnh sáng dần rồi bay ngược vào vầng sáng',
   await expect(intro).toHaveAttribute('data-arrivals', '5');
   await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--halo-growth')))).toBe(1);
   await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--whale-emerge')))).toBeGreaterThan(0.98);
+  await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--portal-retreat')))).toBeGreaterThan(0.98);
+  await expect(page.locator('#intro-halo')).toHaveCSS('opacity', '0');
+  await expect.poll(() => page.locator('#intro-whale-swimmer').evaluate((element) => (
+    Number.parseFloat(getComputedStyle(element).getPropertyValue('--whale-x'))
+  ))).toBeGreaterThan(53);
 });
 
 test('ánh sáng cuối hành trình nhập vào cá voi ký ức', async ({ page }) => {
