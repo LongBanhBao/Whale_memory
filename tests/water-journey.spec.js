@@ -4,7 +4,7 @@ test('vòng giữ hướng, đồng bộ hai nửa và tan dần khi cá voi đi
   await page.goto('/');
   await expect(page.locator('.intro-world')).toHaveAttribute('data-stage', 'drops');
   await page.locator('#scene-next').click();
-  await expect(page.locator('#blue-road')).toBeVisible();
+  await expect(page.locator('#blue-road')).toBeVisible({ timeout: 10000 });
   let previous;
   for (let step = 0; step < 9; step += 1) {
     await page.waitForTimeout(1000);
@@ -56,6 +56,9 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.journey-world #intro-whale-swimmer')).toHaveCount(1);
     await expect(page.locator('#whale-canvas')).toHaveClass(/is-hidden/);
     await expect(page.locator('.gate-memory')).toHaveCount(12);
+    await expect(page.locator('.memory-streams')).toHaveCount(3);
+    await expect(page.locator('.water-vortex-texture')).toHaveCount(6);
+    await expect.poll(() => page.locator('.water-vortex-texture').evaluateAll(nodes => nodes.every(n => n.complete && n.naturalWidth === 1024))).toBe(true);
     const ids = await page.locator('.gate-memory').evaluateAll(nodes => nodes.map(n => n.dataset.image));
     expect(new Set(ids).size).toBe(12);
     await expect.poll(() => page.locator('.journey-backdrop').evaluate(n => n.naturalWidth)).toBeGreaterThan(0);

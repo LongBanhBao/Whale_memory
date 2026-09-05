@@ -24,8 +24,15 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     const gate = document.createElement('div');
     gate.className = 'portal water-gate';
     gate.dataset.gate = index + 1;
+    gate.style.setProperty('--vortex-texture', `url("${assetUrl('assets/scene/xrw-vortex.webp')}")`);
     const ring = document.createElement('div');
     ring.className = 'water-gate__ring';
+    const texture = document.createElement('img');
+    texture.className = 'water-vortex-texture';
+    texture.src = assetUrl('assets/scene/xrw-vortex.webp');
+    texture.alt = '';
+    texture.decoding = 'async';
+    ring.append(texture);
     // A fixed perspective plane contains the rotating current. Rotating the
     // plane itself would reverse the perceived entrance halfway through.
     const current = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -58,18 +65,33 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     }
     ring.append(current);
     gate.append(ring);
+    const streams = document.createElementNS(current.namespaceURI, 'svg');
+    streams.setAttribute('viewBox', '0 0 400 400');
+    streams.classList.add('memory-streams');
+    const routes = [
+      'M72 72 C20 168 168 120 200 200',
+      'M328 72 C232 20 280 168 200 200',
+      'M328 328 C380 232 232 280 200 200',
+      'M72 328 C168 380 120 232 200 200',
+    ];
+    routes.forEach((route) => {
+      for (const kind of ['body', 'foam', 'glint']) {
+        const path = document.createElementNS(current.namespaceURI, 'path');
+        path.setAttribute('d', route);
+        path.setAttribute('pathLength', '100');
+        path.setAttribute('class', `memory-stream memory-stream--${kind}`);
+        streams.append(path);
+      }
+    });
+    gate.append(streams);
     ids.forEach((id, n) => {
       const memory = document.createElement('figure');
       memory.className = 'gate-memory';
       memory.dataset.image = id;
-      const angle = [-132, -48, 48, 132][n] * Math.PI / 180;
-      // Photos sit inside the water's rim, rather than in unrelated cards.
-      const px = Math.cos(angle) * .38 * .62;
-      const py = Math.sin(angle) * .38;
-      const tilt = -22 * Math.PI / 180;
-      memory.style.left = `${(0.5 + px * Math.cos(tilt) - py * Math.sin(tilt)) * 100}%`;
-      memory.style.top = `${(0.5 + px * Math.sin(tilt) + py * Math.cos(tilt)) * 100}%`;
-      memory.style.setProperty('--tilt', `${[-12, 8, -8, 12][n]}deg`);
+      const [x, y] = [[18, 18], [82, 18], [82, 82], [18, 82]][n];
+      memory.style.left = `${x}%`;
+      memory.style.top = `${y}%`;
+      memory.style.setProperty('--tilt', `${[-5, 5, -5, 5][n]}deg`);
       const photo = makeImage(imageById.get(id));
       photo.loading = 'eager';
       memory.append(photo);
@@ -114,6 +136,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       const y = .50 - distance * .075;
       const alpha = (1 - ease((-distance - .36) / .5)) * (1 - returning);
       const memories = ease((1.05 - distance) / .55) * (1 - ease((-distance - .12) / .55));
+      streamsFor(gate, p);
       for (const layer of [gate, lip]) {
         layer.style.left = `${x * 100}%`;
         layer.style.top = `${y * 100}%`;
@@ -136,4 +159,10 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   }
 
   return { render, pose, transition };
+}
+
+function streamsFor(gate, progress) {
+  // Progress drives both halves and connector foam; no independent animations
+  // can drift out of sync after replay, pausing or reduced-motion navigation.
+  gate.style.setProperty('--stream-offset', `${-progress * 700}`);
 }
