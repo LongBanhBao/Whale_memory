@@ -53,6 +53,7 @@
           </div>
           <div id="intro-whale-swimmer" class="intro-whale-swimmer" aria-hidden="true">
             <span class="intro-whale__wake"></span>
+            <canvas id="intro-whale-mesh"></canvas>
             <img id="intro-whale-still" alt="" />
           </div>
 
@@ -76,10 +77,6 @@
           </button>
           <p id="hold-status" class="sr-only" aria-live="polite">Nhấn và giữ để thả những giọt ký ức.</p>
 
-          <div class="scroll-cue intro-scroll-cue" aria-hidden="true">
-            <span>CUỘN ĐỂ TIẾP TỤC</span>
-            <i></i>
-          </div>
         </div>
       </section>
 
@@ -104,7 +101,6 @@
           </div>
           <div class="journey-color-drain" aria-hidden="true"></div>
           <div class="journey-vignette" aria-hidden="true"></div>
-          <div class="scroll-cue journey-scroll-cue" aria-hidden="true"><i></i></div>
         </div>
       </section>
 
@@ -165,8 +161,8 @@
       </section>
     </main>
 
-    <button id="reduced-next" class="reduced-next" type="button" hidden>
-      <span>TIẾP TỤC</span><i aria-hidden="true"></i>
+    <button id="scene-next" class="reduced-next" type="button">
+      <span>tiếp</span><i aria-hidden="true"></i>
     </button>
 
     <dialog id="letter-dialog" class="memory-dialog memory-dialog--letter">

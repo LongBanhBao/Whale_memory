@@ -159,48 +159,60 @@
 .intro-whale-swimmer {
   --whale-x: 50%;
   --whale-y: 49%;
-  --whale-scale: 0.045;
+  --whale-scale: 0.16;
   --whale-rotation: -16deg;
   --whale-opacity: 0;
   --whale-depth: 0;
-  --whale-bend: 0deg;
   position: absolute;
   z-index: 30;
   top: var(--whale-y);
   left: var(--whale-x);
-  width: min(52vw, 760px);
+  width: min(62vw, 900px);
+  aspect-ratio: 100 / 59;
   transform: translate(-50%, -50%) rotate(var(--whale-rotation)) scale(var(--whale-scale));
   transform-origin: 52% 52%;
   opacity: var(--whale-opacity);
   filter:
-    blur(calc((1 - var(--whale-depth)) * 5px))
-    brightness(calc(1.03 + (1 - var(--whale-depth)) * 0.72))
-    drop-shadow(0 0 calc(18px + (1 - var(--whale-depth)) * 36px) rgba(226, 251, 255, 0.5));
+    blur(calc((1 - var(--whale-depth)) * 1.8px))
+    brightness(calc(1.02 + (1 - var(--whale-depth)) * 0.25))
+    drop-shadow(0 0 calc(8px + (1 - var(--whale-depth)) * 18px) rgba(196, 241, 255, 0.24));
   pointer-events: none;
   will-change: top, left, transform, opacity, filter;
 }
 
 .intro-whale-swimmer img {
-  position: relative;
+  position: absolute;
   z-index: 2;
-  width: 100%;
-  transform: skewY(var(--whale-bend));
-  transform-origin: 64% 52%;
+  top: -40.4%;
+  left: 8%;
+  width: 84%;
   filter: saturate(0.94) contrast(1.02);
 }
+
+.intro-whale-swimmer canvas {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+.intro-whale-swimmer.has-swim-mesh canvas { opacity: 1; }
+.intro-whale-swimmer.has-swim-mesh img { visibility: hidden; }
 
 .intro-whale__wake {
   position: absolute;
   z-index: 1;
-  top: 49%;
-  left: -12%;
-  width: 66%;
-  height: 24%;
+  top: 54%;
+  left: -9%;
+  width: 32%;
+  height: 5%;
   transform: translateY(-50%);
   border-radius: 50%;
   background: linear-gradient(90deg, transparent, rgba(225, 250, 255, 0.08) 45%, rgba(245, 254, 255, 0.35));
   box-shadow: 20px 0 36px rgba(222, 249, 255, 0.18);
-  opacity: calc(var(--whale-depth) * 0.72);
+  opacity: calc(var(--whale-depth) * (1 - var(--whale-depth)) * 0.8);
   filter: blur(8px);
   mask-image: linear-gradient(90deg, transparent, #000);
 }

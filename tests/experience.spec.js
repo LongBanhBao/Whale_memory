@@ -1,14 +1,5 @@
 import { expect, test } from '@playwright/test';
-
-async function goToProgress(page, selector, progress) {
-  await page.evaluate(({ selector: sectionSelector, progress: sectionProgress }) => {
-    document.body.classList.remove('is-intro-locked');
-    document.documentElement.style.scrollBehavior = 'auto';
-    const section = document.querySelector(sectionSelector);
-    window.scrollTo(0, section.offsetTop + (section.offsetHeight - innerHeight) * sectionProgress);
-  }, { selector, progress });
-  await page.waitForTimeout(220);
-}
+import { goToProgress } from './scene-helpers.js';
 
 test('tải đủ bốn cảnh và toàn bộ asset của phần mở đầu', async ({ page }) => {
   const failedResponses = [];
@@ -49,13 +40,13 @@ test('chế độ giảm chuyển động dùng nút chuyển cảnh đơn giả
   await expect(page.locator('#hold-label')).toHaveText('CHẠM ĐỂ BẮT ĐẦU');
   await page.locator('#hold-control').click();
   await expect(page.locator('body')).not.toHaveClass(/is-intro-locked/, { timeout: 3_000 });
-  const nextButton = page.locator('#reduced-next');
+  const nextButton = page.locator('#scene-next');
   await expect(nextButton).toBeVisible();
-  await expect(nextButton).toContainText('CON ĐƯỜNG MÀU XANH');
+  await expect(nextButton).toHaveText('tiếp');
   await nextButton.click();
-  await expect(nextButton).toContainText('VÙNG BIỂN TỐI');
+  await expect(page.locator('#blue-road')).toBeVisible();
   await nextButton.click();
-  await expect(nextButton).toContainText('ĐẠI DƯƠNG KÝ ỨC');
+  await expect(page.locator('#storm')).toBeVisible();
   await nextButton.click();
   await expect(nextButton).toBeHidden();
   await expect(page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' })).toBeEnabled();
@@ -90,7 +81,7 @@ test('năm giọt làm cảnh sáng dần rồi bay ngược vào vầng sáng',
   await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--intro-light')))).toBe(1);
   await expect(darkness).toHaveCSS('opacity', '0');
   await expect(page.locator('.water-ripple.is-active')).toHaveCount(5);
-  await expect(page.locator('body')).not.toHaveClass(/is-intro-locked/, { timeout: 8_000 });
+  await expect(page.locator('body')).not.toHaveClass(/is-intro-locked/, { timeout: 12_000 });
   await expect(intro).toHaveAttribute('data-stage', 'whale');
   await expect(intro).toHaveAttribute('data-arrivals', '5');
   await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--halo-growth')))).toBe(1);
@@ -114,7 +105,7 @@ test('ánh sáng cuối hành trình nhập vào cá voi ký ức', async ({ pag
 
 test('không thể kích hoạt nút kết khi chưa đến đoạn cuối', async ({ page }) => {
   await page.goto('/');
-  const sendButton = page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' });
+  const sendButton = page.locator('#send-light');
   await expect(sendButton).toBeDisabled();
   await page.keyboard.press('Tab');
   await page.keyboard.press('Tab');

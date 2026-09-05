@@ -35,7 +35,7 @@
   }
 
   .intro-whale-swimmer {
-    width: min(86vw, 680px);
+    width: 96vw;
   }
 
   .falling-memory {
@@ -280,7 +280,7 @@
   .scene--journey,
   .scene--storm,
   .scene--finale {
-    height: 180vh;
+    height: 100svh;
   }
 
   .memory-whale,

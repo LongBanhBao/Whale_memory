@@ -1,16 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { goToProgress } from './scene-helpers.js';
+
+test.setTimeout(90_000);
 
 const pause = (page) => page.waitForTimeout(550);
 
-async function goToProgress(page, selector, progress) {
-  await page.evaluate(({ selector: sectionSelector, progress: sectionProgress }) => {
-    document.body.classList.remove('is-intro-locked');
-    document.documentElement.style.scrollBehavior = 'auto';
-    const section = document.querySelector(sectionSelector);
-    window.scrollTo(0, section.offsetTop + (section.offsetHeight - innerHeight) * sectionProgress);
-  }, { selector, progress });
-  await pause(page);
-}
 
 test('chụp các cảnh chính để kiểm tra trực quan', async ({ page }) => {
   await page.goto('/');
@@ -27,7 +21,7 @@ test('chụp các cảnh chính để kiểm tra trực quan', async ({ page }) 
   await page.screenshot({ path: 'test-results/intro-return.png' });
   await page.waitForTimeout(2_250);
   await page.screenshot({ path: 'test-results/intro-whale-emerging.png' });
-  await page.waitForTimeout(2_450);
+  await expect(page.locator('#memory-drops')).toHaveClass(/is-complete/, { timeout: 8_000 });
   await page.screenshot({ path: 'test-results/intro-whale.png' });
   await goToProgress(page, '#blue-road', 0.39);
   await page.screenshot({ path: 'test-results/journey-desktop.png' });
@@ -59,7 +53,7 @@ test('chụp cảnh đầu trên mobile', async ({ browser }) => {
   await page.waitForTimeout(6_650);
   await page.mouse.up();
   await page.screenshot({ path: 'test-results/intro-ocean-mobile.png' });
-  await page.waitForTimeout(6_300);
+  await expect(page.locator('#memory-drops')).toHaveClass(/is-complete/, { timeout: 12_000 });
   await page.screenshot({ path: 'test-results/intro-whale-mobile.png' });
   await goToProgress(page, '#blue-road', 0.39);
   await page.screenshot({ path: 'test-results/journey-mobile.png' });

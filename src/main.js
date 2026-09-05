@@ -1,12 +1,11 @@
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import './styles/main.css';
 import { images, whale } from './data/assets.generated.js';
 import { dropIds, driftIds, portalGroups, sceneColors } from './data/journey.js';
 import { createWhalePlayer } from './effects/whale-player.js';
+import { createIntroWhale } from './effects/intro-whale.js';
 import { createAmbientCanvas } from './effects/ambient-canvas.js';
 
-gsap.registerPlugin(ScrollTrigger);
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const assetUrl = (path) => `${window.__BLUE_VOYAGE_ASSET_ROOT__ ?? import.meta.env.BASE_URL}${path}`;
@@ -29,6 +28,7 @@ const introHalo = document.querySelector('#intro-halo');
 const introMemoryLight = document.querySelector('#intro-memory-light');
 const introWhaleSwimmer = document.querySelector('#intro-whale-swimmer');
 const introWhaleStill = document.querySelector('#intro-whale-still');
+const introWhale = createIntroWhale(document.querySelector('#intro-whale-mesh'), introWhaleStill, reducedMotion);
 const dropLayer = document.querySelector('#drop-layer');
 const holdControl = document.querySelector('#hold-control');
 const holdProgressRing = document.querySelector('#hold-progress');
@@ -61,7 +61,9 @@ const openGallery = document.querySelector('#open-gallery');
 const letterDialog = document.querySelector('#letter-dialog');
 const galleryDialog = document.querySelector('#gallery-dialog');
 const galleryGrid = document.querySelector('#gallery-grid');
-const reducedNext = document.querySelector('#reduced-next');
+const reducedNext = document.querySelector('#scene-next');
+const sections = [...document.querySelectorAll('.scene')];
+let sceneTimeline = null;
 const whaleCanvas = document.querySelector('#whale-canvas');
 const sceneDots = [...document.querySelectorAll('.scene-progress__dot')];
 const progressLine = document.querySelector('#progress-line');
@@ -391,21 +393,25 @@ function renderHoldProgress(progress) {
 
 function setWhaleEmergence(progress) {
   const eased = smoothstep(progress);
-  const retreat = smoothstep((eased - 0.04) / 0.88);
-  const horizontalWave = Math.sin(eased * Math.PI * 3) * (1 - eased) * 0.058;
-  const verticalWave = Math.sin(eased * Math.PI * 2) * (1 - eased * 0.45) * 0.04;
-  const rotationWave = Math.sin(eased * Math.PI * 3) * (1 - eased) * 9;
-  const scale = lerp(0.045, 1.02, eased ** 0.78);
+  const retreat = smoothstep((eased - 0.12) / 0.84);
+  // A single flowing turn with zero velocity at arrival. Perspective, rather
+  // than linear zoom, makes the approach read as travel through the water.
+  const t = eased;
+  const inverse = 1 - t;
+  const x = inverse ** 3 * 0.5 + 3 * inverse ** 2 * t * 0.40 + 3 * inverse * t ** 2 * 0.46 + t ** 3 * 0.55;
+  const y = inverse ** 3 * 0.48 + 3 * inverse ** 2 * t * 0.61 + 3 * inverse * t ** 2 * 0.54 + t ** 3 * 0.49;
+  const scale = 0.16 / (1 - 0.84 * t);
 
   introWorld.style.setProperty('--whale-emerge', eased.toFixed(4));
   introWorld.style.setProperty('--portal-retreat', retreat.toFixed(4));
-  introWhaleSwimmer.style.setProperty('--whale-x', `${(0.5 + horizontalWave + eased * 0.035) * 100}%`);
-  introWhaleSwimmer.style.setProperty('--whale-y', `${(0.49 + verticalWave + eased * 0.055) * 100}%`);
+  introWhaleSwimmer.style.setProperty('--whale-x', `${x * 100}%`);
+  introWhaleSwimmer.style.setProperty('--whale-y', `${y * 100}%`);
   introWhaleSwimmer.style.setProperty('--whale-scale', scale.toFixed(4));
-  introWhaleSwimmer.style.setProperty('--whale-rotation', `${lerp(-16, -7, eased) + rotationWave}deg`);
-  introWhaleSwimmer.style.setProperty('--whale-opacity', `${smoothstep(eased / 0.14) * 0.98}`);
+  introWhaleSwimmer.style.setProperty('--whale-rotation', `${lerp(12, -9, t) + Math.sin(t * Math.PI) * 6}deg`);
+  introWhaleSwimmer.style.setProperty('--whale-opacity', `${smoothstep(eased / 0.055) * 0.98}`);
   introWhaleSwimmer.style.setProperty('--whale-depth', eased.toFixed(4));
-  introWhaleSwimmer.style.setProperty('--whale-bend', `${Math.sin(eased * Math.PI * 4) * (1 - eased) * 2.2}deg`);
+  introWhale.setDepth(eased);
+  introWhale.setActive(activeScene === 0 && progress > 0);
 }
 
 function unlockIntro() {
@@ -414,9 +420,8 @@ function unlockIntro() {
   document.body.classList.remove('is-intro-locked');
   holdControl.disabled = true;
   holdControl.setAttribute('inert', '');
-  holdStatus.textContent = 'Cá voi đã xuất hiện. Cuộn để tiếp tục hành trình.';
+  holdStatus.textContent = 'Cá voi đã xuất hiện. Nhấn tiếp để sang cảnh tiếp theo.';
   updateReducedNext();
-  window.setTimeout(() => ScrollTrigger.refresh(), 80);
 }
 
 function startReturnSequence() {
@@ -499,7 +504,7 @@ function startReturnSequence() {
     .call(() => { introWorld.dataset.stage = 'whale'; }, null, whaleStart)
     .to(whaleState, {
       progress: 1,
-      duration: 2.65,
+      duration: 4.8,
       ease: 'none',
       onUpdate: () => setWhaleEmergence(whaleState.progress),
     }, whaleStart);
@@ -539,21 +544,19 @@ function endHolding(event) {
 }
 
 function updateReducedNext() {
-  if (!reducedMotion || !introComplete || activeScene >= 3) {
-    reducedNext.hidden = true;
-    return;
-  }
-  const labels = [
-    'ĐI ĐẾN CON ĐƯỜNG MÀU XANH',
-    'ĐI QUA VÙNG BIỂN TỐI',
-    'ĐẾN ĐẠI DƯƠNG KÝ ỨC',
-  ];
-  reducedNext.querySelector('span').textContent = labels[activeScene];
-  reducedNext.hidden = false;
+  reducedNext.hidden = activeScene >= sections.length - 1;
 }
 
 function setActiveScene(index) {
+  sceneTimeline?.kill();
   activeScene = index;
+  introWhale.setActive(index === 0 && introComplete);
+  sections.forEach((section, sectionIndex) => {
+    section.hidden = sectionIndex !== index;
+    section.inert = sectionIndex !== index;
+  });
+  progressLine.style.transform = `scaleX(${index / (sections.length - 1)})`;
+  whaleCanvas.classList.toggle('is-hidden', index === 0 || index === 3);
   sceneDots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex <= index));
   updateReducedNext();
 }
@@ -581,38 +584,26 @@ renderHoldProgress(0);
 setWhaleEmergence(0);
 requestAnimationFrame(renderHoldFrame);
 
-function updateDocumentProgress() {
-  const maximum = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-  progressLine.style.transform = `scaleX(${clamp(window.scrollY / maximum)})`;
-}
-
-let scrollQueued = false;
-window.addEventListener('scroll', () => {
-  if (scrollQueued) return;
-  scrollQueued = true;
-  requestAnimationFrame(() => {
-    updateDocumentProgress();
-    scrollQueued = false;
-  });
-}, { passive: true });
-
 reducedNext.addEventListener('click', () => {
-  const nextIndex = Math.min(3, activeScene + 1);
-  const sections = ['#memory-drops', '#blue-road', '#storm', '#ocean-remembers'];
-  const section = document.querySelector(sections[nextIndex]);
-  const progress = nextIndex === 3 ? 0.92 : 0.42;
-  window.scrollTo({
-    top: section.offsetTop + (section.offsetHeight - window.innerHeight) * progress,
-    behavior: 'auto',
-  });
+  if (activeScene >= 3) return;
+  endHolding({ type: 'pointercancel' });
+  postTimeline?.kill();
+  setActiveScene(activeScene + 1);
+  const render = [null, renderJourney, renderStorm, renderFinale][activeScene];
+  const state = { progress: 0 };
+  render({ progress: reducedMotion ? 0.92 : 0 });
+  if (!reducedMotion) {
+    sceneTimeline = gsap.to(state, {
+      progress: 1,
+      duration: [0, 18, 14, 12][activeScene],
+      ease: 'none',
+      onUpdate: () => render(state),
+    });
+  }
+  sections[activeScene].focus({ preventScroll: true });
 });
 
-ScrollTrigger.create({
-  trigger: '#blue-road', start: 'top top', end: 'bottom bottom',
-  onEnter: () => setActiveScene(1),
-  onEnterBack: () => setActiveScene(1),
-  onLeaveBack: () => setActiveScene(0),
-  onUpdate: ({ progress }) => {
+function renderJourney({ progress }) {
     const gateCenters = [0.08, 0.31, 0.54, 0.75];
     const currentGate = gateCenters.reduce((closest, center, index) => (
       Math.abs(progress - center) < Math.abs(progress - gateCenters[closest]) ? index : closest
@@ -660,8 +651,7 @@ ScrollTrigger.create({
       glow: 0.55 + progress * 0.32,
       brightness: 1 - colorDrain * 0.42,
     });
-  },
-});
+}
 
 function playBreakthroughFlash() {
   if (reducedMotion) return;
@@ -673,12 +663,7 @@ function playBreakthroughFlash() {
     .to(breakthroughFlash, { opacity: 0, duration: 0.62, ease: 'power2.out' });
 }
 
-ScrollTrigger.create({
-  trigger: '#storm', start: 'top top', end: 'bottom bottom',
-  onEnter: () => setActiveScene(2),
-  onEnterBack: () => setActiveScene(2),
-  onLeaveBack: () => setActiveScene(1),
-  onUpdate: ({ progress }) => {
+function renderStorm({ progress }) {
     const scatter = smoothstep(progress / 0.25);
     const memoryReturn = smoothstep((progress - 0.38) / 0.24);
     const companionsReveal = smoothstep((progress - 0.4) / 0.2);
@@ -723,15 +708,9 @@ ScrollTrigger.create({
       glow: lerp(0.1, 1, companionsReveal),
       brightness: lerp(0.52, 1.38, companionsReveal),
     });
-  },
-});
+}
 
-ScrollTrigger.create({
-  trigger: '#ocean-remembers', start: 'top top', end: 'bottom bottom',
-  onEnter: () => { setActiveScene(3); whaleCanvas.classList.add('is-hidden'); },
-  onEnterBack: () => { setActiveScene(3); whaleCanvas.classList.add('is-hidden'); },
-  onLeaveBack: () => { setActiveScene(2); whaleCanvas.classList.remove('is-hidden'); },
-  onUpdate: ({ progress }) => {
+function renderFinale({ progress }) {
     [0.1, 0.24, 0.38, 0.52].forEach((center, index) => {
       const opacity = bell(progress, center - 0.085, center, center + 0.1);
       finaleWorld.style.setProperty(`--tribute-${index + 1}`, opacity.toFixed(4));
@@ -753,8 +732,7 @@ ScrollTrigger.create({
     sendLight.classList.toggle('is-ready', ready);
     whalePlayer.setPose({ opacity: 0 });
     ambient.setMood('finale', 0.58 + progress * 0.38);
-  },
-});
+}
 
 function revealOutro() {
   lightSent = true;
@@ -839,6 +817,8 @@ for (const dialog of [letterDialog, galleryDialog]) {
 }
 
 function resetJourney() {
+  introWhale.setActive(false);
+  introWhale.reset();
   finalTimeline?.kill();
   postTimeline?.kill();
   gsap.killTweensOf(breakthroughFlash);
@@ -849,7 +829,6 @@ function resetJourney() {
     ripple.classList.remove('is-active');
   });
   for (const dialog of [letterDialog, galleryDialog]) if (dialog.open) dialog.close();
-  window.scrollTo({ top: 0, behavior: 'auto' });
   lightLayer.replaceChildren();
   lightSent = false;
   flashPlayed = false;
@@ -886,16 +865,16 @@ function resetJourney() {
   holdStatus.textContent = 'Nhấn và giữ để thả những giọt ký ức.';
   document.body.classList.add('is-intro-locked');
   setActiveScene(0);
-  whaleCanvas.classList.remove('is-hidden');
   whalePlayer.setPose({ opacity: 0 });
   renderHoldProgress(0);
   setWhaleEmergence(0);
-  window.setTimeout(() => ScrollTrigger.refresh(), 80);
 }
 
 replayJourney.addEventListener('click', resetJourney);
 
-window.addEventListener('load', () => {
-  updateDocumentProgress();
-  ScrollTrigger.refresh();
+document.querySelector('.wordmark').addEventListener('click', (event) => {
+  event.preventDefault();
+  resetJourney();
 });
+sections.forEach((section) => { section.tabIndex = -1; });
+setActiveScene(0);

@@ -22,6 +22,8 @@
 }
 
 html {
+  height: 100%;
+  overflow: hidden;
   background: #020712;
   scroll-behavior: smooth;
   scrollbar-color: rgba(93, 220, 255, 0.42) #020712;
@@ -29,6 +31,8 @@ html {
 }
 
 body {
+  height: 100svh;
+  overflow: hidden;
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
@@ -194,24 +198,27 @@ img {
   isolation: isolate;
 }
 
+.scene[hidden] { display: none; }
+.scene:focus { outline: none; }
+
 .scene--intro {
   min-height: 100svh;
 }
 
 .scene--journey {
-  height: 500vh;
+  height: 100svh;
 }
 
 .scene--storm {
-  height: 260vh;
+  height: 100svh;
 }
 
 .scene--finale {
-  height: 320vh;
+  height: 100svh;
 }
 
 .scene__sticky {
-  position: sticky;
+  position: relative;
   top: 0;
   width: 100%;
   height: 100svh;
@@ -302,7 +309,7 @@ img {
   box-shadow: 0 12px 42px rgba(0, 0, 0, 0.35), 0 0 22px rgba(74, 213, 255, 0.1);
   color: rgba(235, 252, 255, 0.84);
   cursor: pointer;
-  font-size: 8px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.17em;
   backdrop-filter: blur(12px);
