@@ -17,7 +17,7 @@ test('tải đủ bốn cảnh và toàn bộ asset của phần mở đầu', a
   await expect(page.locator('#skip-intro')).toHaveCount(0);
   await expect(page.locator('.falling-memory')).toHaveCount(5);
   await expect(page.locator('.water-ripple')).toHaveCount(5);
-  await expect(page.locator('#portal-layer > .portal')).toHaveCount(4);
+  await expect(page.locator('#portal-layer > .portal')).toHaveCount(3);
   await expect(page.locator('.memory-tile')).toHaveCount(48);
   await expect.poll(() => page.locator('#intro-backdrop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
   await expect.poll(() => page.locator('#hold-water-drop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);

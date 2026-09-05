@@ -13,6 +13,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
     uniform float u_phase;
     uniform float u_strength;
     uniform float u_depth;
+    uniform float u_turn;
     void main() {
       v_uv = a_uv;
       float tail = 1.0 - smoothstep(0.18, 0.76, a_uv.x);
@@ -21,6 +22,8 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
       // The shoulder stays stable; the wave grows toward the tailstock.
       float bend = stroke * pow(tail, 1.65) * 0.19 * u_strength;
       p.y += bend;
+      p.y += u_turn * pow(tail, 1.4) * 0.12;
+      p.x += abs(u_turn) * tail * 0.035;
       // Flukes fold slightly during the power stroke, then open on recovery.
       p.x += sin(u_phase - 1.6) * pow(tail, 3.0) * 0.026 * u_strength;
       p.y += (a_uv.y - 0.755) * pow(tail, 3.0) * sin(u_phase - 1.2) * 0.28 * u_strength;
@@ -97,7 +100,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
   const attribute = gl.getAttribLocation(program, 'a_uv');
   gl.enableVertexAttribArray(attribute);
   gl.vertexAttribPointer(attribute, 2, gl.FLOAT, false, 0, 0);
-  const uniforms = Object.fromEntries(['phase', 'strength', 'depth'].map((key) => [key, gl.getUniformLocation(program, `u_${key}`)]));
+  const uniforms = Object.fromEntries(['phase', 'strength', 'depth', 'turn'].map((key) => [key, gl.getUniformLocation(program, `u_${key}`)]));
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -106,6 +109,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
   let depth = 0;
+  let turn = 0;
   let phase = 0;
   let active = false;
   let ready = false;
@@ -130,6 +134,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
     gl.uniform1f(uniforms.phase, phase);
     gl.uniform1f(uniforms.strength, reducedMotion ? 0 : 1.0 - depth * 0.48);
     gl.uniform1f(uniforms.depth, depth);
+    gl.uniform1f(uniforms.turn, reducedMotion ? 0 : turn);
     gl.drawArrays(gl.TRIANGLES, 0, points.length / 2);
     if (!reducedMotion) frame = requestAnimationFrame(draw);
   }
@@ -164,6 +169,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
   });
 
   return {
+    setBend(value) { turn = value; schedule(); },
     setDepth(value) {
       depth = value;
       schedule();
@@ -178,6 +184,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
       } else schedule();
     },
     reset() {
+      turn = 0;
       depth = 0;
       phase = 0;
       previousTime = 0;

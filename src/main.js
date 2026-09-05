@@ -1,8 +1,9 @@
 import { gsap } from 'gsap';
 import './styles/main.css';
 import { images, whale } from './data/assets.generated.js';
-import { dropIds, driftIds, portalGroups, sceneColors } from './data/journey.js';
+import { dropIds, portalGroups } from './data/journey.js';
 import { createWhalePlayer } from './effects/whale-player.js';
+import { createWaterJourney, JOURNEY_DURATION } from './effects/water-journey.js';
 import { createIntroWhale } from './effects/intro-whale.js';
 import { createAmbientCanvas } from './effects/ambient-canvas.js';
 
@@ -37,7 +38,6 @@ const holdStatus = document.querySelector('#hold-status');
 const holdWaterDrop = document.querySelector('#hold-water-drop');
 const portalLayer = document.querySelector('#portal-layer');
 const foregroundLayer = document.querySelector('#foreground-layer');
-const driftLayer = document.querySelector('#drift-layer');
 const journeyWorld = document.querySelector('.journey-world');
 const stormWorld = document.querySelector('.storm-world');
 const shardField = document.querySelector('#shard-field');
@@ -85,74 +85,6 @@ function makeImage(image, variant = 'src', decorative = true) {
   element.loading = 'lazy';
   element.decoding = 'async';
   return element;
-}
-
-function buildPortals() {
-  return portalGroups.map((group, portalIndex) => {
-    const portal = document.createElement('div');
-    portal.className = 'portal';
-    portal.style.setProperty('--portal-color', sceneColors[portalIndex]);
-
-    for (const className of ['portal__halo', 'portal__ring', 'portal__core']) {
-      const layer = document.createElement('span');
-      layer.className = className;
-      portal.append(layer);
-    }
-
-    for (let sparkIndex = 0; sparkIndex < 12; sparkIndex += 1) {
-      const spark = document.createElement('i');
-      spark.className = 'portal__spark';
-      spark.style.setProperty('--angle', `${sparkIndex * 30}deg`);
-      spark.style.setProperty('--delay', `${-sparkIndex * 0.13}s`);
-      portal.append(spark);
-    }
-
-    group.slice(0, 2).forEach((id) => {
-      const card = document.createElement('div');
-      card.className = 'portal-card';
-      card.append(makeImage(imageById.get(id)));
-      portal.append(card);
-    });
-
-    for (let dustIndex = 0; dustIndex < 14; dustIndex += 1) {
-      const dust = document.createElement('b');
-      dust.className = 'portal-dust';
-      dust.style.setProperty('--dust-angle', `${dustIndex * (360 / 14)}deg`);
-      dust.style.setProperty('--dust-delay', `${(dustIndex % 5) * 0.08}`);
-      portal.append(dust);
-    }
-
-    const foreground = document.createElement('div');
-    foreground.className = 'portal portal--foreground';
-    foreground.style.setProperty('--portal-color', sceneColors[portalIndex]);
-    const foregroundCard = document.createElement('div');
-    foregroundCard.className = 'portal-card portal-card--foreground';
-    foregroundCard.append(makeImage(imageById.get(group[2])));
-    foreground.append(foregroundCard);
-
-    portalLayer.append(portal);
-    foregroundLayer.append(foreground);
-    return { portal, foreground };
-  });
-}
-
-function buildDriftMemories() {
-  const positions = [
-    [8, 31, -12], [91, 18, 9], [7, 72, 8], [92, 67, -7],
-    [20, 88, -14], [80, 87, 12], [84, 41, 5],
-  ];
-  return driftIds.map((id, index) => {
-    const memory = document.createElement('div');
-    const [x, y, rotation] = positions[index];
-    memory.className = 'drift-memory';
-    memory.style.setProperty('--x', `${x}%`);
-    memory.style.setProperty('--y', `${y}%`);
-    memory.style.setProperty('--rotation', `${rotation}deg`);
-    memory.style.setProperty('--blur', `${index % 3 === 0 ? 1.8 : 0.6}px`);
-    memory.append(makeImage(imageById.get(id), 'thumb'));
-    driftLayer.append(memory);
-    return memory;
-  });
 }
 
 function buildStorm() {
@@ -284,8 +216,13 @@ for (const artwork of [introBackdrop, introHalo, introWhaleStill, holdWaterDrop]
   artwork.fetchPriority = 'high';
   artwork.decoding = 'async';
 }
-const portals = buildPortals();
-const driftMemories = buildDriftMemories();
+const waterJourney = createWaterJourney({
+  world: journeyWorld, back: portalLayer, front: foregroundLayer,
+  groups: portalGroups, imageById, makeImage, assetUrl,
+  swimmer: introWhaleSwimmer, mesh: introWhale,
+});
+introWorld.append(waterJourney.transition);
+let sceneTransition = null;
 const { companions } = buildStorm();
 buildMemoryWhale();
 buildGallery();
@@ -550,13 +487,14 @@ function updateReducedNext() {
 function setActiveScene(index) {
   sceneTimeline?.kill();
   activeScene = index;
-  introWhale.setActive(index === 0 && introComplete);
+  (index === 1 ? journeyWorld : introWorld).append(introWhaleSwimmer);
+  introWhale.setActive(index === 1 || (index === 0 && introComplete));
   sections.forEach((section, sectionIndex) => {
     section.hidden = sectionIndex !== index;
     section.inert = sectionIndex !== index;
   });
   progressLine.style.transform = `scaleX(${index / (sections.length - 1)})`;
-  whaleCanvas.classList.toggle('is-hidden', index === 0 || index === 3);
+  whaleCanvas.classList.toggle('is-hidden', index <= 1 || index === 3);
   sceneDots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex <= index));
   updateReducedNext();
 }
@@ -584,73 +522,53 @@ renderHoldProgress(0);
 setWhaleEmergence(0);
 requestAnimationFrame(renderHoldFrame);
 
-reducedNext.addEventListener('click', () => {
-  if (activeScene >= 3) return;
-  endHolding({ type: 'pointercancel' });
-  postTimeline?.kill();
+function advanceScene() {
   setActiveScene(activeScene + 1);
   const render = [null, renderJourney, renderStorm, renderFinale][activeScene];
   const state = { progress: 0 };
-  render({ progress: reducedMotion ? 0.92 : 0 });
+  render({ progress: reducedMotion ? (activeScene === 1 ? 1 : 0.92) : 0 });
   if (!reducedMotion) {
     sceneTimeline = gsap.to(state, {
       progress: 1,
-      duration: [0, 18, 14, 12][activeScene],
+      duration: [0, JOURNEY_DURATION, 14, 12][activeScene],
       ease: 'none',
       onUpdate: () => render(state),
     });
   }
+  reducedNext.disabled = false;
   sections[activeScene].focus({ preventScroll: true });
+}
+
+reducedNext.addEventListener('click', () => {
+  if (activeScene >= 3 || reducedNext.disabled) return;
+  endHolding({ type: 'pointercancel' });
+  postTimeline?.kill();
+  if (activeScene !== 0 || reducedMotion) {
+    advanceScene();
+    return;
+  }
+  reducedNext.disabled = true;
+  holdControl.disabled = true;
+  holdControl.classList.add('is-complete');
+  introDrops.forEach(({ wrapper }) => { wrapper.style.opacity = '0'; });
+  introWorld.style.setProperty('--intro-light', '1');
+  introWorld.style.setProperty('--title-reveal', '0');
+  setWhaleEmergence(1);
+  const retreat = { progress: 0 };
+  sceneTransition = gsap.timeline({ onComplete: advanceScene })
+    .to(retreat, {
+      progress: 1, duration: 1.65, ease: 'sine.inOut',
+      onUpdate: () => waterJourney.pose(
+        lerp(.55, .18, retreat.progress), lerp(.49, .57, retreat.progress),
+        lerp(1, .48, retreat.progress), lerp(-9, -4, retreat.progress),
+      ),
+    })
+    .to(waterJourney.transition, { opacity: 1, duration: .85, ease: 'sine.inOut' });
 });
 
-function renderJourney({ progress }) {
-    const gateCenters = [0.08, 0.31, 0.54, 0.75];
-    const currentGate = gateCenters.reduce((closest, center, index) => (
-      Math.abs(progress - center) < Math.abs(progress - gateCenters[closest]) ? index : closest
-    ), 0);
-    const gateProgress = smoothstep((progress - 0.82) / 0.11);
-    const gateCrack = smoothstep((progress - 0.875) / 0.07);
-    const gateBreak = smoothstep((progress - 0.94) / 0.055);
-    const colorDrain = smoothstep((progress - 0.8) / 0.19);
-
-    journeyWorld.style.setProperty('--journey-progress', progress.toFixed(4));
-    journeyWorld.style.setProperty('--journey-light', `${0.4 + progress * 0.6}`);
-    journeyWorld.style.setProperty('--scene-accent', sceneColors[currentGate]);
-    journeyWorld.style.setProperty('--gate-progress', gateProgress.toFixed(4));
-    journeyWorld.style.setProperty('--gate-crack', gateCrack.toFixed(4));
-    journeyWorld.style.setProperty('--gate-break', gateBreak.toFixed(4));
-    journeyWorld.style.setProperty('--color-drain', colorDrain.toFixed(4));
-    ambient.setMood('journey', 0.48 + progress * 0.34);
-
-    portals.forEach(({ portal, foreground }, index) => {
-      const center = gateCenters[index];
-      const visible = smoothstep((0.19 - Math.abs(progress - center)) / 0.09) * (1 - gateProgress);
-      const phase = clamp((progress - (center - 0.17)) / 0.34);
-      const travelX = (0.5 - phase) * window.innerWidth * 0.17;
-      const scale = 0.66 + phase * 0.54;
-      for (const layer of [portal, foreground]) {
-        layer.style.opacity = `${visible}`;
-        layer.style.transform = `translate(calc(-50% + ${travelX}px), -50%) scale(${scale})`;
-        layer.style.setProperty('--portal-strength', visible.toFixed(3));
-        layer.classList.toggle('is-active', visible > 0.42);
-      }
-    });
-
-    driftMemories.forEach((memory, index) => {
-      const wave = Math.sin(progress * Math.PI * 2 + index * 0.84);
-      memory.style.setProperty('--drift-opacity', `${(0.05 + Math.max(0, wave) * 0.22) * (1 - colorDrain)}`);
-      memory.style.translate = `${wave * (8 + index)}px ${progress * (index % 2 ? -42 : 52)}px`;
-    });
-
-    whalePlayer.setPose({
-      x: lerp(0.48 + Math.sin(progress * Math.PI * 6) * 0.052, 0.5, gateProgress),
-      y: lerp(0.54 + Math.sin(progress * Math.PI * 4) * 0.033, 0.52, gateProgress),
-      scale: lerp(0.9 + Math.sin(progress * Math.PI * 2) * 0.05, 0.58, gateProgress),
-      rotation: Math.sin(progress * Math.PI * 5) * 2 + gateProgress * 6,
-      opacity: 0.96 - gateBreak * 0.38,
-      glow: 0.55 + progress * 0.32,
-      brightness: 1 - colorDrain * 0.42,
-    });
+function renderJourney(state) {
+  waterJourney.render(state);
+  ambient.setMood('journey', .68);
 }
 
 function playBreakthroughFlash() {
@@ -817,6 +735,9 @@ for (const dialog of [letterDialog, galleryDialog]) {
 }
 
 function resetJourney() {
+  sceneTransition?.kill();
+  gsap.set(waterJourney.transition, { opacity: 0 });
+  reducedNext.disabled = false;
   introWhale.setActive(false);
   introWhale.reset();
   finalTimeline?.kill();

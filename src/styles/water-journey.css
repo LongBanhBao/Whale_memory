@@ -1,0 +1,56 @@
+.journey-world { isolation: isolate; background: #07364f; filter: none; }
+.journey-backdrop, .journey-transition-backdrop {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  pointer-events: none;
+}
+.journey-backdrop { z-index: 0; will-change: transform; filter: brightness(.72) saturate(.88); }
+.journey-transition-backdrop { z-index: 29; opacity: 0; filter: brightness(.72) saturate(.88); }
+.journey-world .portal-layer { z-index: 8; }
+.journey-world .foreground-layer { z-index: 35; }
+.journey-world .journey-vignette { z-index: 38; }
+.journey-world .water-gate {
+  position: absolute; width: min(64vh, 56vw, 650px); aspect-ratio: 1;
+  pointer-events: none; will-change: transform, opacity;
+}
+.water-gate__ring { position: absolute; inset: 6%; transform: rotate(-22deg) scaleX(.62); filter: url('#water-refraction'); }
+.water-gate__ring::before {
+  content: ''; position: absolute; inset: -9%; border-radius: 50%;
+  background: radial-gradient(ellipse, transparent 49%, #8eecff22 60%, #d2ffff44 64%, transparent 73%);
+  filter: blur(9px);
+}
+.water-gate__ring i {
+  position: absolute; inset: calc(2% + var(--strand) * 1%);
+  border: 2px solid #bdfbff90; border-left-color: #e5ffffee; border-bottom-color: #6ad1ff35;
+  border-radius: 48% 52% 49% 51%;
+  box-shadow: 0 0 7px #b5faff90, inset 0 0 5px #7ceaff80;
+  transform: rotate(calc(var(--strand) * 39deg));
+  animation: water-filament calc(9s + var(--strand) * .8s) linear infinite;
+  animation-delay: calc(var(--strand) * -1.4s);
+}
+.water-gate__ring i:nth-child(3n) { border-style: dashed; border-width: 1px; }
+.water-gate--near { mask-image: linear-gradient(110deg, transparent 43%, #000 57%); }
+.gate-memory {
+  position: absolute; margin: 0; width: 25%; aspect-ratio: 3 / 4;
+  padding: 5px; border: 1px solid #c5f8ff55; border-radius: 8px;
+  background: #164a6880; box-shadow: 0 12px 35px #00132288, 0 0 22px #9eeeff25;
+  opacity: var(--memory-visibility, 0); overflow: hidden;
+  transform: translateY(calc((1 - var(--memory-visibility, 0)) * 28px)) rotate(var(--tilt));
+}
+.gate-memory:nth-of-type(1) { left: -8%; top: 8%; --tilt: -8deg; }
+.gate-memory:nth-of-type(2) { right: -8%; top: 0; --tilt: 7deg; }
+.gate-memory:nth-of-type(3) { left: 0; bottom: -2%; --tilt: -5deg; }
+.gate-memory:nth-of-type(4) { right: -5%; bottom: 4%; --tilt: 9deg; }
+.gate-memory img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 4px; filter: saturate(.9); }
+.journey-world .intro-whale__wake { opacity: .35; }
+@keyframes water-filament { to { transform: rotate(calc(360deg + var(--strand) * 39deg)); } }
+@media (max-width: 760px) {
+  .journey-world .water-gate { width: min(74vw, 55vh); }
+  .gate-memory { width: 31%; padding: 3px; }
+  .gate-memory:nth-of-type(1) { left: -12%; top: -4%; }
+  .gate-memory:nth-of-type(2) { right: -6%; top: -10%; }
+  .gate-memory:nth-of-type(3) { left: -7%; bottom: -9%; }
+  .gate-memory:nth-of-type(4) { right: -8%; bottom: -3%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .water-gate__ring i { animation: none; }
+}

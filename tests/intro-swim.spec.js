@@ -33,6 +33,9 @@ for (const [name, width, height] of [['desktop', 1440, 900], ['mobile', 390, 844
     expect(second).not.toBe(first);
     await page.locator('#scene-next').click();
     await expect(page.locator('#blue-road')).toBeVisible();
+    await expect(page.locator('.journey-world #intro-whale-swimmer')).toBeVisible();
+    await page.locator('#scene-next').click();
+    await expect(page.locator('#storm')).toBeVisible();
     await expect(page.locator('#intro-whale-swimmer')).not.toBeVisible();
     await page.locator('.wordmark').click();
     await expect(page.locator('#hold-control')).toBeEnabled();
