@@ -12,45 +12,54 @@
   position: absolute; width: min(64vh, 56vw, 650px); aspect-ratio: 1;
   pointer-events: none; will-change: transform, opacity;
 }
-.water-gate__ring { position: absolute; inset: 6%; transform: rotate(-22deg) scaleX(.62); filter: url('#water-refraction'); }
-.water-gate__ring::before {
-  content: ''; position: absolute; inset: -9%; border-radius: 50%;
-  background: radial-gradient(ellipse, transparent 49%, #8eecff22 60%, #d2ffff44 64%, transparent 73%);
-  filter: blur(9px);
+
+.water-gate__ring {
+  position: absolute; inset: 0; transform: rotate(-22deg) scaleX(.62);
+  filter: url('#water-refraction');
 }
-.water-gate__ring i {
-  position: absolute; inset: calc(2% + var(--strand) * 1%);
-  border: 2px solid #bdfbff90; border-left-color: #e5ffffee; border-bottom-color: #6ad1ff35;
-  border-radius: 48% 52% 49% 51%;
-  box-shadow: 0 0 7px #b5faff90, inset 0 0 5px #7ceaff80;
-  transform: rotate(calc(var(--strand) * 39deg));
-  animation: water-filament calc(9s + var(--strand) * .8s) linear infinite;
-  animation-delay: calc(var(--strand) * -1.4s);
+.water-gate__ring::before, .water-gate__ring::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, transparent 47%, #328bb30a 49%, #a7efff35 55%, #ddffff55 57%, #54b9e926 61%, transparent 67%);
+  filter: blur(3px);
 }
-.water-gate__ring i:nth-child(3n) { border-style: dashed; border-width: 1px; }
-.water-gate--near { mask-image: linear-gradient(110deg, transparent 43%, #000 57%); }
+.water-gate__ring::after {
+  inset: 5%; opacity: .45; filter: blur(9px);
+  background: conic-gradient(from var(--current-angle), transparent, #b9f7ff44, transparent 22%, #6cbfe233, transparent 61%, #ddffff66, transparent);
+  mask-image: radial-gradient(circle, transparent 49%, #000 56%, transparent 69%);
+}
+.water-current {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+  transform: rotate(var(--current-angle, 0deg));
+  fill: none; stroke: #cef7ff; stroke-linecap: round;
+  filter: drop-shadow(0 0 2px #77dfff80);
+}
+.water-current circle { fill: #e2fcff; stroke: #a9eeff; stroke-width: .4; opacity: .6; }
+/* Split in the fixed portal plane; never exchange halves during passage. */
+.portal.water-gate > .water-gate__ring { clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); }
+.water-gate--near > .water-gate__ring { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
 .gate-memory {
-  position: absolute; margin: 0; width: 25%; aspect-ratio: 3 / 4;
-  padding: 5px; border: 1px solid #c5f8ff55; border-radius: 8px;
-  background: #164a6880; box-shadow: 0 12px 35px #00132288, 0 0 22px #9eeeff25;
-  opacity: var(--memory-visibility, 0); overflow: hidden;
-  transform: translateY(calc((1 - var(--memory-visibility, 0)) * 28px)) rotate(var(--tilt));
+  position: absolute; z-index: 2; margin: 0; width: 27%; aspect-ratio: 3 / 4;
+  opacity: var(--memory-visibility, 0);
+  transform: translate(-50%, -50%) rotate(var(--tilt)) scale(calc(.94 + var(--memory-visibility, 0) * .06));
+  isolation: isolate;
+  mask-image: radial-gradient(ellipse at center, #000 33%, #000c 53%, transparent 73%);
 }
-.gate-memory:nth-of-type(1) { left: -8%; top: 8%; --tilt: -8deg; }
-.gate-memory:nth-of-type(2) { right: -8%; top: 0; --tilt: 7deg; }
-.gate-memory:nth-of-type(3) { left: 0; bottom: -2%; --tilt: -5deg; }
-.gate-memory:nth-of-type(4) { right: -5%; bottom: 4%; --tilt: 9deg; }
-.gate-memory img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 4px; filter: saturate(.9); }
+.gate-memory::before, .gate-memory::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+}
+.gate-memory::before {
+  z-index: -1; background: radial-gradient(ellipse, #69dfff44, transparent 70%);
+}
+.gate-memory::after {
+  background: linear-gradient(115deg, transparent 30%, #dafaff40 47%, transparent 62%);
+  mix-blend-mode: screen; opacity: .6;
+}
+.gate-memory img {
+  display: block; width: 100%; height: 100%; object-fit: contain;
+  filter: saturate(.8) drop-shadow(0 0 7px #a3efff80);
+}
 .journey-world .intro-whale__wake { opacity: .35; }
-@keyframes water-filament { to { transform: rotate(calc(360deg + var(--strand) * 39deg)); } }
 @media (max-width: 760px) {
-  .journey-world .water-gate { width: min(74vw, 55vh); }
-  .gate-memory { width: 31%; padding: 3px; }
-  .gate-memory:nth-of-type(1) { left: -12%; top: -4%; }
-  .gate-memory:nth-of-type(2) { right: -6%; top: -10%; }
-  .gate-memory:nth-of-type(3) { left: -7%; bottom: -9%; }
-  .gate-memory:nth-of-type(4) { right: -8%; bottom: -3%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .water-gate__ring i { animation: none; }
+  .journey-world .water-gate { width: min(86vw, 55vh); }
+  .gate-memory { width: 32%; }
 }

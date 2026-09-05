@@ -22,3 +22,15 @@ Steering adds a tail-weighted bend while preserving scene 1's default deformatio
 The 24-second journey finishes at x55%, y49%, scale1, rotation−9°, matching scene 1.
 Reduced-motion mode goes directly to the resting pose; the next button remains
 the only way to switch scenes. Replay cancels both scene and transition timelines.
+
+## Water-ring refinement
+
+The ring now uses 28 curved SVG currents and 40 small foam droplets, with
+refraction and translucent water shading instead of concentric CSS borders.
+The perspective plane stays at −22° / 0.62 horizontal scale throughout passage.
+Complementary near/far halves use the same progress-driven current angle and
+opacity, so the foreground no longer disappears early and reverses the apparent
+entrance. Camera depth follows a continuous exponential scale; the entire ring
+drifts left/down and dissolves without reversing. Photos sit on the projected rim
+with soft water masks and highlights, without rectangular card backgrounds.
+No additional raster generation was used for this refinement.

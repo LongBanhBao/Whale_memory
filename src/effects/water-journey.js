@@ -26,18 +26,50 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     gate.dataset.gate = index + 1;
     const ring = document.createElement('div');
     ring.className = 'water-gate__ring';
-    // Irregular flowing filaments, not a flat photograph of a splash.
-    for (let n = 0; n < 9; n += 1) {
-      const filament = document.createElement('i');
-      filament.style.setProperty('--strand', n);
-      ring.append(filament);
+    // A fixed perspective plane contains the rotating current. Rotating the
+    // plane itself would reverse the perceived entrance halfway through.
+    const current = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    current.setAttribute('viewBox', '0 0 400 400');
+    current.classList.add('water-current');
+    for (let n = 0; n < 28; n += 1) {
+      const path = document.createElementNS(current.namespaceURI, 'path');
+      const points = [];
+      const start = n * 2.39996;
+      const length = 1.2 + (n % 5) * .34;
+      for (let step = 0; step <= 48; step += 1) {
+        const t = step / 48;
+        const angle = start + t * length;
+        const radius = 153 + (n % 7) * 3.2 - t * 12 + Math.sin(angle * 5 + n) * 1.8;
+        points.push(`${step ? 'L' : 'M'}${(200 + Math.cos(angle) * radius).toFixed(2)},${(200 + Math.sin(angle) * radius).toFixed(2)}`);
+      }
+      path.setAttribute('d', points.join(' '));
+      path.setAttribute('stroke-width', n % 4 === 0 ? '2.4' : '.8');
+      path.setAttribute('opacity', `${.2 + (n % 4) * .13}`);
+      current.append(path);
     }
+    for (let n = 0; n < 40; n += 1) {
+      const bubble = document.createElementNS(current.namespaceURI, 'circle');
+      const angle = n * 2.39996;
+      const radius = 148 + (n % 9) * 3.6;
+      bubble.setAttribute('cx', `${200 + Math.cos(angle) * radius}`);
+      bubble.setAttribute('cy', `${200 + Math.sin(angle) * radius}`);
+      bubble.setAttribute('r', n % 5 === 0 ? '1.9' : '.7');
+      current.append(bubble);
+    }
+    ring.append(current);
     gate.append(ring);
     ids.forEach((id, n) => {
       const memory = document.createElement('figure');
       memory.className = 'gate-memory';
       memory.dataset.image = id;
-      memory.style.setProperty('--slot', n);
+      const angle = [-132, -48, 48, 132][n] * Math.PI / 180;
+      // Photos sit inside the water's rim, rather than in unrelated cards.
+      const px = Math.cos(angle) * .38 * .62;
+      const py = Math.sin(angle) * .38;
+      const tilt = -22 * Math.PI / 180;
+      memory.style.left = `${(0.5 + px * Math.cos(tilt) - py * Math.sin(tilt)) * 100}%`;
+      memory.style.top = `${(0.5 + px * Math.sin(tilt) + py * Math.cos(tilt)) * 100}%`;
+      memory.style.setProperty('--tilt', `${[-12, 8, -8, 12][n]}deg`);
       const photo = makeImage(imageById.get(id));
       photo.loading = 'eager';
       memory.append(photo);
@@ -77,9 +109,9 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       const distance = index + 0.62 - travel;
       // A perspective tunnel on the right. A passed ring expands past the
       // viewer while the next ring approaches the same crossing plane.
-      const scale = distance >= 0 ? 1 / (1 + distance * .88) : 1 - distance * 1.4;
+      const scale = Math.exp(-distance * .65);
       const x = .55 + (distance > 0 ? .32 * (1 - Math.exp(-distance)) : distance * .27);
-      const y = .50 - Math.max(0, distance) * .075;
+      const y = .50 - distance * .075;
       const alpha = (1 - ease((-distance - .36) / .5)) * (1 - returning);
       const memories = ease((1.05 - distance) / .55) * (1 - ease((-distance - .12) / .55));
       for (const layer of [gate, lip]) {
@@ -88,10 +120,11 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
         layer.style.transform = `translate(-50%, -50%) scale(${scale})`;
         layer.style.opacity = alpha.toFixed(4);
         layer.style.setProperty('--memory-visibility', memories.toFixed(4));
+        layer.style.setProperty('--current-angle', `${p * 420 + index * 57}deg`);
       }
       gate.dataset.active = distance < 1 && distance > -.6 ? 'true' : 'false';
-      // The right-hand rim remains in front until the tail clears the plane.
-      lip.style.opacity = (alpha * (1 - ease((-distance - .12) / .24))).toFixed(4);
+      // Both complementary halves keep the same phase, plane and fade until
+      // the whole portal dissolves. Never swap the near rim to the far side.
     });
 
     const approach = ease(travel / .5);

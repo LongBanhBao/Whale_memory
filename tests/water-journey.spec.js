@@ -1,5 +1,42 @@
 import { test, expect } from '@playwright/test';
 
+test('vòng giữ hướng, đồng bộ hai nửa và tan dần khi cá voi đi qua', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.intro-world')).toHaveAttribute('data-stage', 'drops');
+  await page.locator('#scene-next').click();
+  await expect(page.locator('#blue-road')).toBeVisible();
+  let previous;
+  for (let step = 0; step < 9; step += 1) {
+    await page.waitForTimeout(1000);
+    const state = await page.evaluate(() => {
+      const rear = document.querySelector('#portal-layer .water-gate');
+      const near = document.querySelector('#foreground-layer .water-gate');
+      const a = rear.querySelector('.water-gate__ring');
+      const b = near.querySelector('.water-gate__ring');
+      return {
+        x: parseFloat(rear.style.left), opacity: Number(rear.style.opacity),
+        nearOpacity: Number(near.style.opacity),
+        angle: parseFloat(rear.style.getPropertyValue('--current-angle')),
+        nearAngle: parseFloat(near.style.getPropertyValue('--current-angle')),
+        plane: getComputedStyle(a).transform, nearPlane: getComputedStyle(b).transform,
+        transform: rear.style.transform, nearTransform: near.style.transform,
+      };
+    });
+    expect(state.opacity).toBe(state.nearOpacity);
+    expect(state.angle).toBe(state.nearAngle);
+    expect(state.plane).toBe(state.nearPlane);
+    expect(state.transform).toBe(state.nearTransform);
+    if (previous) {
+      expect(state.x).toBeLessThan(previous.x);
+      expect(state.angle).toBeGreaterThan(previous.angle);
+      expect(state.plane).toBe(previous.plane);
+      expect(state.opacity).toBeLessThanOrEqual(previous.opacity);
+    }
+    previous = state;
+  }
+  expect(previous.opacity).toBeLessThan(.4);
+});
+
 for (const width of [1440, 390]) {
   test(`ba cổng ký ức và cá voi liên tục ở ${width}px`, async ({ page }, testInfo) => {
     test.setTimeout(45000);
