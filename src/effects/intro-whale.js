@@ -14,6 +14,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
     uniform float u_strength;
     uniform float u_depth;
     uniform float u_turn;
+    uniform float u_effort;
     void main() {
       v_uv = a_uv;
       float tail = 1.0 - smoothstep(0.18, 0.76, a_uv.x);
@@ -24,6 +25,8 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
       p.y += bend;
       p.y += u_turn * pow(tail, 1.4) * 0.12;
       p.x += abs(u_turn) * tail * 0.035;
+      // A slower travelling body wave links the shoulder to the tailstock.
+      p.y += sin(u_phase - (1.0 - a_uv.x) * 3.8) * sin(a_uv.x * 3.14159) * .018 * u_effort;
       // Flukes fold slightly during the power stroke, then open on recovery.
       p.x += sin(u_phase - 1.6) * pow(tail, 3.0) * 0.026 * u_strength;
       p.y += (a_uv.y - 0.755) * pow(tail, 3.0) * sin(u_phase - 1.2) * 0.28 * u_strength;
@@ -31,6 +34,8 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
       float fin = exp(-pow((a_uv.x - 0.57) / 0.15, 2.0)) * smoothstep(0.795, 0.935, a_uv.y);
       p.y += sin(u_phase - 0.9) * fin * 0.052 * u_strength;
       p.x += cos(u_phase - 0.9) * fin * 0.018 * u_strength;
+      p.y += (sin(u_phase - 1.15) * .045 * u_effort + u_turn * .025) * fin;
+      p.x -= (1.0 - cos(u_phase - 1.15)) * fin * .018 * u_effort;
       p.y += sin(u_phase) * 0.006 * u_strength;
       // Foreshortening eases away as the animal turns broadside toward us.
       p.x *= mix(0.78, 1.0, smoothstep(0.0, 0.8, u_depth));
@@ -100,7 +105,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
   const attribute = gl.getAttribLocation(program, 'a_uv');
   gl.enableVertexAttribArray(attribute);
   gl.vertexAttribPointer(attribute, 2, gl.FLOAT, false, 0, 0);
-  const uniforms = Object.fromEntries(['phase', 'strength', 'depth', 'turn'].map((key) => [key, gl.getUniformLocation(program, `u_${key}`)]));
+  const uniforms = Object.fromEntries(['phase', 'strength', 'depth', 'turn', 'effort'].map((key) => [key, gl.getUniformLocation(program, `u_${key}`)]));
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -110,6 +115,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
 
   let depth = 0;
   let turn = 0;
+  let effort = 0;
   let phase = 0;
   let active = false;
   let ready = false;
@@ -121,7 +127,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
     if (!active || !ready || document.hidden) return;
     const delta = previousTime ? Math.min((time - previousTime) / 1000, 0.05) : 0;
     previousTime = time;
-    if (!reducedMotion) phase += delta * (3.9 - depth * 1.35);
+    if (!reducedMotion) phase += delta * (3.9 - depth * 1.35 + effort * .55);
     const ratio = Math.min(devicePixelRatio || 1, 1.75);
     const width = Math.round(Math.min(innerWidth < 720 ? innerWidth * 0.96 : innerWidth * 0.62, 900) * ratio);
     const height = Math.round(width * 0.59);
@@ -132,9 +138,10 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
     }
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform1f(uniforms.phase, phase);
-    gl.uniform1f(uniforms.strength, reducedMotion ? 0 : 1.0 - depth * 0.48);
+    gl.uniform1f(uniforms.strength, reducedMotion ? 0 : 1.0 - depth * 0.48 + effort * .32);
     gl.uniform1f(uniforms.depth, depth);
     gl.uniform1f(uniforms.turn, reducedMotion ? 0 : turn);
+    gl.uniform1f(uniforms.effort, reducedMotion ? 0 : effort);
     gl.drawArrays(gl.TRIANGLES, 0, points.length / 2);
     if (!reducedMotion) frame = requestAnimationFrame(draw);
   }
@@ -169,6 +176,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
   });
 
   return {
+    setEffort(value) { effort = Math.max(0, Math.min(1, value)); schedule(); },
     setBend(value) { turn = value; schedule(); },
     setDepth(value) {
       depth = value;
@@ -184,6 +192,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
       } else schedule();
     },
     reset() {
+      effort = 0;
       turn = 0;
       depth = 0;
       phase = 0;

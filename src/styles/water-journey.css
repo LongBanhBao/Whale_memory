@@ -46,28 +46,57 @@
   opacity: var(--memory-visibility, 0);
   transform: translate(-50%, -50%) rotate(var(--tilt)) scale(calc(.94 + var(--memory-visibility, 0) * .06));
   isolation: isolate;
-  border-radius: 50%;
-  background: radial-gradient(circle, #51c9ef42 20%, #0876a67a 48%, transparent 68%);
+  border-radius: 46% 54% 49% 51%;
+  background: radial-gradient(ellipse at 48% 42%, #d8efff1c, #91bce82b 40%, #53bce916 61%, transparent 74%);
 }
 .gate-memory::before, .gate-memory::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
 }
 .gate-memory::before {
-  z-index: 2; inset: -12%;
-  background: var(--vortex-texture) center / contain no-repeat;
-  mask-image: radial-gradient(circle, transparent 39%, #000 49%, #000 63%, transparent 72%);
-  transform: rotate(var(--current-angle, 0deg)); opacity: .95;
+  z-index: 0; inset: -13%; border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 32% 28%, #d8caff30, transparent 55%),
+    radial-gradient(ellipse, transparent 44%, #c1f3ff24 53%, #94d9ff12 61%, transparent 72%);
+  filter: blur(7px);
+  animation: memory-breath 7s ease-in-out var(--memory-delay) infinite alternate;
 }
 .gate-memory::after {
-  z-index: 3; border-radius: 50%;
-  background: linear-gradient(115deg, transparent 30%, #dafaff40 47%, transparent 62%);
-  mix-blend-mode: screen; opacity: .6;
+  z-index: 3; inset: -9%;
+  background: var(--memory-rim) center / contain no-repeat;
+  transform: rotate(calc(var(--current-angle, 0deg) * .35));
+  opacity: .92;
 }
 .gate-memory img {
   position: relative; z-index: 1; display: block; width: 100%; height: 100%; object-fit: contain;
   padding: 9%;
-  mask-image: radial-gradient(circle, #000 43%, #000c 55%, transparent 69%);
-  filter: saturate(.84) drop-shadow(0 0 7px #a3efff80);
+  mask-image: radial-gradient(ellipse at 50% 43%, #000 32%, #000f 44%, #0009 58%, transparent 73%);
+  filter: saturate(.78) brightness(1.08) drop-shadow(0 0 8px #bedcff30);
+}
+.memory-shimmer {
+  position: absolute; z-index: 2; inset: -6%; pointer-events: none;
+  border-radius: 50%;
+  background: linear-gradient(120deg, transparent 36%, #f0eaff12 46%, #d3f6ff22 49%, transparent 56%);
+  mask-image: radial-gradient(ellipse, #000 30%, transparent 70%);
+  animation: memory-breath 8s ease-in-out var(--memory-delay) infinite alternate-reverse;
+}
+.memory-shimmer i {
+  position: absolute; left: calc(15% + var(--mote) * 17%);
+  top: calc(76% - var(--mote) * 13%); width: 2px; height: 2px;
+  border-radius: 50%; background: #e4f9ff; box-shadow: 0 0 7px #b3dcff;
+  animation: memory-mote 6s ease-in-out calc(var(--memory-delay) - var(--mote) * 1s) infinite;
+}
+@keyframes memory-breath {
+  from { opacity: .38; transform: translateY(2px) scale(.98); }
+  to { opacity: .8; transform: translateY(-3px) scale(1.035); }
+}
+@keyframes memory-mote {
+  0%, 100% { opacity: 0; transform: translateY(5px); }
+  45% { opacity: .7; }
+  85% { opacity: 0; transform: translateY(-14px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gate-memory::before, .memory-shimmer, .memory-shimmer i { animation: none; }
+  .memory-shimmer i { opacity: .3; }
 }
 .memory-streams {
   position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; pointer-events: none;

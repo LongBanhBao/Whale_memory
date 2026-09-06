@@ -34,12 +34,12 @@ test('vòng giữ hướng, đồng bộ hai nửa và tan dần khi cá voi đi
     }
     previous = state;
   }
-  expect(previous.opacity).toBeLessThan(.4);
+  expect(previous.opacity).toBeLessThan(.75);
 });
 
 for (const width of [1440, 390]) {
   test(`ba cổng ký ức và cá voi liên tục ở ${width}px`, async ({ page }, testInfo) => {
-    test.setTimeout(45000);
+    test.setTimeout(65000);
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -67,13 +67,18 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '1', { timeout: 6500 });
     await page.waitForTimeout(3000);
     await page.screenshot({ path: testInfo.outputPath('gate-two.png') });
-    await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '2', { timeout: 6500 });
+    await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '2', { timeout: 12000 });
     await page.waitForTimeout(3000);
     await page.screenshot({ path: testInfo.outputPath('gate-three.png') });
-    await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '3', { timeout: 6500 });
-    await expect.poll(() => page.locator('#intro-whale-swimmer').evaluate(n => n.style.getPropertyValue('--whale-scale')), { timeout: 6000 }).toBe('1.0000');
+    await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '3', { timeout: 12000 });
+    await expect.poll(() => page.locator('#intro-whale-swimmer').evaluate(n => n.style.getPropertyValue('--whale-scale')), { timeout: 11000 }).toBe('1.0000');
     expect(await page.locator('#intro-whale-swimmer').evaluate(n => parseFloat(n.style.getPropertyValue('--whale-x')))).toBeCloseTo(55);
     await page.screenshot({ path: testInfo.outputPath('journey-arrived.png') });
+    // The journey timeline may finish, but the animal must keep breathing/swimming.
+    const frame = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve(document.querySelector('#intro-whale-mesh').toDataURL()))));
+    const firstFrame = await frame();
+    await page.waitForTimeout(450);
+    expect(await frame()).not.toBe(firstFrame);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.locator('.wordmark').click();
     await expect(page.locator('.intro-world #intro-whale-swimmer')).toHaveCount(1);

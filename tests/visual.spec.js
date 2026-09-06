@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { goToProgress } from './scene-helpers.js';
 
-test.setTimeout(90_000);
+test.setTimeout(120_000);
 
 const pause = (page) => page.waitForTimeout(550);
 

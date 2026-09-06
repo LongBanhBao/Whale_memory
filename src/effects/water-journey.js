@@ -1,9 +1,8 @@
 // Three gates share one continuous camera track. The near lip is composited
 // above the swimming mesh; memories and the far lip remain behind it.
-export const JOURNEY_DURATION = 24;
+import { journeyMotion } from './journey-motion.js';
+export { JOURNEY_DURATION } from './journey-motion.js';
 const clamp = (v) => Math.max(0, Math.min(1, v));
-const ease = (v) => { const t = clamp(v); return t * t * (3 - 2 * t); };
-const mix = (a, b, t) => a + (b - a) * t;
 
 export function createWaterJourney({ world, back, front, groups, imageById, makeImage, assetUrl, swimmer, mesh }) {
   const filters = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -24,7 +23,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     const gate = document.createElement('div');
     gate.className = 'portal water-gate';
     gate.dataset.gate = index + 1;
-    gate.style.setProperty('--vortex-texture', `url("${assetUrl('assets/scene/xrw-vortex.webp')}")`);
+    gate.style.setProperty('--memory-rim', `url("${assetUrl('assets/scene/memory-water-rim.webp')}")`);
     const ring = document.createElement('div');
     ring.className = 'water-gate__ring';
     const texture = document.createElement('img');
@@ -92,9 +91,19 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       memory.style.left = `${x}%`;
       memory.style.top = `${y}%`;
       memory.style.setProperty('--tilt', `${[-5, 5, -5, 5][n]}deg`);
+      memory.style.setProperty('--memory-delay', `${n * -1.7}s`);
       const photo = makeImage(imageById.get(id));
       photo.loading = 'eager';
       memory.append(photo);
+      const shimmer = document.createElement('span');
+      shimmer.className = 'memory-shimmer';
+      shimmer.setAttribute('aria-hidden', 'true');
+      for (let spark = 0; spark < 5; spark += 1) {
+        const mote = document.createElement('i');
+        mote.style.setProperty('--mote', spark);
+        shimmer.append(mote);
+      }
+      memory.append(shimmer);
       gate.append(memory);
     });
     const lip = document.createElement('div');
@@ -105,7 +114,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     return { gate, lip };
   });
 
-  function pose(x, y, scale, rotation, bend = 0) {
+  function pose(x, y, scale, rotation, bend = 0, effort = 0) {
     swimmer.style.setProperty('--whale-x', `${x * 100}%`);
     swimmer.style.setProperty('--whale-y', `${y * 100}%`);
     swimmer.style.setProperty('--whale-scale', scale.toFixed(4));
@@ -114,48 +123,33 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     swimmer.style.setProperty('--whale-depth', '1');
     mesh.setDepth(1);
     mesh.setBend?.(bend);
+    mesh.setEffort?.(effort);
     mesh.setActive(true);
   }
 
   function render({ progress }) {
     const p = clamp(progress);
-    const travel = clamp(p / 0.82) * 3;
-    const returning = ease((p - 0.82) / 0.18);
-    const local = travel % 1;
+    const state = journeyMotion(p);
     world.style.setProperty('--journey-progress', p.toFixed(4));
     world.style.setProperty('--journey-light', '.8');
-    world.dataset.passed = Math.min(3, Math.floor(travel)).toString();
+    world.dataset.passed = String(state.passed);
+    world.dataset.swimPhase = state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise';
     backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
-
     gates.forEach(({ gate, lip }, index) => {
-      const distance = index + 0.62 - travel;
-      // A perspective tunnel on the right. A passed ring expands past the
-      // viewer while the next ring approaches the same crossing plane.
-      const scale = Math.exp(-distance * .65);
-      const x = .55 + (distance > 0 ? .32 * (1 - Math.exp(-distance)) : distance * .27);
-      const y = .50 - distance * .075;
-      const alpha = (1 - ease((-distance - .36) / .5)) * (1 - returning);
-      const memories = ease((1.05 - distance) / .55) * (1 - ease((-distance - .12) / .55));
+      const frame = state.gates[index];
       streamsFor(gate, p);
       for (const layer of [gate, lip]) {
-        layer.style.left = `${x * 100}%`;
-        layer.style.top = `${y * 100}%`;
-        layer.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        layer.style.opacity = alpha.toFixed(4);
-        layer.style.setProperty('--memory-visibility', memories.toFixed(4));
-        layer.style.setProperty('--current-angle', `${p * 420 + index * 57}deg`);
+        layer.style.left = `${frame.x * 100}%`;
+        layer.style.top = `${frame.y * 100}%`;
+        layer.style.transform = `translate(-50%, -50%) scale(${frame.scale})`;
+        layer.style.opacity = frame.opacity.toFixed(4);
+        layer.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
+        layer.style.setProperty('--current-angle', `${p * 630 + index * 57}deg`);
       }
-      gate.dataset.active = distance < 1 && distance > -.6 ? 'true' : 'false';
-      // Both complementary halves keep the same phase, plane and fade until
-      // the whole portal dissolves. Never swap the near rim to the far side.
+      gate.dataset.active = frame.memories > .1 ? 'true' : 'false';
+      gate.dataset.cleared = String(frame.cleared);
     });
-
-    const approach = ease(travel / .5);
-    const bank = Math.sin(local * Math.PI * 2) * ease(travel / .2) * (1 - returning);
-    const x = mix(mix(.18, .50, approach), .55, returning);
-    const y = mix(.57 - approach * .07 + Math.sin(travel * Math.PI * 2) * .025 * (1 - returning), .49, returning);
-    pose(x, y, mix(.48 + Math.sin(local * Math.PI) * .04 * (1 - returning), 1, returning),
-      mix(-4 - Math.sin(travel * Math.PI * 2) * 7 * (1 - returning), -9, returning), bank);
+    pose(state.x, state.y, state.scale, state.rotation, state.bend, state.effort);
   }
 
   return { render, pose, transition };
