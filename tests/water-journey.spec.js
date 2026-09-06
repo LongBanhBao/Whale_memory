@@ -58,6 +58,17 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.gate-memory')).toHaveCount(12);
     await expect(page.locator('.memory-streams, .memory-stream, .memory-shimmer')).toHaveCount(0);
     await expect(page.locator('.memory-portrait')).toHaveCount(12);
+    const portraitPlate = await page.evaluate(async () => {
+      const css = getComputedStyle(document.querySelector('.gate-memory'), '::before');
+      const url = css.backgroundImage.match(/url\(["']?(.*?)["']?\)/)[1];
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      return { url, width: image.naturalWidth, mask: css.maskImage };
+    });
+    expect(portraitPlate.url).toContain('prw-memory-window.webp');
+    expect(portraitPlate.width).toBe(768);
+    expect(portraitPlate.mask).toContain('closest-side');
     await expect(page.locator('.water-vortex-texture')).toHaveCount(6);
     await expect.poll(() => page.locator('.water-vortex-texture').evaluateAll(nodes => nodes.every(n => n.complete && n.naturalWidth === 1024))).toBe(true);
     const ids = await page.locator('.gate-memory').evaluateAll(nodes => nodes.map(n => n.dataset.image));

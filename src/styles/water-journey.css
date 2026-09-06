@@ -41,8 +41,8 @@
 /* Split in the fixed portal plane; never exchange halves during passage. */
 .portal.water-gate > .water-gate__ring { clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); }
 .water-gate--near > .water-gate__ring { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
-/* The portraits are small water eddies embedded in the main spiral.
-   No connecting strokes, white halo or separate luminous frame. */
+/* PRW's asymmetric water window is one scene behind and in front of the photo.
+   The central vortex keeps its own artwork and movement. */
 .gate-memory {
   position: absolute; z-index: 2; margin: 0; width: 37%; aspect-ratio: 1;
   opacity: var(--memory-visibility, 0); isolation: isolate;
@@ -53,30 +53,30 @@
   background: var(--memory-water) center / contain no-repeat;
 }
 .gate-memory::before {
-  z-index: 0; inset: -12%; opacity: .75;
-  transform: rotate(calc(var(--current-angle, 0deg) * .46 + var(--water-phase)));
-  mask-image: radial-gradient(ellipse, transparent 28%, #000 43%, #000 61%, transparent 72%);
+  z-index: 0; inset: -6%; opacity: .94;
+  mask-image: radial-gradient(ellipse closest-side at 50% 50%, #000 70%, #000d 84%, transparent 100%);
+  filter: brightness(.82) saturate(.92);
 }
 .gate-memory::after {
-  z-index: 3; inset: -3%; opacity: .93;
-  transform: rotate(calc(var(--current-angle, 0deg) * .46 + var(--water-phase)));
-  mask-image: radial-gradient(ellipse, transparent 38%, #000 48%, #000 61%, transparent 72%);
+  z-index: 3; inset: -6%; opacity: .82;
+  transform: rotate(var(--portrait-current, 0deg));
+  mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 45%, #000b 66%, #000 80%, transparent 100%);
 }
 .memory-portrait {
-  position: absolute; z-index: 1; inset: 13%; overflow: hidden;
+  position: absolute; z-index: 1; inset: 10% 12% 7%; overflow: hidden;
   border-radius: 46% 54% 48% 52%;
-  background: radial-gradient(ellipse at 45% 38%, #126383, #043149 73%);
-  mask-image: radial-gradient(ellipse, #000 48%, #000e 59%, transparent 73%);
+  mask-image: radial-gradient(ellipse at 50% 43%, #000 39%, #000d 56%, transparent 72%);
 }
 .memory-portrait::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(145deg, #31a9ce18, transparent 45%, #00355166);
+  background: linear-gradient(145deg, #0096ca24, transparent 38%, #03516b65);
+  mix-blend-mode: multiply;
   pointer-events: none;
 }
 .memory-portrait img {
   display: block; width: 100%; height: 100%; object-fit: contain;
-  transform: scale(1.12) rotate(calc(var(--tilt) * -1));
-  filter: saturate(.85) contrast(1.04);
+  transform: scale(1.16) rotate(calc(var(--tilt) * -1));
+  filter: saturate(.7) contrast(1.05);
 }
 .journey-world .intro-whale__wake { opacity: .35; }
 @media (max-width: 760px) {

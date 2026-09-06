@@ -19,11 +19,13 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   world.prepend(backdrop);
   const transition = backdrop.cloneNode();
   transition.className = 'journey-transition-backdrop';
+  const memoryArtwork = new Image();
+  memoryArtwork.src = assetUrl('assets/scene/prw-memory-window.webp');
   const gates = groups.map((ids, index) => {
     const gate = document.createElement('div');
     gate.className = 'portal water-gate';
     gate.dataset.gate = index + 1;
-    gate.style.setProperty('--memory-water', `url("${assetUrl('assets/scene/xrw-vortex.webp')}")`);
+    gate.style.setProperty('--memory-water', `url("${memoryArtwork.src}")`);
     const ring = document.createElement('div');
     ring.className = 'water-gate__ring';
     const texture = document.createElement('img');
@@ -68,11 +70,10 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       const memory = document.createElement('figure');
       memory.className = 'gate-memory';
       memory.dataset.image = id;
-      const [x, y] = [[30, 14], [82, 28], [80, 86], [19, 70]][n];
+      const [x, y] = [[29, 14], [81, 28], [80, 86], [19, 72]][n];
       memory.style.left = `${x}%`;
       memory.style.top = `${y}%`;
-      memory.style.setProperty('--tilt', `${[-16, 13, -12, 16][n]}deg`);
-      memory.style.setProperty('--water-phase', `${n * 74}deg`);
+      memory.style.setProperty('--tilt', `${[-10, 8, -8, 10][n]}deg`);
       const photo = makeImage(imageById.get(id));
       photo.loading = 'eager';
       const portrait = document.createElement('span');
@@ -119,6 +120,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
         layer.style.opacity = frame.opacity.toFixed(4);
         layer.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
         layer.style.setProperty('--current-angle', `${p * 630 + index * 57}deg`);
+        layer.style.setProperty('--portrait-current', `${Math.sin(p * Math.PI * 8 + index) * 2}deg`);
       }
       gate.dataset.active = frame.memories > .1 ? 'true' : 'false';
       gate.dataset.cleared = String(frame.cleared);
