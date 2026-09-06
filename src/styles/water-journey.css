@@ -9,12 +9,15 @@
 .journey-world .foreground-layer { z-index: 35; }
 .journey-world .journey-vignette { z-index: 38; }
 .journey-world .water-gate {
+  --gate-tilt: -22deg;
+  --gate-compression: .62;
   position: absolute; width: min(64vh, 56vw, 650px); aspect-ratio: 1;
   pointer-events: none; will-change: transform, opacity;
 }
 
 .water-gate__ring {
-  position: absolute; z-index: 1; inset: 0; transform: rotate(-22deg) scaleX(.62);
+  position: absolute; z-index: 1; inset: 0;
+  transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
 }
 .water-vortex-texture {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
@@ -43,10 +46,15 @@
 .water-gate--near > .water-gate__ring { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
 /* PRW's asymmetric water window is one scene behind and in front of the photo.
    The central vortex keeps its own artwork and movement. */
+.memory-orbit {
+  position: absolute; z-index: 2; inset: 0;
+  transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
+  transform-origin: center;
+}
 .gate-memory {
-  position: absolute; z-index: 2; margin: 0; width: 37%; aspect-ratio: 1;
-  opacity: var(--memory-visibility, 0); isolation: isolate;
-  transform: translate(-50%, -50%) rotate(var(--tilt)) scale(calc(.94 + var(--memory-visibility, 0) * .06));
+  position: absolute; z-index: 2; margin: 0; width: 44%; aspect-ratio: 1;
+  opacity: calc(var(--memory-visibility, 0) * var(--recall, 0)); isolation: isolate;
+  transform: translate(-50%, -50%) scale(calc(.96 + var(--recall, 0) * .04));
 }
 .gate-memory::before, .gate-memory::after {
   content: ''; position: absolute; pointer-events: none;
@@ -75,11 +83,11 @@
 }
 .memory-portrait img {
   display: block; width: 100%; height: 100%; object-fit: contain;
-  transform: scale(1.16) rotate(calc(var(--tilt) * -1));
+  transform: scale(1.16);
   filter: saturate(.7) contrast(1.05);
 }
 .journey-world .intro-whale__wake { opacity: .35; }
 @media (max-width: 760px) {
   .journey-world .water-gate { width: min(86vw, 55vh); }
-  .gate-memory { width: 39%; }
+  .gate-memory { width: 48%; }
 }

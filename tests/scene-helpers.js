@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { JOURNEY_DURATION } from '../src/effects/journey-motion.js';
 
 const elapsedByPage = new WeakMap();
 export async function goToProgress(page, selector, progress) {
@@ -10,7 +11,7 @@ export async function goToProgress(page, selector, progress) {
     await expect(page.locator(`#${current}`)).toBeHidden();
     elapsedByPage.set(page, 0);
   }
-  const target = progress * [0, 36000, 14000, 12000][ids.indexOf(selector)];
+  const target = progress * [0, JOURNEY_DURATION * 1000, 14000, 12000][ids.indexOf(selector)];
   await page.waitForTimeout(Math.max(0, target - (elapsedByPage.get(page) || 0)) + 100);
   elapsedByPage.set(page, target);
 }

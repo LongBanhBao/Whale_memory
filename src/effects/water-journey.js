@@ -66,28 +66,33 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     }
     ring.append(current);
     gate.append(ring);
-    ids.forEach((id, n) => {
+    const orbit = document.createElement('div');
+    orbit.className = 'memory-orbit';
+    const memories = ids.map((id, n) => {
       const memory = document.createElement('figure');
       memory.className = 'gate-memory';
       memory.dataset.image = id;
-      const [x, y] = [[29, 14], [81, 28], [80, 86], [19, 72]][n];
-      memory.style.left = `${x}%`;
-      memory.style.top = `${y}%`;
-      memory.style.setProperty('--tilt', `${[-10, 8, -8, 10][n]}deg`);
+      // Place portraits on the same unprojected water plane as the vortex.
+      // The shared orbit supplies perspective to both frame and photograph.
+      const angle = [-135, -45, 45, 135][n] * Math.PI / 180;
+      memory.style.left = `${50 + Math.cos(angle) * 51}%`;
+      memory.style.top = `${50 + Math.sin(angle) * 51}%`;
       const photo = makeImage(imageById.get(id));
       photo.loading = 'eager';
       const portrait = document.createElement('span');
       portrait.className = 'memory-portrait';
       portrait.append(photo);
       memory.append(portrait);
-      gate.append(memory);
+      orbit.append(memory);
+      return memory;
     });
+    gate.append(orbit);
     const lip = document.createElement('div');
     lip.className = 'water-gate water-gate--near';
     lip.append(ring.cloneNode(true));
     back.append(gate);
     front.append(lip);
-    return { gate, lip };
+    return { gate, lip, memories };
   });
 
   function pose(x, y, scale, rotation, bend = 0, effort = 0) {
@@ -111,7 +116,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     world.dataset.passed = String(state.passed);
     world.dataset.swimPhase = state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise';
     backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
-    gates.forEach(({ gate, lip }, index) => {
+    gates.forEach(({ gate, lip, memories }, index) => {
       const frame = state.gates[index];
       for (const layer of [gate, lip]) {
         layer.style.left = `${frame.x * 100}%`;
@@ -119,9 +124,10 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
         layer.style.transform = `translate(-50%, -50%) scale(${frame.scale})`;
         layer.style.opacity = frame.opacity.toFixed(4);
         layer.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
-        layer.style.setProperty('--current-angle', `${p * 630 + index * 57}deg`);
-        layer.style.setProperty('--portrait-current', `${Math.sin(p * Math.PI * 8 + index) * 2}deg`);
+        layer.style.setProperty('--current-angle', `${state.time * 17.5 + index * 57}deg`);
+        layer.style.setProperty('--portrait-current', `${Math.sin(state.time / 36 * Math.PI * 8 + index) * 2}deg`);
       }
+      memories.forEach((memory, slot) => memory.style.setProperty('--recall', frame.recall[slot].toFixed(4)));
       gate.dataset.active = frame.memories > .1 ? 'true' : 'false';
       gate.dataset.cleared = String(frame.cleared);
     });

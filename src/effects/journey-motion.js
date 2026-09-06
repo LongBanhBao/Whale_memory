@@ -1,21 +1,24 @@
-export const JOURNEY_DURATION = 36;
 export const GATE_TIMES = [5, 15, 25];
 export const TAIL_CLEAR_DELAY = 2.6;
+export const RETURN_START = GATE_TIMES.at(-1) + TAIL_CLEAR_DELAY;
+export const JOURNEY_DURATION = RETURN_START + 2.4;
 const clamp = v => Math.max(0, Math.min(1, v));
 const ease = v => { const t = clamp(v); return t * t * (3 - 2 * t); };
 const mix = (a, b, t) => a + (b - a) * t;
 
 function elevation(time) {
-  return GATE_TIMES.reduce((height, center) => {
+  return GATE_TIMES.reduce((height, center, index) => {
     const rise = ease((time - center + 3.6) / 2.8);
-    const descend = ease((time - center - TAIL_CLEAR_DELAY) / 1.8);
+    // After the last passage, stay at gate height and approach the viewer.
+    // There is no fourth low-cruise cycle or idle pause to wait through.
+    const descend = index === GATE_TIMES.length - 1 ? 0 : ease((time - center - TAIL_CLEAR_DELAY) / 1.8);
     return height + rise * (1 - descend);
   }, 0);
 }
 
 export function journeyMotion(progress) {
   const time = clamp(progress) * JOURNEY_DURATION;
-  const returning = ease((time - 31) / 5);
+  const returning = ease((time - RETURN_START) / 2.4);
   const lift = elevation(time);
   const slope = (elevation(time + .06) - elevation(time - .06)) / .12;
   const bend = (lift - elevation(time - .65)) * 2.4;
@@ -29,15 +32,17 @@ export function journeyMotion(progress) {
     bend: bend * (1 - returning),
     effort: (.18 + Math.abs(slope) * 1.2) * (1 - returning),
     passed: GATE_TIMES.filter(center => time >= center + TAIL_CLEAR_DELAY).length,
-    gates: GATE_TIMES.map(center => {
+    gates: GATE_TIMES.map((center, index) => {
       const offset = time - center;
+      const fadeDuration = index === GATE_TIMES.length - 1 ? 1.4 : 2.2;
       // Ten seconds between gates. No clamped travel at the final gate.
       return {
         x: .55 - offset * .075,
         y: .48 - Math.max(0, -offset - 1) * .008,
         scale: Math.exp(offset * .075),
-        opacity: 1 - ease((offset - TAIL_CLEAR_DELAY) / 2.2),
-        memories: ease((offset + 4.5) / 1.8) * (1 - ease((offset - TAIL_CLEAR_DELAY) / 2.2)),
+        opacity: 1 - ease((offset - TAIL_CLEAR_DELAY) / fadeDuration),
+        memories: ease((offset + 4.5) / 1.8) * (1 - ease((offset - TAIL_CLEAR_DELAY) / fadeDuration)),
+        recall: [0, 1, 2, 3].map(slot => ease((offset + 4.2 - slot * .22) / 1.2)),
         cleared: offset >= TAIL_CLEAR_DELAY,
       };
     }),

@@ -58,6 +58,12 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.gate-memory')).toHaveCount(12);
     await expect(page.locator('.memory-streams, .memory-stream, .memory-shimmer')).toHaveCount(0);
     await expect(page.locator('.memory-portrait')).toHaveCount(12);
+    await expect(page.locator('.memory-orbit')).toHaveCount(3);
+    const perspective = await page.locator('#portal-layer > .water-gate').first().evaluate(gate => ({
+      ring: getComputedStyle(gate.querySelector('.water-gate__ring')).transform,
+      memories: getComputedStyle(gate.querySelector('.memory-orbit')).transform,
+    }));
+    expect(perspective.memories).toBe(perspective.ring);
     const portraitPlate = await page.evaluate(async () => {
       const css = getComputedStyle(document.querySelector('.gate-memory'), '::before');
       const url = css.backgroundImage.match(/url\(["']?(.*?)["']?\)/)[1];
