@@ -56,7 +56,8 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.journey-world #intro-whale-swimmer')).toHaveCount(1);
     await expect(page.locator('#whale-canvas')).toHaveClass(/is-hidden/);
     await expect(page.locator('.gate-memory')).toHaveCount(12);
-    await expect(page.locator('.memory-streams')).toHaveCount(3);
+    await expect(page.locator('.memory-streams, .memory-stream, .memory-shimmer')).toHaveCount(0);
+    await expect(page.locator('.memory-portrait')).toHaveCount(12);
     await expect(page.locator('.water-vortex-texture')).toHaveCount(6);
     await expect.poll(() => page.locator('.water-vortex-texture').evaluateAll(nodes => nodes.every(n => n.complete && n.naturalWidth === 1024))).toBe(true);
     const ids = await page.locator('.gate-memory').evaluateAll(nodes => nodes.map(n => n.dataset.image));

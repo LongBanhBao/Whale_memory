@@ -23,7 +23,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     const gate = document.createElement('div');
     gate.className = 'portal water-gate';
     gate.dataset.gate = index + 1;
-    gate.style.setProperty('--memory-rim', `url("${assetUrl('assets/scene/memory-water-rim.webp')}")`);
+    gate.style.setProperty('--memory-water', `url("${assetUrl('assets/scene/xrw-vortex.webp')}")`);
     const ring = document.createElement('div');
     ring.className = 'water-gate__ring';
     const texture = document.createElement('img');
@@ -64,46 +64,21 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     }
     ring.append(current);
     gate.append(ring);
-    const streams = document.createElementNS(current.namespaceURI, 'svg');
-    streams.setAttribute('viewBox', '0 0 400 400');
-    streams.classList.add('memory-streams');
-    const routes = [
-      'M72 72 C20 168 168 120 200 200',
-      'M328 72 C232 20 280 168 200 200',
-      'M328 328 C380 232 232 280 200 200',
-      'M72 328 C168 380 120 232 200 200',
-    ];
-    routes.forEach((route) => {
-      for (const kind of ['body', 'foam', 'glint']) {
-        const path = document.createElementNS(current.namespaceURI, 'path');
-        path.setAttribute('d', route);
-        path.setAttribute('pathLength', '100');
-        path.setAttribute('class', `memory-stream memory-stream--${kind}`);
-        streams.append(path);
-      }
-    });
-    gate.append(streams);
     ids.forEach((id, n) => {
       const memory = document.createElement('figure');
       memory.className = 'gate-memory';
       memory.dataset.image = id;
-      const [x, y] = [[18, 18], [82, 18], [82, 82], [18, 82]][n];
+      const [x, y] = [[30, 14], [82, 28], [80, 86], [19, 70]][n];
       memory.style.left = `${x}%`;
       memory.style.top = `${y}%`;
-      memory.style.setProperty('--tilt', `${[-5, 5, -5, 5][n]}deg`);
-      memory.style.setProperty('--memory-delay', `${n * -1.7}s`);
+      memory.style.setProperty('--tilt', `${[-16, 13, -12, 16][n]}deg`);
+      memory.style.setProperty('--water-phase', `${n * 74}deg`);
       const photo = makeImage(imageById.get(id));
       photo.loading = 'eager';
-      memory.append(photo);
-      const shimmer = document.createElement('span');
-      shimmer.className = 'memory-shimmer';
-      shimmer.setAttribute('aria-hidden', 'true');
-      for (let spark = 0; spark < 5; spark += 1) {
-        const mote = document.createElement('i');
-        mote.style.setProperty('--mote', spark);
-        shimmer.append(mote);
-      }
-      memory.append(shimmer);
+      const portrait = document.createElement('span');
+      portrait.className = 'memory-portrait';
+      portrait.append(photo);
+      memory.append(portrait);
       gate.append(memory);
     });
     const lip = document.createElement('div');
@@ -137,7 +112,6 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
     gates.forEach(({ gate, lip }, index) => {
       const frame = state.gates[index];
-      streamsFor(gate, p);
       for (const layer of [gate, lip]) {
         layer.style.left = `${frame.x * 100}%`;
         layer.style.top = `${frame.y * 100}%`;
@@ -153,10 +127,4 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   }
 
   return { render, pose, transition };
-}
-
-function streamsFor(gate, progress) {
-  // Progress drives both halves and connector foam; no independent animations
-  // can drift out of sync after replay, pausing or reduced-motion navigation.
-  gate.style.setProperty('--stream-offset', `${-progress * 700}`);
 }
