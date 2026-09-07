@@ -12,11 +12,11 @@ const bell = (value, start, peak, end) => (
 );
 
 function elevation(time) {
-  return GATE_TIMES.reduce((height, center, index) => {
-    const rise = glide((time - center + 3.1) / 2.7);
-    // After the last passage, stay at gate height and approach the viewer.
-    // There is no fourth low-cruise cycle or idle pause to wait through.
-    const descend = index === GATE_TIMES.length - 1 ? 0 : glide((time - center - TAIL_CLEAR_DELAY) / 1.6);
+  return GATE_TIMES.reduce((height, center) => {
+    const rise = glide((time - center + 3) / 3);
+    // Start the dive just after the head enters. The body keeps travelling
+    // through the opening while the vertical velocity reverses continuously.
+    const descend = glide((time - center - .25) / (TAIL_CLEAR_DELAY - .25));
     return height + rise * (1 - descend);
   }, 0);
 }
@@ -36,9 +36,9 @@ export function journeyMotion(progress) {
   return {
     time, returning, lift,
     x: mix(mix(.18, .47, glide(time / 2.2)), .55, returning),
-    y: mix(mix(.57, .64, entry) - lift * .16 + breathing, .49, returning),
+    y: mix(mix(.57, .64, entry) - lift * .16 + breathing, .61, returning),
     scale: mix(.48 - lift * .012 + gatePulse * .008, 1, returning),
-    rotation: mix(-4 - slope * 30 + bank * .16, -9, returning),
+    rotation: mix(-4 - slope * 30 + bank * .16, 2, returning),
     bend: bend * (1 - returning),
     bank,
     effort: clamp((.11 + Math.abs(slope) * 1.42 + stroke) * (1 - returning)),

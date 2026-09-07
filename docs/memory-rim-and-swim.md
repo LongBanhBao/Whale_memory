@@ -20,9 +20,9 @@ Final background-extraction prompt (the first output had a painted checkerboard)
 
 Scene 2 lasts 27 seconds. Gate centers occur at 4.5, 13.5 and 22.5 seconds,
 leaving nine seconds per swimming cycle. Cruise height is 64% from the top; crossing
-height is 48%. The whale rises smoothly before each gate, holds its crossing
-height while the body and tail pass, then lowers again. Steering bends lag
-behind the head; the mesh adds a travelling body wave, stronger fluke strokes
+height is 48%. The whale rises smoothly before each gate, crosses at the top of
+one continuous arc, then starts diving as its body passes through. Steering
+bends lag behind the head; the mesh adds a travelling body wave, stronger fluke strokes
 and a delayed pectoral stroke during ascent/descent. Scene 1 retains its default
 swim parameters, and reduced motion still bypasses the animated journey.
 

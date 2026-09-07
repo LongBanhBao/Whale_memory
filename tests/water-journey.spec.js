@@ -147,8 +147,8 @@ for (const width of [1440, 390]) {
       await image.decode();
       return { url, width: image.naturalWidth, mask: css.maskImage };
     });
-    expect(portraitPlate.url).toContain('memory-vortex-v2.webp');
-    expect(portraitPlate.width).toBe(1024);
+    expect(portraitPlate.url).toContain('prw-memory-window.webp');
+    expect(portraitPlate.width).toBe(768);
     expect(portraitPlate.mask).toContain('closest-side');
     await expect(page.locator('.water-vortex-texture')).toHaveCount(6);
     await expect.poll(() => page.locator('.water-vortex-texture').evaluateAll(nodes => nodes.every(n => n.complete && n.naturalWidth === 1024))).toBe(true);

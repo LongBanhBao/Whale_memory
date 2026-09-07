@@ -70,7 +70,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   world.prepend(backdrop);
   const transition = backdrop.cloneNode();
   transition.className = 'journey-transition-backdrop';
-  const memoryArtworkUrl = assetUrl('assets/scene/memory-vortex-v2.webp');
+  const memoryArtworkUrl = assetUrl('assets/scene/prw-memory-window.webp');
   const memoryLayer = document.createElement('div');
   memoryLayer.className = 'memory-layer';
   memoryLayer.setAttribute('aria-hidden', 'true');

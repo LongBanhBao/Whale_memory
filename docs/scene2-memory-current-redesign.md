@@ -6,9 +6,11 @@ smaller, circular memory fragments embedded directly in the outer current.
 Their shared perspective, restrained water rim and chapter
 label make each group read as a single passage through remembered moments.
 
-The portrait rims now reuse the exact same vortex artwork, brightness,
-saturation and contrast treatment as the central gate. Per-photo sequence
-numbers were removed so the memories read emotionally rather than as an index.
+The portrait rims retain the original asymmetric PRW water-window artwork.
+Only its rendered color treatment changes: lower brightness and saturation,
+slightly deeper teal shadows and restrained highlights now match the central
+vortex without changing the frame into a second ring. Per-photo sequence
+numbers remain removed so the memories read emotionally rather than as an index.
 
 The new `public/assets/scene/memory-vortex-v2.webp` texture uses a transparent
 center and exterior, layered navy/teal water and quieter cyan highlights. It was
@@ -31,6 +33,7 @@ Final prompt:
 Whale motion crosses the three gates at 4.5, 13.5 and 22.5 seconds. The shorter
 nine-second cadence and 2.1-second final approach bring the scene to 27 seconds,
 about ten percent faster without feeling rushed. Quintic easing keeps phase
-edges smooth, while body bend, stronger strokes and wake concentrate in the
-last three seconds before each vortex. Tests cover continuity of position,
-rotation, bend, bank and effort.
+edges smooth. Each passage is now one uninterrupted arc: the whale rises into
+the vortex, crosses it, then starts diving .25 seconds after the center point.
+There is no tail-clear-height hold. Tests cover continuity of position,
+rotation, bend, bank, effort and the post-crossing dive.

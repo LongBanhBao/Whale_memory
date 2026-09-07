@@ -2,11 +2,12 @@ import { test, expect } from '@playwright/test';
 import { journeyMotion, JOURNEY_DURATION, GATE_TIMES, TAIL_CLEAR_DELAY, RETURN_START } from '../src/effects/journey-motion.js';
 const at = seconds => journeyMotion(seconds / JOURNEY_DURATION);
 
-test('each gate has a low cruise, rising turn, full passage and recovery', () => {
+test('each gate has a low cruise, rising turn, full passage and immediate dive', () => {
   for (const [index, center] of GATE_TIMES.entries()) {
     const before = at(center - 3.5);
     const climbing = at(center - 2);
     const crossing = at(center);
+    const diving = at(center + 1.1);
     const after = at(center + 4.5);
     expect(before.y).toBeGreaterThan(.60);
     expect(climbing.y).toBeLessThan(before.y);
@@ -16,8 +17,10 @@ test('each gate has a low cruise, rising turn, full passage and recovery', () =>
     expect(Math.abs(climbing.bank)).toBeGreaterThan(1);
     expect(climbing.wake).toBeGreaterThan(before.wake);
     expect(crossing.y).toBeCloseTo(.48);
-    if (index < 2) expect(after.y).toBeGreaterThan(.60);
-    else expect(after.y).toBeLessThan(.5);
+    expect(diving.y).toBeGreaterThan(crossing.y + .025);
+    expect(diving.rotation).toBeGreaterThan(-2);
+    expect(diving.bend).toBeLessThan(-.1);
+    expect(after.y).toBeGreaterThan(.60);
     expect(at(center + TAIL_CLEAR_DELAY - .01).gates[index].opacity).toBe(1);
     expect(at(center + TAIL_CLEAR_DELAY - .01).passed).toBe(index);
     expect(at(center + TAIL_CLEAR_DELAY + .1).passed).toBe(index + 1);
@@ -35,11 +38,12 @@ test('last gate keeps travelling, then clears before the final return', () => {
   expect(at(JOURNEY_DURATION).gates[2].opacity).toBe(0);
   expect(at(RETURN_START).returning).toBe(0);
   expect(at(RETURN_START + .1).returning).toBeGreaterThan(0);
-  expect(at(RETURN_START + 1).y).toBeLessThan(.5);
+  expect(at(RETURN_START + 1).y).toBeGreaterThan(.59);
+  expect(at(RETURN_START + 1).y).toBeLessThan(.65);
   expect(JOURNEY_DURATION).toBe(27);
   expect(at(JOURNEY_DURATION).returning).toBe(1);
   const end = at(JOURNEY_DURATION);
-  expect(end).toMatchObject({ x: .55, y: .49, scale: 1, rotation: -9, passed: 3 });
+  expect(end).toMatchObject({ x: .55, y: .61, scale: 1, rotation: 2, passed: 3 });
 });
 
 test('path is continuous across all phase boundaries', () => {
