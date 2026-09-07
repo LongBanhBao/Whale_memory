@@ -26,17 +26,18 @@ test('each gate has a low cruise, rising turn, full passage and recovery', () =>
 });
 
 test('last gate keeps travelling, then clears before the final return', () => {
-  const during = at(26);
-  const clear = at(27.6);
+  const lastGate = GATE_TIMES.at(-1);
+  const during = at(lastGate + 1);
+  const clear = at(RETURN_START);
   expect(clear.gates[2].x).toBeLessThan(during.gates[2].x);
   expect(during.gates[2].opacity).toBe(1);
   expect(during.returning).toBe(0);
-  expect(at(30).gates[2].opacity).toBe(0);
+  expect(at(JOURNEY_DURATION).gates[2].opacity).toBe(0);
   expect(at(RETURN_START).returning).toBe(0);
   expect(at(RETURN_START + .1).returning).toBeGreaterThan(0);
   expect(at(RETURN_START + 1).y).toBeLessThan(.5);
-  expect(JOURNEY_DURATION).toBe(30);
-  expect(at(30).returning).toBe(1);
+  expect(JOURNEY_DURATION).toBe(27);
+  expect(at(JOURNEY_DURATION).returning).toBe(1);
   const end = at(JOURNEY_DURATION);
   expect(end).toMatchObject({ x: .55, y: .49, scale: 1, rotation: -9, passed: 3 });
 });
@@ -54,7 +55,7 @@ test('path is continuous across all phase boundaries', () => {
 
 test('memories recall in sequence without changing gate timing', () => {
   GATE_TIMES.forEach((center, index) => {
-    const emerging = at(center - 3.5).gates[index].recall;
+    const emerging = at(center - 3).gates[index].recall;
     expect(emerging[0]).toBeGreaterThan(emerging[1]);
     expect(emerging[1]).toBeGreaterThan(emerging[2]);
     expect(emerging[2]).toBeGreaterThan(emerging[3]);

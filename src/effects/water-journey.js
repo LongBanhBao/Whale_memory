@@ -70,8 +70,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   world.prepend(backdrop);
   const transition = backdrop.cloneNode();
   transition.className = 'journey-transition-backdrop';
-  const memoryArtwork = new Image();
-  memoryArtwork.src = assetUrl('assets/scene/prw-memory-window.webp');
+  const memoryArtworkUrl = assetUrl('assets/scene/memory-vortex-v2.webp');
   const memoryLayer = document.createElement('div');
   memoryLayer.className = 'memory-layer';
   memoryLayer.setAttribute('aria-hidden', 'true');
@@ -127,8 +126,8 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     const memoryGate = document.createElement('div');
     memoryGate.className = 'water-gate water-gate--memories';
     memoryGate.dataset.gate = index + 1;
-    memoryGate.style.setProperty('--memory-water', `url("${memoryArtwork.src}")`);
-    memoryGate.style.setProperty('--gate-accent', ['#78e6ef', '#82d7ff', '#a7c8ff'][index]);
+    memoryGate.style.setProperty('--memory-water', `url("${memoryArtworkUrl}")`);
+    memoryGate.style.setProperty('--gate-accent', ['#76d7e4', '#72cde2', '#83c9e5'][index]);
     const currents = ids.map((_, slot) => createMemoryCurrent(slot));
     // Decorative currents belong behind the animal. Only the entrance lip
     // overlaps its trailing body; portraits keep their independent clear plane.
@@ -152,10 +151,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       const portrait = document.createElement('span');
       portrait.className = 'memory-portrait';
       portrait.append(photo);
-      const marker = document.createElement('i');
-      marker.className = 'gate-memory__marker';
-      marker.textContent = `${n + 1}`.padStart(2, '0');
-      memory.append(portrait, marker);
+      memory.append(portrait);
       orbit.append(memory);
       return memory;
     });
@@ -201,9 +197,9 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
         layer.style.transform = `translate(-50%, -50%) scale(${frame.scale})`;
         layer.style.opacity = frame.opacity.toFixed(4);
         layer.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
-        layer.style.setProperty('--current-angle', `${state.time * 17.5 + index * 57}deg`);
+        layer.style.setProperty('--current-angle', `${state.time * 19 + index * 57}deg`);
         layer.style.setProperty('--portrait-current', `${Math.sin(state.time * .72 + index) * 1.35}deg`);
-        layer.style.setProperty('--flow-offset', `${-state.time * 14}`);
+        layer.style.setProperty('--flow-offset', `${-state.time * 15.5}`);
         layer.style.setProperty('--gate-pulse', frame.pulse.toFixed(4));
       }
       memories.forEach((memory, slot) => memory.style.setProperty('--recall', frame.recall[slot].toFixed(4)));

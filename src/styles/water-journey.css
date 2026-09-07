@@ -108,14 +108,15 @@
   background: var(--memory-water) center / contain no-repeat;
 }
 .gate-memory::before {
-  z-index: 0; inset: -10%; opacity: .48;
+  z-index: 0; inset: -10%; opacity: .72;
   mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 54%, #000b 66%, #000 78%, transparent 100%);
-  filter: brightness(.72) saturate(.76);
+  filter: brightness(.82) saturate(.72) contrast(1.04);
 }
 .gate-memory::after {
-  z-index: 3; inset: -10%; opacity: .46;
+  z-index: 3; inset: -10%; opacity: .62;
   transform: rotate(var(--portrait-current, 0deg));
   mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 57%, #000b 69%, #000 79%, transparent 96%);
+  filter: brightness(.82) saturate(.72) contrast(1.04);
 }
 .memory-portrait {
   position: absolute; z-index: 1; inset: 13%; overflow: hidden;
@@ -136,18 +137,9 @@
   transform: scale(1.08);
   filter: saturate(.82) contrast(1.04) brightness(.9);
 }
-.gate-memory__marker {
-  position: absolute; z-index: 4; right: 7%; bottom: 9%;
-  display: grid; width: 20px; height: 20px; place-items: center;
-  border: 1px solid rgb(180 242 248 / .42); border-radius: 50%;
-  background: rgb(2 35 54 / .76); color: rgb(215 250 252 / .86);
-  font: 600 7px/1 system-ui, sans-serif; letter-spacing: .06em;
-  box-shadow: 0 0 9px rgb(79 215 232 / .2);
-}
 .journey-world .intro-whale__wake { opacity: var(--wake-strength, .35); transition: opacity 180ms linear; }
 @media (max-width: 760px) {
   .journey-world .water-gate { width: min(78vw, 53vh); }
   .gate-memory { width: 32%; }
   .water-gate--memories::before { top: 3%; font-size: 6px; }
-  .gate-memory__marker { width: 16px; height: 16px; font-size: 6px; }
 }

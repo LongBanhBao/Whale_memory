@@ -147,13 +147,13 @@ for (const width of [1440, 390]) {
       await image.decode();
       return { url, width: image.naturalWidth, mask: css.maskImage };
     });
-    expect(portraitPlate.url).toContain('prw-memory-window.webp');
-    expect(portraitPlate.width).toBe(768);
+    expect(portraitPlate.url).toContain('memory-vortex-v2.webp');
+    expect(portraitPlate.width).toBe(1024);
     expect(portraitPlate.mask).toContain('closest-side');
     await expect(page.locator('.water-vortex-texture')).toHaveCount(6);
     await expect.poll(() => page.locator('.water-vortex-texture').evaluateAll(nodes => nodes.every(n => n.complete && n.naturalWidth === 1024))).toBe(true);
     await expect(page.locator('.water-vortex-texture').first()).toHaveAttribute('src', /memory-vortex-v2\.webp/);
-    await expect(page.locator('.gate-memory__marker')).toHaveCount(12);
+    await expect(page.locator('.gate-memory__marker')).toHaveCount(0);
     const ids = await page.locator('.gate-memory').evaluateAll(nodes => nodes.map(n => n.dataset.image));
     expect(new Set(ids).size).toBe(12);
     await expect.poll(() => page.locator('.journey-backdrop').evaluate(n => n.naturalWidth)).toBeGreaterThan(0);

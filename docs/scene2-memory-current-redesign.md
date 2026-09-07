@@ -3,8 +3,12 @@
 Scene 2 now treats each gate as one chapter of the journey rather than a
 central vortex surrounded by four detached cards. The four photographs are
 smaller, circular memory fragments embedded directly in the outer current.
-Their shared perspective, restrained water rim, sequential numbers and chapter
+Their shared perspective, restrained water rim and chapter
 label make each group read as a single passage through remembered moments.
+
+The portrait rims now reuse the exact same vortex artwork, brightness,
+saturation and contrast treatment as the central gate. Per-photo sequence
+numbers were removed so the memories read emotionally rather than as an index.
 
 The new `public/assets/scene/memory-vortex-v2.webp` texture uses a transparent
 center and exterior, layered navy/teal water and quieter cyan highlights. It was
@@ -24,8 +28,9 @@ Final prompt:
 > hopeful. Actual transparent background and center; no people, photographs,
 > animals, architecture, text, symbols or watermark.
 
-Whale motion retains the same three gate timings and tail-clear rules. Quintic
-phase easing removes acceleration changes at ascent and recovery boundaries.
-Subtle cruise breathing, banking, stronger strokes and a responsive wake add
-life while preserving the existing route. Tests cover continuity of position,
+Whale motion crosses the three gates at 4.5, 13.5 and 22.5 seconds. The shorter
+nine-second cadence and 2.1-second final approach bring the scene to 27 seconds,
+about ten percent faster without feeling rushed. Quintic easing keeps phase
+edges smooth, while body bend, stronger strokes and wake concentrate in the
+last three seconds before each vortex. Tests cover continuity of position,
 rotation, bend, bank and effort.
