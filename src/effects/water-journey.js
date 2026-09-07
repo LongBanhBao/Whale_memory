@@ -18,23 +18,42 @@ function createMemoryCurrent(slot) {
     const spread = (strand - 9) * 1.15;
     const radius = 78 + spread;
     const path = document.createElementNS(ns, 'path');
-    const points = [`M 38 ${-133 + spread} C 112 ${-172 + spread} 151 ${-radius} 224 ${-radius}`];
+    const points = [`M 76 ${-112 + spread} C 132 ${-74 + spread} 136 ${-radius} 224 ${-radius}`];
     // Small irregularities break up the outline into foam, rather than a wire.
     for (let step = 1; step <= 64; step += 1) {
       const angle = -Math.PI / 2 + step / 64 * Math.PI * 1.5;
       const ripple = Math.sin(angle * 13 + strand * 1.7) * 1.3;
       points.push(`L ${(224 + Math.cos(angle) * (radius + ripple)).toFixed(2)} ${(Math.sin(angle) * (radius + ripple)).toFixed(2)}`);
     }
-    points.push(`C ${224 - radius} -48 116 -72 76 -112`);
+    points.push(`C ${224 - radius} -38 133 ${65 + spread} 90 ${120 + spread}`);
     path.setAttribute('d', points.join(' '));
     path.setAttribute('class', strand === 9 ? 'memory-current__body' : 'memory-current__foam');
     path.style.setProperty('--strand', strand);
     if (strand !== 9) {
-      path.setAttribute('stroke-width', strand % 4 === 0 ? '1.3' : '.55');
-      path.setAttribute('opacity', `${.2 + (strand % 4) * .14}`);
+      path.setAttribute('stroke-width', strand % 4 === 0 ? '1.65' : '.75');
+      path.setAttribute('opacity', `${.3 + (strand % 4) * .16}`);
       path.setAttribute('stroke-dasharray', `${9 + strand * 2} ${3 + strand % 5} ${2 + strand % 3} ${6 + strand % 7}`);
     }
     branch.append(path);
+    if (strand === 9) {
+      const glow = path.cloneNode();
+      glow.setAttribute('class', 'memory-current__glow');
+      branch.append(glow);
+      const highlights = path.cloneNode();
+      highlights.setAttribute('class', 'memory-current__highlights');
+      branch.append(highlights);
+    }
+  }
+  for (let n = 0; n < 12; n += 1) {
+    const angle = -Math.PI / 2 + n / 11 * Math.PI * 1.5;
+    const radius = 83 + Math.sin(n * 2.4) * 9;
+    const sparkle = document.createElementNS(ns, 'path');
+    const x = 224 + Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    const size = n % 3 === 0 ? 2.5 : 1.25;
+    sparkle.setAttribute('d', `M ${x - size} ${y} h ${size * 2} M ${x} ${y - size} v ${size * 2}`);
+    sparkle.setAttribute('class', `memory-current__sparkle${n % 2 ? ' memory-current__sparkle--alternate' : ''}`);
+    branch.append(sparkle);
   }
   flow.append(branch);
   return flow;
@@ -112,7 +131,12 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     memoryGate.dataset.gate = index + 1;
     memoryGate.style.setProperty('--memory-water', `url("${memoryArtwork.src}")`);
     const currents = ids.map((_, slot) => createMemoryCurrent(slot));
-    orbit.append(...currents);
+    // Decorative currents belong behind the animal. Only the entrance lip
+    // overlaps its trailing body; portraits keep their independent clear plane.
+    const branches = document.createElement('div');
+    branches.className = 'water-gate__branches';
+    branches.append(...currents);
+    gate.append(branches);
     const memories = ids.map((id, n) => {
       const memory = document.createElement('figure');
       memory.className = 'gate-memory';
@@ -175,7 +199,10 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
         layer.style.setProperty('--flow-offset', `${-state.time * 14}`);
       }
       memories.forEach((memory, slot) => memory.style.setProperty('--recall', frame.recall[slot].toFixed(4)));
-      currents.forEach((current, slot) => current.style.setProperty('--recall', frame.recall[slot].toFixed(4)));
+      currents.forEach((current, slot) => {
+        current.style.setProperty('--recall', frame.recall[slot].toFixed(4));
+        current.style.setProperty('--glint-light', `${.55 + Math.sin(state.time * 2.6 + slot * 1.7 + index) * .35}`);
+      });
       gate.dataset.active = frame.memories > .1 ? 'true' : 'false';
       gate.dataset.cleared = String(frame.cleared);
     });

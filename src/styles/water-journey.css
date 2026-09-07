@@ -19,6 +19,7 @@
 .water-gate__ring {
   position: absolute; z-index: 1; inset: 0;
   transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
+  mask-image: radial-gradient(circle, transparent 39%, #000a 48%, #000 55%, #000 65%, transparent 72%);
 }
 .water-vortex-texture {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
@@ -42,11 +43,14 @@
   opacity: .22;
 }
 .water-current circle { fill: #e2fcff; stroke: #a9eeff; stroke-width: .4; opacity: .6; }
-/* Split in the fixed portal plane; never exchange halves during passage. */
-.portal.water-gate > .water-gate__ring { clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); }
-.water-gate--near > .water-gate__ring { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
+/* The whale swims left to right: the entrance lip is on the left, while
+   the right rim stays behind its emerging head. Keep the opening transparent. */
+.portal.water-gate > .water-gate__ring { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
+.water-gate--near > .water-gate__ring {
+  clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+}
 /* XRW's branching currents share the portrait and vortex perspective. */
-.memory-orbit {
+.memory-orbit, .water-gate__branches {
   position: absolute; z-index: 2; inset: 0;
   transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
   transform-origin: center;
@@ -55,13 +59,27 @@
   position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
   fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
   opacity: calc(var(--memory-visibility, 0) * var(--recall, 0));
-  mask-image: radial-gradient(circle at center, transparent 22%, #000 38%);
 }
 .memory-current__body {
-  stroke: #2398c2; stroke-width: 19; opacity: .32; filter: blur(4px);
+  stroke: #159ed8; stroke-width: 23; opacity: .52; filter: blur(4px);
+}
+.memory-current__glow {
+  stroke: #60dfff; stroke-width: 5; opacity: .5; filter: blur(2px);
 }
 .memory-current__foam {
-  stroke: #a9edff; stroke-dashoffset: calc(var(--flow-offset, 0) + var(--strand) * 7);
+  stroke: #c3f5ff; stroke-dashoffset: calc(var(--flow-offset, 0) + var(--strand) * 7);
+}
+.memory-current__highlights {
+  stroke: #efffff; stroke-width: 2; stroke-dasharray: 2 37 7 61;
+  stroke-dashoffset: var(--flow-offset, 0);
+  filter: drop-shadow(0 0 2px #96edff); opacity: .9;
+}
+.memory-current__sparkle {
+  stroke: #edffff; stroke-width: 1.1;
+  filter: drop-shadow(0 0 2px #71e2ff); opacity: var(--glint-light, .6);
+}
+.memory-current__sparkle--alternate {
+  opacity: calc(1 - var(--glint-light, .6));
 }
 .gate-memory {
   position: absolute; z-index: 2; margin: 0; width: 42%; aspect-ratio: 1;
