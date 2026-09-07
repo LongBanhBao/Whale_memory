@@ -10,8 +10,8 @@
 .memory-layer { position: absolute; z-index: 36; inset: 0; pointer-events: none; }
 .journey-world .journey-vignette { z-index: 38; }
 .journey-world .water-gate {
-  --gate-tilt: -22deg;
-  --gate-compression: .62;
+  --gate-tilt: -18deg;
+  --gate-compression: .68;
   position: absolute; width: min(64vh, 56vw, 650px); aspect-ratio: 1;
   pointer-events: none; will-change: transform, opacity;
 }
@@ -19,28 +19,35 @@
 .water-gate__ring {
   position: absolute; z-index: 1; inset: 0;
   transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
-  mask-image: radial-gradient(circle, transparent 39%, #000a 48%, #000 55%, #000 65%, transparent 72%);
+  filter: drop-shadow(0 0 18px rgb(65 196 230 / .18));
+}
+.water-gate__depth {
+  position: absolute; inset: 19%; border-radius: 50%;
+  background: radial-gradient(circle, transparent 0 51%, rgb(7 67 96 / .18) 62%, rgb(2 22 43 / .78) 100%);
+  box-shadow: inset 0 0 34px rgb(132 236 247 / .16), 0 0 42px rgb(1 13 29 / .65);
+  opacity: calc(.62 + var(--gate-pulse, 0) * .22);
 }
 .water-vortex-texture {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
-  transform: rotate(var(--current-angle, 0deg)); opacity: .88;
-  mask-image: radial-gradient(circle, transparent 16%, #0009 29%, #000 40%, #000 64%, transparent 72%);
+  transform: rotate(var(--current-angle, 0deg)) scale(calc(.96 + var(--gate-pulse, 0) * .035));
+  opacity: calc(.66 + var(--gate-pulse, 0) * .18);
+  filter: saturate(.72) brightness(.82) contrast(1.04);
 }
 .water-gate__ring::before, .water-gate__ring::after {
   content: ''; position: absolute; inset: 0; border-radius: 50%;
-  background: radial-gradient(circle, transparent 47%, #328bb30a 49%, #a7efff35 55%, #ddffff55 57%, #54b9e926 61%, transparent 67%);
-  filter: blur(3px); opacity: .4;
+  background: radial-gradient(circle, transparent 37%, #8ee9f322 42%, transparent 48%, #72ddea2e 58%, transparent 72%);
+  filter: blur(4px); opacity: calc(.32 + var(--gate-pulse, 0) * .2);
 }
 .water-gate__ring::after {
-  inset: 5%; opacity: .45; filter: blur(9px);
-  background: conic-gradient(from var(--current-angle), transparent, #b9f7ff44, transparent 22%, #6cbfe233, transparent 61%, #ddffff66, transparent);
-  mask-image: radial-gradient(circle, transparent 49%, #000 56%, transparent 69%);
+  inset: 3%; opacity: .38; filter: blur(10px);
+  background: conic-gradient(from var(--current-angle), transparent, #b9f7ff36, transparent 18%, #6cbfe22b, transparent 57%, #ddffff52, transparent);
+  mask-image: radial-gradient(circle, transparent 38%, #000 49%, transparent 73%);
 }
 .water-current {
   position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
   transform: rotate(var(--current-angle, 0deg));
   fill: none; stroke: #cef7ff; stroke-linecap: round;
-  opacity: .22;
+  opacity: calc(.13 + var(--gate-pulse, 0) * .14);
 }
 .water-current circle { fill: #e2fcff; stroke: #a9eeff; stroke-width: .4; opacity: .6; }
 /* The whale swims left to right: the entrance lip is on the left, while
@@ -55,19 +62,28 @@
   transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
   transform-origin: center;
 }
+.water-gate--memories::before {
+  content: 'CHẶNG 0' attr(data-gate);
+  position: absolute; z-index: 5; left: 50%; top: 7%;
+  transform: translateX(-50%);
+  color: color-mix(in srgb, var(--gate-accent) 74%, white);
+  font-size: 8px; font-weight: 600; letter-spacing: .34em;
+  text-shadow: 0 0 10px rgb(99 224 245 / .46);
+  opacity: calc(var(--memory-visibility, 0) * .72);
+}
 .memory-current {
   position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
   fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
   opacity: calc(var(--memory-visibility, 0) * var(--recall, 0));
 }
 .memory-current__body {
-  stroke: #159ed8; stroke-width: 23; opacity: .52; filter: blur(4px);
+  stroke: #0d779f; stroke-width: 18; opacity: .34; filter: blur(5px);
 }
 .memory-current__glow {
-  stroke: #60dfff; stroke-width: 5; opacity: .5; filter: blur(2px);
+  stroke: var(--gate-accent, #60dfff); stroke-width: 3; opacity: .34; filter: blur(2px);
 }
 .memory-current__foam {
-  stroke: #c3f5ff; stroke-dashoffset: calc(var(--flow-offset, 0) + var(--strand) * 7);
+  stroke: #b5edf3; stroke-dashoffset: calc(var(--flow-offset, 0) + var(--strand) * 7);
 }
 .memory-current__highlights {
   stroke: #efffff; stroke-width: 2; stroke-dasharray: 2 37 7 61;
@@ -82,42 +98,56 @@
   opacity: calc(1 - var(--glint-light, .6));
 }
 .gate-memory {
-  position: absolute; z-index: 2; margin: 0; width: 42%; aspect-ratio: 1;
+  position: absolute; z-index: 2; margin: 0; width: 30%; aspect-ratio: 1;
   opacity: calc(var(--memory-visibility, 0) * var(--recall, 0)); isolation: isolate;
-  transform: translate(-50%, -50%) scale(calc(.96 + var(--recall, 0) * .04));
+  transform: translate(-50%, -50%) scale(calc(.82 + var(--recall, 0) * .18));
+  filter: drop-shadow(0 8px 14px rgb(0 12 28 / .46));
 }
 .gate-memory::before, .gate-memory::after {
   content: ''; position: absolute; pointer-events: none;
   background: var(--memory-water) center / contain no-repeat;
 }
 .gate-memory::before {
-  z-index: 0; inset: -6%; opacity: .8;
-  mask-image: radial-gradient(ellipse closest-side at 50% 50%, #000 55%, #000b 75%, transparent 100%);
-  filter: brightness(.82) saturate(.92);
+  z-index: 0; inset: -10%; opacity: .48;
+  mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 54%, #000b 66%, #000 78%, transparent 100%);
+  filter: brightness(.72) saturate(.76);
 }
 .gate-memory::after {
-  z-index: 3; inset: -6%; opacity: .68;
+  z-index: 3; inset: -10%; opacity: .46;
   transform: rotate(var(--portrait-current, 0deg));
-  mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 58%, #000b 73%, #000 83%, transparent 100%);
+  mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 57%, #000b 69%, #000 79%, transparent 96%);
 }
 .memory-portrait {
-  position: absolute; z-index: 1; inset: 10% 12% 7%; overflow: hidden;
-  border-radius: 46% 54% 48% 52%;
-  mask-image: radial-gradient(ellipse at 50% 43%, #000 39%, #000d 56%, transparent 72%);
+  position: absolute; z-index: 1; inset: 13%; overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--gate-accent) 58%, transparent);
+  border-radius: 50%;
+  background: rgb(3 29 47 / .72);
+  box-shadow: inset 0 0 18px rgb(105 224 241 / .14), 0 0 0 4px rgb(19 117 147 / .12);
+  mask-image: radial-gradient(circle, #000 0 67%, #000e 76%, transparent 100%);
 }
 .memory-portrait::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(145deg, #0096ca24, transparent 38%, #03516b65);
+  background: linear-gradient(145deg, #9ceaf01f, transparent 38%, #02384f61);
   mix-blend-mode: multiply;
   pointer-events: none;
 }
 .memory-portrait img {
   display: block; width: 100%; height: 100%; object-fit: contain;
-  transform: scale(1.16);
-  filter: saturate(.7) contrast(1.05);
+  transform: scale(1.08);
+  filter: saturate(.82) contrast(1.04) brightness(.9);
 }
-.journey-world .intro-whale__wake { opacity: .35; }
+.gate-memory__marker {
+  position: absolute; z-index: 4; right: 7%; bottom: 9%;
+  display: grid; width: 20px; height: 20px; place-items: center;
+  border: 1px solid rgb(180 242 248 / .42); border-radius: 50%;
+  background: rgb(2 35 54 / .76); color: rgb(215 250 252 / .86);
+  font: 600 7px/1 system-ui, sans-serif; letter-spacing: .06em;
+  box-shadow: 0 0 9px rgb(79 215 232 / .2);
+}
+.journey-world .intro-whale__wake { opacity: var(--wake-strength, .35); transition: opacity 180ms linear; }
 @media (max-width: 760px) {
   .journey-world .water-gate { width: min(78vw, 53vh); }
-  .gate-memory { width: 44%; }
+  .gate-memory { width: 32%; }
+  .water-gate--memories::before { top: 3%; font-size: 6px; }
+  .gate-memory__marker { width: 16px; height: 16px; font-size: 6px; }
 }

@@ -169,7 +169,7 @@
   left: var(--whale-x);
   width: min(62vw, 900px);
   aspect-ratio: 100 / 59;
-  transform: translate(-50%, -50%) rotate(var(--whale-rotation)) scale(var(--whale-scale));
+  transform: translate(-50%, -50%) rotate(var(--whale-rotation)) skewY(var(--whale-bank, 0deg)) scale(var(--whale-scale)) scaleY(var(--whale-bank-scale, 1));
   transform-origin: 52% 52%;
   opacity: var(--whale-opacity);
   filter:

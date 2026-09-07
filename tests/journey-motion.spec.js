@@ -13,6 +13,8 @@ test('each gate has a low cruise, rising turn, full passage and recovery', () =>
     expect(climbing.rotation).toBeLessThan(-8);
     expect(climbing.bend).toBeGreaterThan(.1);
     expect(climbing.effort).toBeGreaterThan(before.effort);
+    expect(Math.abs(climbing.bank)).toBeGreaterThan(1);
+    expect(climbing.wake).toBeGreaterThan(before.wake);
     expect(crossing.y).toBeCloseTo(.48);
     if (index < 2) expect(after.y).toBeGreaterThan(.60);
     else expect(after.y).toBeLessThan(.5);
@@ -45,6 +47,8 @@ test('path is continuous across all phase boundaries', () => {
     expect(Math.abs(a.y - b.y)).toBeLessThan(.003);
     expect(Math.abs(a.rotation - b.rotation)).toBeLessThan(1);
     expect(Math.abs(a.bend - b.bend)).toBeLessThan(.04);
+    expect(Math.abs(a.bank - b.bank)).toBeLessThan(.5);
+    expect(Math.abs(a.effort - b.effort)).toBeLessThan(.04);
   }
 });
 
