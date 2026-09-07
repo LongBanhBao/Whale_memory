@@ -1,8 +1,8 @@
-# Memory frames and gate swimming
+# Memory imprints and gate swimming
 
-Reference: `../LK/XRW.png`, unchanged. The portrait rim is separate from the
-central vortex, with an open center and thin foamy water ribbons matching the
-four portrait borders in the reference.
+The generated portrait-rim experiments below are retained as design history,
+but scene 2 no longer renders a separate frame around each photograph. Photos
+are softly masked and blended directly into the central vortex rim.
 
 Asset: `public/assets/scene/memory-water-rim.webp`, 768 × 768, real alpha verified.
 Created with the built-in imagegen tool, converted to WebP with Sharp.
@@ -18,16 +18,15 @@ Final background-extraction prompt (the first output had a painted checkerboard)
 
 ## Motion
 
-Scene 2 lasts 27 seconds. Gate centers occur at 4.5, 13.5 and 22.5 seconds,
-leaving nine seconds per swimming cycle. Cruise height is 64% from the top; crossing
-height is 48%. The whale rises smoothly before each gate, crosses at the top of
-one continuous arc, then starts diving as its body passes through. Steering
-bends lag behind the head; the mesh adds a travelling body wave, stronger fluke strokes
-and a delayed pectoral stroke during ascent/descent. Scene 1 retains its default
-swim parameters, and reduced motion still bypasses the animated journey.
+Scene 2 lasts 28 seconds. Its vertical position is a true sine curve: vortex
+crests at 4, 12 and 20 seconds, then stable troughs at 8, 16 and 24 seconds.
+The last quarter-wave returns to the exact final pose of scene 1. Rotation,
+bend, effort and wake respond to the curve velocity, while the mesh supplies
+the travelling body wave and delayed fin stroke. Reduced motion still bypasses
+the animated journey.
 
 Every gate uses the same tail-clear delay and fade curve, including the last.
-The final gate keeps travelling (no capped camera progress), clears at 24.9
-seconds, then the final return ends at 27 seconds. The WebGL swim loop remains
+The final gate keeps travelling (no capped camera progress), clears before the
+24-second trough, then the final return ends at 28 seconds. The WebGL swim loop remains
 active after the scene timeline completes. Tests cover phase continuity, three
 low/high cycles, gate fade ordering, desktop/mobile and final live mesh.

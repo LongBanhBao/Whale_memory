@@ -559,7 +559,7 @@ reducedNext.addEventListener('click', () => {
     .to(retreat, {
       progress: 1, duration: 1.65, ease: 'sine.inOut',
       onUpdate: () => waterJourney.pose(
-        lerp(.55, .18, retreat.progress), lerp(.49, .57, retreat.progress),
+        lerp(.55, .18, retreat.progress), lerp(.49, .64, retreat.progress),
         lerp(1, .48, retreat.progress), lerp(-9, -4, retreat.progress),
       ),
     })

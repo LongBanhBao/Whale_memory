@@ -40,10 +40,11 @@ test('last gate keeps travelling, then clears before the final return', () => {
   expect(at(RETURN_START + .1).returning).toBeGreaterThan(0);
   expect(at(RETURN_START + 1).y).toBeGreaterThan(.59);
   expect(at(RETURN_START + 1).y).toBeLessThan(.65);
-  expect(JOURNEY_DURATION).toBe(27);
+  expect(JOURNEY_DURATION).toBe(28);
   expect(at(JOURNEY_DURATION).returning).toBe(1);
   const end = at(JOURNEY_DURATION);
-  expect(end).toMatchObject({ x: .55, y: .61, scale: 1, rotation: 2, passed: 3 });
+  expect(end).toMatchObject({ x: .55, scale: 1, rotation: -9, passed: 3 });
+  expect(end.y).toBeCloseTo(.49);
 });
 
 test('path is continuous across all phase boundaries', () => {
@@ -55,6 +56,16 @@ test('path is continuous across all phase boundaries', () => {
     expect(Math.abs(a.bank - b.bank)).toBeLessThan(.5);
     expect(Math.abs(a.effort - b.effort)).toBeLessThan(.04);
   }
+});
+
+test('three sine crests meet the gates and the third trough returns to the intro pose', () => {
+  GATE_TIMES.forEach((center) => {
+    expect(at(center).y).toBeCloseTo(.48);
+    expect(at(center + 4).y).toBeCloseTo(.64);
+  });
+  const final = at(JOURNEY_DURATION);
+  expect(final).toMatchObject({ x: .55, scale: 1, rotation: -9 });
+  expect(final.y).toBeCloseTo(.49);
 });
 
 test('memories recall in sequence without changing gate timing', () => {

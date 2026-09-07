@@ -1,18 +1,14 @@
 # Shared perspective and tighter ending
 
-The approved PRW portrait artwork is unchanged. Portraits are positioned on an
-unprojected circular orbit (radius 51% of the gate) and projected together with
-the central vortex: −22° rotation and 0.62 horizontal compression. The portrait
-and its water border share the same transform; the old independent frame tilts
-and image counter-rotations are removed. Four memories emerge with 0.22-second
-offsets, fully visible before passage. No connecting strokes are introduced.
+Portraits are positioned on an unprojected circular orbit and projected with
+the central vortex. Soft alpha masks, muted color and screen blending print the
+images directly into the water; independent portrait rims are no longer used.
+Four memories emerge with short offsets and remain visible before passage.
 
-Gate crossings occur at 4.5, 13.5 and 22.5 seconds. The tail-clear delay is 2.4
-seconds. Immediately after the last tail clears at 24.9 seconds, the whale
-approaches its final pose over 2.1 seconds. The last gate dissolves in parallel.
-No last descent, low-cruise pause or extra wait remains. Scene duration is 27
-seconds; next-button navigation and the live swimming mesh after arrival are
-unchanged.
+Gate crossings occur at the sine-wave crests at 4, 12 and 20 seconds. Troughs
+follow at 8, 16 and 24 seconds; the final quarter-wave returns to the scene-1
+pose at 28 seconds. The last gate dissolves before the third trough. Navigation
+and the live swimming mesh after arrival are unchanged.
 
 Tests assert identical ring/orbit perspective, sequential recall, uninterrupted
-motion, no early final-gate fade, and return beginning immediately after clearance.
+motion, no early final-gate fade, the third trough and the final scene-1 pose.

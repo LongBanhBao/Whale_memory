@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 async function expectClearPassage(page, gateIndex) {
   const result = await page.evaluate(index => {
     const mesh = document.querySelector('#intro-whale-mesh');
-    const gate = document.querySelectorAll('#portal-layer > .water-gate')[index];
+    const gate = document.querySelectorAll('#portal-layer > .portal.water-gate')[index];
     const near = document.querySelectorAll('#foreground-layer .water-gate__ring')[index];
     const currents = [...gate.querySelectorAll('.memory-current')];
     const branches = gate.querySelector('.water-gate__branches');
@@ -37,37 +37,30 @@ async function expectClearPassage(page, gateIndex) {
   expect(result.exitInFront).toBe(false);
 }
 
-async function expectClearPortraits(page, gateIndex) {
+async function expectMemoryImprints(page, gateIndex) {
   const state = await page.evaluate(index => {
     const gate = document.querySelectorAll('.water-gate--memories')[index];
-    const rear = document.querySelectorAll('#portal-layer > .water-gate')[index];
+    const rear = document.querySelectorAll('#portal-layer > .portal.water-gate')[index];
     const portraits = [...gate.querySelectorAll('.memory-portrait')];
-    // Enable hit-testing only for this diagnostic, including potential blockers.
-    const targets = [...portraits, ...document.querySelectorAll('#foreground-layer .water-gate__ring, #intro-whale-mesh')];
-    const previous = targets.map(node => node.style.pointerEvents);
-    targets.forEach(node => { node.style.pointerEvents = 'auto'; });
-    try {
-      return {
-        synchronized: gate.style.transform === rear.style.transform
-          && gate.style.left === rear.style.left && gate.style.top === rear.style.top,
-        portraits: portraits.map(portrait => {
-          const bounds = portrait.getBoundingClientRect();
-          const points = [.35, .5, .65].map(fraction => ({
-            x: bounds.left + bounds.width * .5,
-            y: bounds.top + bounds.height * fraction,
-          }));
-          return {
-            inViewport: points.every(({ x, y }) => x > 0 && x < innerWidth && y > 0 && y < innerHeight),
-            unobscured: points.every(({ x, y }) => portrait.contains(document.elementFromPoint(x, y))),
-          };
-        }),
-      };
-    } finally {
-      targets.forEach((node, n) => { node.style.pointerEvents = previous[n]; });
-    }
+    return {
+      synchronized: gate.style.transform === rear.style.transform
+        && gate.style.left === rear.style.left && gate.style.top === rear.style.top,
+      portraits: portraits.map(portrait => {
+        const bounds = portrait.getBoundingClientRect();
+        const style = getComputedStyle(portrait);
+        return {
+          inViewport: bounds.left > 0 && bounds.right < innerWidth
+            && bounds.top > 0 && bounds.bottom < innerHeight,
+          borderless: style.borderTopWidth === '0px' && style.backgroundImage === 'none',
+          blended: style.mixBlendMode === 'screen',
+        };
+      }),
+    };
   }, gateIndex);
   expect(state.synchronized).toBe(true);
-  expect(state.portraits).toEqual(Array.from({ length: 4 }, () => ({ inViewport: true, unobscured: true })));
+  expect(state.portraits).toEqual(Array.from({ length: 4 }, () => ({
+    inViewport: true, borderless: true, blended: true,
+  })));
 }
 
 test('vòng giữ hướng, đồng bộ hai nửa và tan dần khi cá voi đi qua', async ({ page }) => {
@@ -136,20 +129,23 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.memory-orbit')).toHaveCount(3);
     const perspective = await page.evaluate(() => ({
       ring: getComputedStyle(document.querySelector('#portal-layer .water-gate__ring')).transform,
-      memories: getComputedStyle(document.querySelector('.memory-layer .memory-orbit')).transform,
+      memories: getComputedStyle(document.querySelector('.water-gate--memories .memory-orbit')).transform,
     }));
     expect(perspective.memories).toBe(perspective.ring);
-    const portraitPlate = await page.evaluate(async () => {
-      const css = getComputedStyle(document.querySelector('.gate-memory'), '::before');
-      const url = css.backgroundImage.match(/url\(["']?(.*?)["']?\)/)[1];
-      const image = new Image();
-      image.src = url;
-      await image.decode();
-      return { url, width: image.naturalWidth, mask: css.maskImage };
+    const portraitTreatment = await page.evaluate(() => {
+      const memory = document.querySelector('.gate-memory');
+      const portrait = memory.querySelector('.memory-portrait');
+      return {
+        plate: getComputedStyle(memory, '::before').backgroundImage,
+        border: getComputedStyle(portrait).borderTopWidth,
+        blend: getComputedStyle(portrait).mixBlendMode,
+        mask: getComputedStyle(portrait).maskImage,
+      };
     });
-    expect(portraitPlate.url).toContain('prw-memory-window.webp');
-    expect(portraitPlate.width).toBe(768);
-    expect(portraitPlate.mask).toContain('closest-side');
+    expect(portraitTreatment.plate).toBe('none');
+    expect(portraitTreatment.border).toBe('0px');
+    expect(portraitTreatment.blend).toBe('screen');
+    expect(portraitTreatment.mask).toContain('radial-gradient');
     await expect(page.locator('.water-vortex-texture')).toHaveCount(6);
     await expect.poll(() => page.locator('.water-vortex-texture').evaluateAll(nodes => nodes.every(n => n.complete && n.naturalWidth === 1024))).toBe(true);
     await expect(page.locator('.water-vortex-texture').first()).toHaveAttribute('src', /memory-vortex-v2\.webp/);
@@ -158,17 +154,17 @@ for (const width of [1440, 390]) {
     expect(new Set(ids).size).toBe(12);
     await expect.poll(() => page.locator('.journey-backdrop').evaluate(n => n.naturalWidth)).toBeGreaterThan(0);
     await page.waitForTimeout(5000);
-    await expectClearPortraits(page, 0);
+    await expectMemoryImprints(page, 0);
     await expectClearPassage(page, 0);
     await page.screenshot({ path: testInfo.outputPath('gate-one.png') });
     await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '1', { timeout: 6500 });
     await page.waitForTimeout(7400);
-    await expectClearPortraits(page, 1);
+    await expectMemoryImprints(page, 1);
     await expectClearPassage(page, 1);
     await page.screenshot({ path: testInfo.outputPath('gate-two.png') });
     await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '2', { timeout: 12000 });
     await page.waitForTimeout(7400);
-    await expectClearPortraits(page, 2);
+    await expectMemoryImprints(page, 2);
     await expectClearPassage(page, 2);
     await page.screenshot({ path: testInfo.outputPath('gate-three.png') });
     await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '3', { timeout: 12000 });

@@ -1,7 +1,7 @@
-export const GATE_TIMES = [4.5, 13.5, 22.5];
+export const GATE_TIMES = [4, 12, 20];
 export const TAIL_CLEAR_DELAY = 2.4;
-export const RETURN_START = GATE_TIMES.at(-1) + TAIL_CLEAR_DELAY;
-export const JOURNEY_DURATION = RETURN_START + 2.1;
+export const RETURN_START = 24;
+export const JOURNEY_DURATION = 28;
 const clamp = v => Math.max(0, Math.min(1, v));
 const ease = v => { const t = clamp(v); return t * t * (3 - 2 * t); };
 // Quintic easing keeps both velocity and acceleration quiet at phase edges.
@@ -11,38 +11,28 @@ const bell = (value, start, peak, end) => (
   glide((value - start) / (peak - start)) * (1 - glide((value - peak) / (end - peak)))
 );
 
-function elevation(time) {
-  return GATE_TIMES.reduce((height, center) => {
-    const rise = glide((time - center + 3) / 3);
-    // Start the dive just after the head enters. The body keeps travelling
-    // through the opening while the vertical velocity reverses continuously.
-    const descend = glide((time - center - .25) / (TAIL_CLEAR_DELAY - .25));
-    return height + rise * (1 - descend);
-  }, 0);
-}
-
 export function journeyMotion(progress) {
   const time = clamp(progress) * JOURNEY_DURATION;
-  const returning = glide((time - RETURN_START) / 2.1);
-  const lift = elevation(time);
-  const slope = (elevation(time + .08) - elevation(time - .08)) / .16;
-  const bend = (lift - elevation(time - .5)) * 2.55;
-  const entry = glide(time / 1.4);
+  const returning = glide((time - RETURN_START) / (JOURNEY_DURATION - RETURN_START));
+  const phase = Math.PI * time / 4;
+  const wave = Math.cos(phase);
+  const verticalVelocity = -.08 * Math.PI / 4 * Math.sin(phase);
+  const waveY = .56 + wave * .08;
+  const lift = (1 - wave) * .5;
   const gatePulse = Math.max(...GATE_TIMES.map(center => bell(time, center - 3, center - .2, center + TAIL_CLEAR_DELAY + .65)));
-  const cruise = 1 - gatePulse;
-  const breathing = Math.sin(time * 1.08) * .0032 * cruise * (1 - returning);
-  const bank = Math.max(-11, Math.min(11, -slope * 20)) * (1 - returning);
-  const stroke = (.5 + .5 * Math.sin(time * 2.35)) * (.015 + gatePulse * .18);
+  const bank = Math.max(-9, Math.min(9, verticalVelocity * 125)) * (1 - returning);
+  const travelRotation = -4 + verticalVelocity * 155;
+  const bend = -verticalVelocity * 4.2;
   return {
     time, returning, lift,
     x: mix(mix(.18, .47, glide(time / 2.2)), .55, returning),
-    y: mix(mix(.57, .64, entry) - lift * .16 + breathing, .61, returning),
-    scale: mix(.48 - lift * .012 + gatePulse * .008, 1, returning),
-    rotation: mix(-4 - slope * 30 + bank * .16, 2, returning),
+    y: waveY + returning * .01,
+    scale: mix(.48 + gatePulse * .008, 1, returning),
+    rotation: mix(travelRotation, -9, returning),
     bend: bend * (1 - returning),
     bank,
-    effort: clamp((.11 + Math.abs(slope) * 1.42 + stroke) * (1 - returning)),
-    wake: (.2 + gatePulse * .43 + Math.abs(slope) * .48) * (1 - returning),
+    effort: clamp((.12 + Math.abs(verticalVelocity) * 5.6 + gatePulse * .08) * (1 - returning)),
+    wake: (.18 + Math.abs(verticalVelocity) * 5 + gatePulse * .16) * (1 - returning),
     passed: GATE_TIMES.filter(center => time >= center + TAIL_CLEAR_DELAY).length,
     gates: GATE_TIMES.map((center, index) => {
       const offset = time - center;

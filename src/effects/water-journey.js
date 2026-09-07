@@ -1,6 +1,6 @@
 // Three gates share one continuous camera track. The near lip is composited
-// above the swimming mesh. Portraits have their own synchronized foreground
-// plane so neither a gate's near rim nor a distant gate can cover their faces.
+// above the swimming mesh; faded memories stay with the rear vortex plane so
+// they read as imprints in the water instead of overlays on the whale.
 import { journeyMotion } from './journey-motion.js';
 export { JOURNEY_DURATION } from './journey-motion.js';
 const clamp = (v) => Math.max(0, Math.min(1, v));
@@ -70,11 +70,6 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   world.prepend(backdrop);
   const transition = backdrop.cloneNode();
   transition.className = 'journey-transition-backdrop';
-  const memoryArtworkUrl = assetUrl('assets/scene/prw-memory-window.webp');
-  const memoryLayer = document.createElement('div');
-  memoryLayer.className = 'memory-layer';
-  memoryLayer.setAttribute('aria-hidden', 'true');
-  world.append(memoryLayer);
   const gates = groups.map((ids, index) => {
     const gate = document.createElement('div');
     gate.className = 'portal water-gate';
@@ -126,7 +121,6 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     const memoryGate = document.createElement('div');
     memoryGate.className = 'water-gate water-gate--memories';
     memoryGate.dataset.gate = index + 1;
-    memoryGate.style.setProperty('--memory-water', `url("${memoryArtworkUrl}")`);
     memoryGate.style.setProperty('--gate-accent', ['#76d7e4', '#72cde2', '#83c9e5'][index]);
     const currents = ids.map((_, slot) => createMemoryCurrent(slot));
     // Decorative currents belong behind the animal. Only the entrance lip
@@ -156,11 +150,10 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       return memory;
     });
     memoryGate.append(orbit);
-    memoryLayer.append(memoryGate);
     const lip = document.createElement('div');
     lip.className = 'water-gate water-gate--near';
     lip.append(ring.cloneNode(true));
-    back.append(gate);
+    back.append(gate, memoryGate);
     front.append(lip);
     return { gate, lip, memoryGate, memories, currents };
   });

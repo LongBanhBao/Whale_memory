@@ -35,7 +35,11 @@ test('cảnh chạy tự động và dừng khi chuyển cảnh trên điện th
   await expect(page.locator('.intro-world')).toHaveAttribute('data-stage', 'drops');
   await page.locator('#scene-next').click();
   const progress = () => page.locator('.journey-world').evaluate((node) => Number(node.style.getPropertyValue('--journey-progress')));
-  await expect.poll(progress).toBeGreaterThan(0.01);
+  // Wait for the cinematic hand-off before timing the journey itself. On a
+  // resource-constrained mobile run, the intro transition can legitimately
+  // consume most of Playwright's default polling window.
+  await expect(page.locator('#blue-road')).toBeVisible({ timeout: 10_000 });
+  await expect.poll(progress, { timeout: 10_000 }).toBeGreaterThan(0.01);
   await page.locator('#scene-next').click();
   const stopped = await progress();
   await page.waitForTimeout(250);

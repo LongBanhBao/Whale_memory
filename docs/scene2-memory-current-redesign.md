@@ -6,11 +6,11 @@ smaller, circular memory fragments embedded directly in the outer current.
 Their shared perspective, restrained water rim and chapter
 label make each group read as a single passage through remembered moments.
 
-The portrait rims retain the original asymmetric PRW water-window artwork.
-Only its rendered color treatment changes: lower brightness and saturation,
-slightly deeper teal shadows and restrained highlights now match the central
-vortex without changing the frame into a second ring. Per-photo sequence
-numbers remain removed so the memories read emotionally rather than as an index.
+The portrait frames are removed completely. Each photograph is now a faded,
+softly feathered imprint composited directly into the outer current with a
+restrained teal color wash and screen blending. There is no independent water
+ring, border, plate or numbered marker around a memory; the four images feel
+like recollections briefly surfacing inside the same vortex.
 
 The new `public/assets/scene/memory-vortex-v2.webp` texture uses a transparent
 center and exterior, layered navy/teal water and quieter cyan highlights. It was
@@ -30,10 +30,9 @@ Final prompt:
 > hopeful. Actual transparent background and center; no people, photographs,
 > animals, architecture, text, symbols or watermark.
 
-Whale motion crosses the three gates at 4.5, 13.5 and 22.5 seconds. The shorter
-nine-second cadence and 2.1-second final approach bring the scene to 27 seconds,
-about ten percent faster without feeling rushed. Quintic easing keeps phase
-edges smooth. Each passage is now one uninterrupted arc: the whale rises into
-the vortex, crosses it, then starts diving .25 seconds after the center point.
-There is no tail-clear-height hold. Tests cover continuity of position,
-rotation, bend, bank, effort and the post-crossing dive.
+Whale motion follows a continuous sine path. The three upper bounds meet the
+vortexes at 4, 12 and 20 seconds; the lower bounds settle at 8, 16 and 24
+seconds. From the third lower bound, the last quarter-wave rises to the exact
+final pose of scene 1 at 28 seconds. Rotation, bend, effort and wake derive
+from sine velocity, so each ascent, crest, dive and recovery flows without an
+artificial hold. Tests cover all extrema and path continuity.
