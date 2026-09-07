@@ -5,6 +5,41 @@ import { journeyMotion } from './journey-motion.js';
 export { JOURNEY_DURATION } from './journey-motion.js';
 const clamp = (v) => Math.max(0, Math.min(1, v));
 
+// Each branch leaves the central current tangentially, wraps a photograph,
+// then rejoins the vortex. Keep this geometry on the shared water plane.
+function createMemoryCurrent(slot) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const flow = document.createElementNS(ns, 'svg');
+  flow.setAttribute('viewBox', '0 0 400 400');
+  flow.classList.add('memory-current');
+  const branch = document.createElementNS(ns, 'g');
+  branch.setAttribute('transform', `translate(200 200) rotate(${[-135, -45, 45, 135][slot]})`);
+  for (let strand = 0; strand < 19; strand += 1) {
+    const spread = (strand - 9) * 1.15;
+    const radius = 78 + spread;
+    const path = document.createElementNS(ns, 'path');
+    const points = [`M 38 ${-133 + spread} C 112 ${-172 + spread} 151 ${-radius} 224 ${-radius}`];
+    // Small irregularities break up the outline into foam, rather than a wire.
+    for (let step = 1; step <= 64; step += 1) {
+      const angle = -Math.PI / 2 + step / 64 * Math.PI * 1.5;
+      const ripple = Math.sin(angle * 13 + strand * 1.7) * 1.3;
+      points.push(`L ${(224 + Math.cos(angle) * (radius + ripple)).toFixed(2)} ${(Math.sin(angle) * (radius + ripple)).toFixed(2)}`);
+    }
+    points.push(`C ${224 - radius} -48 116 -72 76 -112`);
+    path.setAttribute('d', points.join(' '));
+    path.setAttribute('class', strand === 9 ? 'memory-current__body' : 'memory-current__foam');
+    path.style.setProperty('--strand', strand);
+    if (strand !== 9) {
+      path.setAttribute('stroke-width', strand % 4 === 0 ? '1.3' : '.55');
+      path.setAttribute('opacity', `${.2 + (strand % 4) * .14}`);
+      path.setAttribute('stroke-dasharray', `${9 + strand * 2} ${3 + strand % 5} ${2 + strand % 3} ${6 + strand % 7}`);
+    }
+    branch.append(path);
+  }
+  flow.append(branch);
+  return flow;
+}
+
 export function createWaterJourney({ world, back, front, groups, imageById, makeImage, assetUrl, swimmer, mesh }) {
   const filters = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   filters.setAttribute('width', '0');
@@ -76,6 +111,8 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     memoryGate.className = 'water-gate water-gate--memories';
     memoryGate.dataset.gate = index + 1;
     memoryGate.style.setProperty('--memory-water', `url("${memoryArtwork.src}")`);
+    const currents = ids.map((_, slot) => createMemoryCurrent(slot));
+    orbit.append(...currents);
     const memories = ids.map((id, n) => {
       const memory = document.createElement('figure');
       memory.className = 'gate-memory';
@@ -101,7 +138,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     lip.append(ring.cloneNode(true));
     back.append(gate);
     front.append(lip);
-    return { gate, lip, memoryGate, memories };
+    return { gate, lip, memoryGate, memories, currents };
   });
 
   function pose(x, y, scale, rotation, bend = 0, effort = 0) {
@@ -125,7 +162,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     world.dataset.passed = String(state.passed);
     world.dataset.swimPhase = state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise';
     backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
-    gates.forEach(({ gate, lip, memoryGate, memories }, index) => {
+    gates.forEach(({ gate, lip, memoryGate, memories, currents }, index) => {
       const frame = state.gates[index];
       for (const layer of [gate, lip, memoryGate]) {
         layer.style.left = `${frame.x * 100}%`;
@@ -135,8 +172,10 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
         layer.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
         layer.style.setProperty('--current-angle', `${state.time * 17.5 + index * 57}deg`);
         layer.style.setProperty('--portrait-current', `${Math.sin(state.time / 36 * Math.PI * 8 + index) * 2}deg`);
+        layer.style.setProperty('--flow-offset', `${-state.time * 14}`);
       }
       memories.forEach((memory, slot) => memory.style.setProperty('--recall', frame.recall[slot].toFixed(4)));
+      currents.forEach((current, slot) => current.style.setProperty('--recall', frame.recall[slot].toFixed(4)));
       gate.dataset.active = frame.memories > .1 ? 'true' : 'false';
       gate.dataset.cleared = String(frame.cleared);
     });

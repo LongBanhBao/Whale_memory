@@ -67,7 +67,10 @@ test('vòng giữ hướng, đồng bộ hai nửa và tan dần khi cá voi đi
     }
     previous = state;
   }
-  expect(previous.opacity).toBeLessThan(.75);
+  // The transition into the scene can consume part of the observation window.
+  // Assert the eventual fade against the live gate, not the wall-clock sample.
+  await expect.poll(() => page.locator('#portal-layer .water-gate').first()
+    .evaluate(gate => Number(gate.style.opacity))).toBeLessThan(.75);
 });
 
 for (const width of [1440, 390]) {

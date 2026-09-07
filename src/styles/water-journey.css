@@ -45,12 +45,23 @@
 /* Split in the fixed portal plane; never exchange halves during passage. */
 .portal.water-gate > .water-gate__ring { clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); }
 .water-gate--near > .water-gate__ring { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
-/* PRW's asymmetric water window is one scene behind and in front of the photo.
-   The central vortex keeps its own artwork and movement. */
+/* XRW's branching currents share the portrait and vortex perspective. */
 .memory-orbit {
   position: absolute; z-index: 2; inset: 0;
   transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
   transform-origin: center;
+}
+.memory-current {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+  fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
+  opacity: calc(var(--memory-visibility, 0) * var(--recall, 0));
+  mask-image: radial-gradient(circle at center, transparent 22%, #000 38%);
+}
+.memory-current__body {
+  stroke: #2398c2; stroke-width: 19; opacity: .32; filter: blur(4px);
+}
+.memory-current__foam {
+  stroke: #a9edff; stroke-dashoffset: calc(var(--flow-offset, 0) + var(--strand) * 7);
 }
 .gate-memory {
   position: absolute; z-index: 2; margin: 0; width: 42%; aspect-ratio: 1;
@@ -62,12 +73,12 @@
   background: var(--memory-water) center / contain no-repeat;
 }
 .gate-memory::before {
-  z-index: 0; inset: -6%; opacity: .94;
-  mask-image: radial-gradient(ellipse closest-side at 50% 50%, #000 70%, #000d 84%, transparent 100%);
+  z-index: 0; inset: -6%; opacity: .8;
+  mask-image: radial-gradient(ellipse closest-side at 50% 50%, #000 55%, #000b 75%, transparent 100%);
   filter: brightness(.82) saturate(.92);
 }
 .gate-memory::after {
-  z-index: 3; inset: -6%; opacity: .82;
+  z-index: 3; inset: -6%; opacity: .68;
   transform: rotate(var(--portrait-current, 0deg));
   mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 58%, #000b 73%, #000 83%, transparent 100%);
 }
