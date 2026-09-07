@@ -7,6 +7,7 @@
 .journey-transition-backdrop { z-index: 29; opacity: 0; filter: brightness(.72) saturate(.88); }
 .journey-world .portal-layer { z-index: 8; }
 .journey-world .foreground-layer { z-index: 35; }
+.memory-layer { position: absolute; z-index: 36; inset: 0; pointer-events: none; }
 .journey-world .journey-vignette { z-index: 38; }
 .journey-world .water-gate {
   --gate-tilt: -22deg;
@@ -52,7 +53,7 @@
   transform-origin: center;
 }
 .gate-memory {
-  position: absolute; z-index: 2; margin: 0; width: 44%; aspect-ratio: 1;
+  position: absolute; z-index: 2; margin: 0; width: 42%; aspect-ratio: 1;
   opacity: calc(var(--memory-visibility, 0) * var(--recall, 0)); isolation: isolate;
   transform: translate(-50%, -50%) scale(calc(.96 + var(--recall, 0) * .04));
 }
@@ -68,7 +69,7 @@
 .gate-memory::after {
   z-index: 3; inset: -6%; opacity: .82;
   transform: rotate(var(--portrait-current, 0deg));
-  mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 45%, #000b 66%, #000 80%, transparent 100%);
+  mask-image: radial-gradient(ellipse closest-side at 50% 50%, transparent 58%, #000b 73%, #000 83%, transparent 100%);
 }
 .memory-portrait {
   position: absolute; z-index: 1; inset: 10% 12% 7%; overflow: hidden;
@@ -88,6 +89,6 @@
 }
 .journey-world .intro-whale__wake { opacity: .35; }
 @media (max-width: 760px) {
-  .journey-world .water-gate { width: min(86vw, 55vh); }
-  .gate-memory { width: 48%; }
+  .journey-world .water-gate { width: min(78vw, 53vh); }
+  .gate-memory { width: 44%; }
 }

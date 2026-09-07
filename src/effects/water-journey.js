@@ -1,5 +1,6 @@
 // Three gates share one continuous camera track. The near lip is composited
-// above the swimming mesh; memories and the far lip remain behind it.
+// above the swimming mesh. Portraits have their own synchronized foreground
+// plane so neither a gate's near rim nor a distant gate can cover their faces.
 import { journeyMotion } from './journey-motion.js';
 export { JOURNEY_DURATION } from './journey-motion.js';
 const clamp = (v) => Math.max(0, Math.min(1, v));
@@ -21,11 +22,14 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   transition.className = 'journey-transition-backdrop';
   const memoryArtwork = new Image();
   memoryArtwork.src = assetUrl('assets/scene/prw-memory-window.webp');
+  const memoryLayer = document.createElement('div');
+  memoryLayer.className = 'memory-layer';
+  memoryLayer.setAttribute('aria-hidden', 'true');
+  world.append(memoryLayer);
   const gates = groups.map((ids, index) => {
     const gate = document.createElement('div');
     gate.className = 'portal water-gate';
     gate.dataset.gate = index + 1;
-    gate.style.setProperty('--memory-water', `url("${memoryArtwork.src}")`);
     const ring = document.createElement('div');
     ring.className = 'water-gate__ring';
     const texture = document.createElement('img');
@@ -68,6 +72,10 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     gate.append(ring);
     const orbit = document.createElement('div');
     orbit.className = 'memory-orbit';
+    const memoryGate = document.createElement('div');
+    memoryGate.className = 'water-gate water-gate--memories';
+    memoryGate.dataset.gate = index + 1;
+    memoryGate.style.setProperty('--memory-water', `url("${memoryArtwork.src}")`);
     const memories = ids.map((id, n) => {
       const memory = document.createElement('figure');
       memory.className = 'gate-memory';
@@ -75,8 +83,8 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       // Place portraits on the same unprojected water plane as the vortex.
       // The shared orbit supplies perspective to both frame and photograph.
       const angle = [-135, -45, 45, 135][n] * Math.PI / 180;
-      memory.style.left = `${50 + Math.cos(angle) * 51}%`;
-      memory.style.top = `${50 + Math.sin(angle) * 51}%`;
+      memory.style.left = `${50 + Math.cos(angle) * 56}%`;
+      memory.style.top = `${50 + Math.sin(angle) * 56}%`;
       const photo = makeImage(imageById.get(id));
       photo.loading = 'eager';
       const portrait = document.createElement('span');
@@ -86,13 +94,14 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       orbit.append(memory);
       return memory;
     });
-    gate.append(orbit);
+    memoryGate.append(orbit);
+    memoryLayer.append(memoryGate);
     const lip = document.createElement('div');
     lip.className = 'water-gate water-gate--near';
     lip.append(ring.cloneNode(true));
     back.append(gate);
     front.append(lip);
-    return { gate, lip, memories };
+    return { gate, lip, memoryGate, memories };
   });
 
   function pose(x, y, scale, rotation, bend = 0, effort = 0) {
@@ -116,9 +125,9 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     world.dataset.passed = String(state.passed);
     world.dataset.swimPhase = state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise';
     backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
-    gates.forEach(({ gate, lip, memories }, index) => {
+    gates.forEach(({ gate, lip, memoryGate, memories }, index) => {
       const frame = state.gates[index];
-      for (const layer of [gate, lip]) {
+      for (const layer of [gate, lip, memoryGate]) {
         layer.style.left = `${frame.x * 100}%`;
         layer.style.top = `${frame.y * 100}%`;
         layer.style.transform = `translate(-50%, -50%) scale(${frame.scale})`;

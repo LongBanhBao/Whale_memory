@@ -1,5 +1,38 @@
 import { test, expect } from '@playwright/test';
 
+async function expectClearPortraits(page, gateIndex) {
+  const state = await page.evaluate(index => {
+    const gate = document.querySelectorAll('.water-gate--memories')[index];
+    const rear = document.querySelectorAll('#portal-layer > .water-gate')[index];
+    const portraits = [...gate.querySelectorAll('.memory-portrait')];
+    // Enable hit-testing only for this diagnostic, including potential blockers.
+    const targets = [...portraits, ...document.querySelectorAll('#foreground-layer .water-gate__ring, #intro-whale-mesh')];
+    const previous = targets.map(node => node.style.pointerEvents);
+    targets.forEach(node => { node.style.pointerEvents = 'auto'; });
+    try {
+      return {
+        synchronized: gate.style.transform === rear.style.transform
+          && gate.style.left === rear.style.left && gate.style.top === rear.style.top,
+        portraits: portraits.map(portrait => {
+          const bounds = portrait.getBoundingClientRect();
+          const points = [.35, .5, .65].map(fraction => ({
+            x: bounds.left + bounds.width * .5,
+            y: bounds.top + bounds.height * fraction,
+          }));
+          return {
+            inViewport: points.every(({ x, y }) => x > 0 && x < innerWidth && y > 0 && y < innerHeight),
+            unobscured: points.every(({ x, y }) => portrait.contains(document.elementFromPoint(x, y))),
+          };
+        }),
+      };
+    } finally {
+      targets.forEach((node, n) => { node.style.pointerEvents = previous[n]; });
+    }
+  }, gateIndex);
+  expect(state.synchronized).toBe(true);
+  expect(state.portraits).toEqual(Array.from({ length: 4 }, () => ({ inViewport: true, unobscured: true })));
+}
+
 test('vòng giữ hướng, đồng bộ hai nửa và tan dần khi cá voi đi qua', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.intro-world')).toHaveAttribute('data-stage', 'drops');
@@ -59,9 +92,9 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.memory-streams, .memory-stream, .memory-shimmer')).toHaveCount(0);
     await expect(page.locator('.memory-portrait')).toHaveCount(12);
     await expect(page.locator('.memory-orbit')).toHaveCount(3);
-    const perspective = await page.locator('#portal-layer > .water-gate').first().evaluate(gate => ({
-      ring: getComputedStyle(gate.querySelector('.water-gate__ring')).transform,
-      memories: getComputedStyle(gate.querySelector('.memory-orbit')).transform,
+    const perspective = await page.evaluate(() => ({
+      ring: getComputedStyle(document.querySelector('#portal-layer .water-gate__ring')).transform,
+      memories: getComputedStyle(document.querySelector('.memory-layer .memory-orbit')).transform,
     }));
     expect(perspective.memories).toBe(perspective.ring);
     const portraitPlate = await page.evaluate(async () => {
@@ -80,13 +113,16 @@ for (const width of [1440, 390]) {
     const ids = await page.locator('.gate-memory').evaluateAll(nodes => nodes.map(n => n.dataset.image));
     expect(new Set(ids).size).toBe(12);
     await expect.poll(() => page.locator('.journey-backdrop').evaluate(n => n.naturalWidth)).toBeGreaterThan(0);
-    await page.waitForTimeout(3500);
+    await page.waitForTimeout(5000);
+    await expectClearPortraits(page, 0);
     await page.screenshot({ path: testInfo.outputPath('gate-one.png') });
     await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '1', { timeout: 6500 });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(7400);
+    await expectClearPortraits(page, 1);
     await page.screenshot({ path: testInfo.outputPath('gate-two.png') });
     await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '2', { timeout: 12000 });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(7400);
+    await expectClearPortraits(page, 2);
     await page.screenshot({ path: testInfo.outputPath('gate-three.png') });
     await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '3', { timeout: 12000 });
     await expect.poll(() => page.locator('#intro-whale-swimmer').evaluate(n => n.style.getPropertyValue('--whale-scale')), { timeout: 11000 }).toBe('1.0000');
