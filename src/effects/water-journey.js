@@ -140,17 +140,18 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       memory.dataset.image = id;
       // Place portraits on the same unprojected water plane as the vortex.
       // The shared orbit supplies perspective to both current and photograph.
-      const angle = [-135, -45, 45, 135][n] * Math.PI / 180;
+      const angle = [-145, -35, 35, 145][n] * Math.PI / 180;
       // Pull the silhouettes into the body of the vortex. The artwork-alpha
       // mask trims them to real water pixels rather than detached cards.
-      memory.style.left = `${50 + Math.cos(angle) * 35.5}%`;
-      memory.style.top = `${50 + Math.sin(angle) * 35.5}%`;
+      memory.style.left = `${50 + Math.cos(angle) * 36}%`;
+      memory.style.top = `${50 + Math.sin(angle) * 36}%`;
       const image = imageById.get(id);
       const photo = makeImage(image);
       photo.loading = 'eager';
       memory.style.setProperty('--memory-image', `url("${assetUrl(image.src)}")`);
       memory.style.setProperty('--memory-focus', '32%');
       memory.style.setProperty('--memory-fit', id === 'p05' ? 'contain' : 'cover');
+      memory.style.setProperty('--memory-lean', `${[-3.5, 2.5, -2, 3][n]}deg`);
       const portrait = document.createElement('span');
       portrait.className = 'memory-portrait';
       portrait.append(photo);

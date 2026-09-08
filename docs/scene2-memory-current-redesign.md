@@ -7,9 +7,10 @@ Their shared perspective, restrained water rim and chapter
 label make each group read as a single passage through remembered moments.
 
 The portrait frames are removed completely. Each photograph is clipped by the
-actual alpha silhouette of the vortex artwork, then softly feathered and
-washed in pearl/teal light. Silhouette-masked glints and fine water streaks pass through
-the photographs without creating an oval plate. The two far-side memories sit
+actual alpha silhouette of the vortex artwork, then given a high-clarity color
+core with softly feathered edges. Pearl/teal silhouette glints, fine streaks and
+a second translucent water surface pass over the photographs without creating
+an oval plate. The two far-side memories sit
 behind the whale while the two near-side memories share the foreground rim, so
 all four feel printed into one volume of moving water. There is no independent
 ring, border, plate or numbered marker around a memory.

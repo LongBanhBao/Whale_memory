@@ -29,8 +29,8 @@
 .water-vortex-texture {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
   transform: rotate(var(--current-angle, 0deg)) scale(calc(.96 + var(--gate-pulse, 0) * .035));
-  opacity: calc(.7 + var(--gate-pulse, 0) * .17);
-  filter: saturate(.8) brightness(.75) contrast(1.1) hue-rotate(-3deg);
+  opacity: calc(.72 + var(--gate-pulse, 0) * .16);
+  filter: saturate(.78) brightness(.71) contrast(1.12) hue-rotate(-3deg);
 }
 .water-gate__ring::before, .water-gate__ring::after {
   content: ''; position: absolute; inset: 0; border-radius: 50%;
@@ -76,7 +76,7 @@
   content: ''; position: absolute; z-index: 3; inset: 0; pointer-events: none;
   background: var(--vortex-mask) center / contain no-repeat;
   transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
-  opacity: calc(var(--memory-visibility, 0) * .2);
+  opacity: calc(var(--memory-visibility, 0) * .26);
   mix-blend-mode: screen;
   filter: saturate(.65) brightness(.88);
 }
@@ -118,7 +118,7 @@
   opacity: calc(1 - var(--glint-light, .6));
 }
 .gate-memory {
-  position: absolute; z-index: 2; margin: 0; width: 36%; aspect-ratio: 1;
+  position: absolute; z-index: 2; margin: 0; width: 38%; aspect-ratio: 1;
   opacity: calc(var(--memory-visibility, 0) * var(--recall, 0)); isolation: isolate;
   transform: translate(-50%, -50%) scale(calc(.82 + var(--recall, 0) * .18));
   filter:
@@ -126,12 +126,12 @@
     drop-shadow(0 0 9px color-mix(in srgb, var(--gate-accent) 40%, transparent));
 }
 .memory-portrait {
-  position: absolute; z-index: 1; inset: -3%; overflow: hidden; isolation: isolate;
+  position: absolute; z-index: 1; inset: -2%; overflow: hidden; isolation: isolate;
   border: 0; border-radius: 44% 56% 48% 52%;
   background: none; box-shadow: none;
-  opacity: .78; mix-blend-mode: screen;
-  mask-image: radial-gradient(ellipse at 50% 48%, #000 0 38%, #000e 53%, #0007 72%, transparent 96%);
-  transform: rotate(var(--portrait-current, 0deg));
+  opacity: .9; mix-blend-mode: normal;
+  mask-image: radial-gradient(ellipse at 50% 48%, #000 0 52%, #000f 64%, #0009 81%, transparent 100%);
+  transform: rotate(calc(var(--portrait-current, 0deg) + var(--memory-lean, 0deg)));
 }
 .memory-portrait::before, .memory-portrait::after {
   content: ''; position: absolute; inset: 0;
@@ -144,6 +144,7 @@
     rgb(224 253 255 / .16), color-mix(in srgb, var(--gate-accent) 26%, transparent) 48%,
     rgb(4 48 68 / .34));
   mix-blend-mode: color;
+  opacity: .24;
 }
 .memory-portrait::after {
   background:
@@ -153,18 +154,18 @@
   background-size: 100% 100%, 220% 100%;
   background-position: center, var(--memory-glint, 50%) center;
   mix-blend-mode: screen;
-  opacity: .68;
+  opacity: .58;
   filter: blur(.35px);
 }
 .memory-portrait img {
   position: relative; z-index: 1; display: block; width: 100%; height: 100%;
   object-fit: var(--memory-fit, cover); object-position: center var(--memory-focus, 32%);
-  filter: saturate(.74) contrast(1.08) brightness(1.02) sepia(.1)
-    drop-shadow(0 0 2px rgb(221 255 255 / .5));
+  filter: saturate(.88) contrast(1.04) brightness(1.04) sepia(.06)
+    drop-shadow(0 0 2px rgb(221 255 255 / .42));
 }
 .journey-world .intro-whale__wake { opacity: var(--wake-strength, .35); transition: opacity 180ms linear; }
 @media (max-width: 760px) {
   .journey-world .water-gate { width: min(78vw, 53vh); }
-  .gate-memory { width: 36%; }
+  .gate-memory { width: 38%; }
   .water-gate--memories::before { top: 3%; font-size: 6px; }
 }

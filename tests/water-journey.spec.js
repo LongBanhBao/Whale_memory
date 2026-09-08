@@ -54,7 +54,7 @@ async function expectMemoryImprints(page, gateIndex) {
         return {
           inViewport: visibleRatio > .8,
           borderless: style.borderTopWidth === '0px' && style.backgroundImage === 'none',
-          visible: Number(style.opacity) >= .75,
+          visible: Number(style.opacity) >= .88,
           silhouetteGlint: getComputedStyle(portrait, '::after').maskImage.includes('/assets/images/full/'),
         };
       }),
@@ -160,7 +160,7 @@ for (const width of [1440, 390]) {
     });
     expect(portraitTreatment.plate).toBe('none');
     expect(portraitTreatment.border).toBe('0px');
-    expect(portraitTreatment.blend).toBe('screen');
+    expect(portraitTreatment.blend).toBe('normal');
     expect(portraitTreatment.mask).toContain('radial-gradient');
     expect(portraitTreatment.annulus).toContain('memory-vortex-v2.webp');
     expect(portraitTreatment.glintMask).toContain('/assets/images/full/');
