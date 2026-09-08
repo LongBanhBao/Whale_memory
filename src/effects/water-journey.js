@@ -150,7 +150,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       photo.loading = 'eager';
       memory.style.setProperty('--memory-image', `url("${assetUrl(image.src)}")`);
       memory.style.setProperty('--memory-focus', '32%');
-      memory.style.setProperty('--memory-fit', id === 'p05' ? 'contain' : 'cover');
+      memory.style.setProperty('--memory-fit', 'contain');
       memory.style.setProperty('--memory-lean', `${[-3.5, 2.5, -2, 3][n]}deg`);
       const portrait = document.createElement('span');
       portrait.className = 'memory-portrait';

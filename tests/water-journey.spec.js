@@ -48,13 +48,16 @@ async function expectMemoryImprints(page, gateIndex) {
       portraits: portraits.map(portrait => {
         const bounds = portrait.getBoundingClientRect();
         const style = getComputedStyle(portrait);
+        const image = portrait.querySelector('img');
         const visibleWidth = Math.max(0, Math.min(bounds.right, innerWidth) - Math.max(bounds.left, 0));
         const visibleHeight = Math.max(0, Math.min(bounds.bottom, innerHeight) - Math.max(bounds.top, 0));
         const visibleRatio = visibleWidth * visibleHeight / (bounds.width * bounds.height);
         return {
           inViewport: visibleRatio > .8,
           borderless: style.borderTopWidth === '0px' && style.backgroundImage === 'none',
-          visible: Number(style.opacity) >= .88,
+          visible: Number(style.opacity) >= .94,
+          completeSource: image.complete && image.naturalWidth > 0
+            && image.src.includes('/assets/images/full/'),
           silhouetteGlint: getComputedStyle(portrait, '::after').maskImage.includes('/assets/images/full/'),
         };
       }),
@@ -62,7 +65,7 @@ async function expectMemoryImprints(page, gateIndex) {
   }, gateIndex);
   expect(state.synchronized).toBe(true);
   expect(state.portraits).toEqual(Array.from({ length: 4 }, () => ({
-    inViewport: true, borderless: true, visible: true, silhouetteGlint: true,
+    inViewport: true, borderless: true, visible: true, completeSource: true, silhouetteGlint: true,
   })));
 }
 
@@ -153,7 +156,7 @@ for (const width of [1440, 390]) {
         border: getComputedStyle(portrait).borderTopWidth,
         blend: getComputedStyle(portrait).mixBlendMode,
         mask: getComputedStyle(portrait).maskImage,
-        annulus: getComputedStyle(memory.parentElement).maskImage,
+        fit: getComputedStyle(portrait.querySelector('img')).objectFit,
         glintMask: getComputedStyle(portrait, '::after').maskImage,
         waterSurface: getComputedStyle(memory.closest('.water-gate--memories'), '::after').backgroundImage,
       };
@@ -162,7 +165,7 @@ for (const width of [1440, 390]) {
     expect(portraitTreatment.border).toBe('0px');
     expect(portraitTreatment.blend).toBe('normal');
     expect(portraitTreatment.mask).toContain('radial-gradient');
-    expect(portraitTreatment.annulus).toContain('memory-vortex-v2.webp');
+    expect(portraitTreatment.fit).toBe('contain');
     expect(portraitTreatment.glintMask).toContain('/assets/images/full/');
     expect(portraitTreatment.waterSurface).toContain('memory-vortex-v2.webp');
     await expect(page.locator('.water-vortex-texture')).toHaveCount(6);
