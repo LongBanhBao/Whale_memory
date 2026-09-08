@@ -3,6 +3,20 @@
 import { journeyMotion } from './journey-motion.js';
 export { JOURNEY_DURATION } from './journey-motion.js';
 const clamp = (v) => Math.max(0, Math.min(1, v));
+const portraitTuning = {
+  p01: { shift: 8, scale: .92 },
+  p03: { shift: 10, scale: .9 },
+  p06: { shift: 10, scale: .88 },
+  p07: { shift: 10, scale: .9 },
+  p08: { shift: 12, scale: .86 },
+  p09: { shift: 12, scale: .86 },
+  p10: { shift: 12, scale: .86 },
+  p11: { shift: 12, scale: .88 },
+  p12: { shift: 12, scale: .88 },
+  p13: { shift: 12, scale: .86 },
+  p14: { shift: 12, scale: .86 },
+  p15: { shift: 12, scale: .86 },
+};
 
 // Four overlapping current segments bind the portraits into one continuous
 // chapter ring. Their short arcs echo the bitmap vortex without forming the
@@ -12,7 +26,7 @@ function createMemoryCurrent(slot) {
   const flow = document.createElementNS(ns, 'svg');
   flow.setAttribute('viewBox', '0 0 400 400');
   flow.classList.add('memory-current');
-  const centerAngle = [-135, -45, 45, 135][slot] * Math.PI / 180;
+  const centerAngle = [-120, -60, 60, 120][slot] * Math.PI / 180;
   const arcPoint = (radius, angle) => [
     200 + Math.cos(angle) * radius,
     200 + Math.sin(angle) * radius,
@@ -140,21 +154,24 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       memory.dataset.image = id;
       // Place portraits on the same unprojected water plane as the vortex.
       // The shared orbit supplies perspective to both current and photograph.
-      const angle = [-145, -35, 35, 145][n] * Math.PI / 180;
+      const angle = [-120, -60, 60, 120][n] * Math.PI / 180;
       // Keep the centre of every silhouette on the same radius as the drawn
       // current. The portrait can then dissolve both inward and outward from
       // the water body instead of floating beyond its outer edge.
-      memory.style.left = `${50 + Math.cos(angle) * 32}%`;
-      memory.style.top = `${50 + Math.sin(angle) * 32}%`;
+      memory.style.left = `${50 + Math.cos(angle) * 34}%`;
+      memory.style.top = `${50 + Math.sin(angle) * 34}%`;
       const image = imageById.get(id);
       const photo = makeImage(image);
       photo.loading = 'eager';
       const imageRatio = image.width / image.height;
+      const tuning = portraitTuning[id] || { shift: 10, scale: .88 };
       memory.style.setProperty('--memory-image', `url("${assetUrl(image.src)}")`);
       memory.style.setProperty('--memory-focus', '32%');
       memory.style.setProperty('--memory-fit', 'contain');
       memory.style.setProperty('--memory-box-width', `${Math.min(100, imageRatio * 100).toFixed(2)}%`);
       memory.style.setProperty('--memory-box-height', `${Math.min(100, 100 / imageRatio).toFixed(2)}%`);
+      memory.style.setProperty('--memory-subject-shift', `${tuning.shift}%`);
+      memory.style.setProperty('--memory-subject-scale', tuning.scale);
       memory.style.setProperty('--memory-lean', `${[-3.5, 2.5, -2, 3][n]}deg`);
       memory.style.setProperty('--memory-flow-origin', ['122% 122%', '-22% 122%', '-22% -22%', '122% -22%'][n]);
       const portrait = document.createElement('span');

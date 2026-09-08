@@ -6,12 +6,15 @@ smaller, circular memory fragments embedded directly in the outer current.
 Their shared perspective, restrained water rim and chapter
 label make each group read as a single passage through remembered moments.
 
-The portrait frames are removed completely. Every portal loads four Pastel
-sources directly from `Picture/p1.png` through `Picture/p12.png`. Their original
+The portrait frames are removed completely. Every portal loads four curated
+Pastel sources directly from `Picture/`; `p2`, `p4` and `p5` are replaced by
+the clearer head-safe compositions `p13`, `p14` and `p15`. Their original
 aspect ratios are preserved with `object-fit: contain`, while a continuous soft
-band reveals only the portions that meet the body of the vortex. This avoids
-both face crops and sticker-like silhouettes protruding beyond the water. Their
-centres follow the same radius as the drawn current. Curved pearl/teal ripples
+portrait mask dissolves the source edges without applying a second ring-wide
+crop. This avoids both missing faces and sticker-like hard edges. Each subject
+has a tuned scale and vertical safe area: the complete head stays in the clear
+core, while hands, feet and the lower body fade before a source edge can appear.
+Their centres follow the same radius as the drawn current. Curved pearl/teal ripples
 are masked inside each photograph, while a restrained foreground copy of the
 real current crosses it and remains clipped by the vortex alpha. Each memory
 therefore surfaces from the water without an oval plate or independent halo.

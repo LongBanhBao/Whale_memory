@@ -1,9 +1,10 @@
 # Shared perspective and tighter ending
 
 Portraits are positioned on an unprojected circular orbit and projected with
-the central vortex. Each full source keeps its original aspect ratio, but a
-continuous feathered band reveals it only where it meets the body of the water.
-Its center sits on the exact radius of the drawn current. Curved local ripples
+the central vortex. Each full source keeps its original aspect ratio and uses
+an individual feathered silhouette rather than a ring-wide crop, so the whole
+head stays visible while hard source edges dissolve. Its center sits on the
+radius of the drawn current. Curved local ripples
 and a vortex-clipped foreground current cross the photographs, joining them
 visibly to the water instead of merely layering them above it. Two
 far-side portraits render behind the

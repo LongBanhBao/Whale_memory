@@ -146,10 +146,8 @@ for (const width of [1440, 390]) {
     const perspective = await page.evaluate(() => ({
       ring: getComputedStyle(document.querySelector('#portal-layer .water-gate__ring')).transform,
       memories: getComputedStyle(document.querySelector('.water-gate--memories .memory-orbit')).transform,
-      memoryBand: getComputedStyle(document.querySelector('.water-gate--memories .memory-orbit')).maskImage,
     }));
     expect(perspective.memories).toBe(perspective.ring);
-    expect(perspective.memoryBand).toContain('radial-gradient');
     const portraitTreatment = await page.evaluate(() => {
       const memory = document.querySelector('.gate-memory');
       const portrait = memory.querySelector('.memory-portrait');
@@ -184,6 +182,10 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.gate-memory__marker')).toHaveCount(0);
     const ids = await page.locator('.gate-memory').evaluateAll(nodes => nodes.map(n => n.dataset.image));
     expect(new Set(ids).size).toBe(12);
+    expect([...ids].sort()).toEqual([
+      'p01', 'p13', 'p03', 'p14', 'p15', 'p06',
+      'p07', 'p08', 'p09', 'p10', 'p11', 'p12',
+    ].sort());
     await expect.poll(() => page.locator('.journey-backdrop').evaluate(n => n.naturalWidth)).toBeGreaterThan(0);
     await waitForGateCrest(page, 0);
     await expectMemoryImprints(page, 0);
