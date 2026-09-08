@@ -1,8 +1,11 @@
 # Shared perspective and tighter ending
 
 Portraits are positioned on an unprojected circular orbit and projected with
-the central vortex. The transparent source cutouts are shown in full and their
-centers sit on the body of the water; only their edges feather away. Two
+the central vortex. Each full source keeps its original aspect ratio, but a
+continuous feathered band reveals it only where it meets the body of the water.
+Its center sits on the exact radius of the drawn current. Curved local ripples
+and a vortex-clipped foreground current cross the photographs, joining them
+visibly to the water instead of merely layering them above it. Two
 far-side portraits render behind the
 whale and two near-side portraits render with the entrance lip. A clear color
 core, feathered edges, silhouette-only pearl glints and a translucent water

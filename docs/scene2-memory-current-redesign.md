@@ -6,12 +6,16 @@ smaller, circular memory fragments embedded directly in the outer current.
 Their shared perspective, restrained water rim and chapter
 label make each group read as a single passage through remembered moments.
 
-The portrait frames are removed completely. Every portal uses four full Pastel
-silhouettes processed directly from `Picture/p1.png` through `Picture/p12.png`.
-They use `object-fit: contain` rather than face crops, with a high-clarity color
-core and softly feathered edges. Pearl/teal silhouette glints, fine streaks and
-a translucent water surface pass over the photographs without creating an
-oval plate. The two far-side memories sit
+The portrait frames are removed completely. Every portal loads four Pastel
+sources directly from `Picture/p1.png` through `Picture/p12.png`. Their original
+aspect ratios are preserved with `object-fit: contain`, while a continuous soft
+band reveals only the portions that meet the body of the vortex. This avoids
+both face crops and sticker-like silhouettes protruding beyond the water. Their
+centres follow the same radius as the drawn current. Curved pearl/teal ripples
+are masked inside each photograph, while a restrained foreground copy of the
+real current crosses it and remains clipped by the vortex alpha. Each memory
+therefore surfaces from the water without an oval plate or independent halo.
+The two far-side memories sit
 behind the whale while the two near-side memories share the foreground rim, so
 all four feel printed into one volume of moving water. There is no independent
 ring, border, plate or numbered marker around a memory.

@@ -146,8 +146,10 @@ for (const width of [1440, 390]) {
     const perspective = await page.evaluate(() => ({
       ring: getComputedStyle(document.querySelector('#portal-layer .water-gate__ring')).transform,
       memories: getComputedStyle(document.querySelector('.water-gate--memories .memory-orbit')).transform,
+      memoryBand: getComputedStyle(document.querySelector('.water-gate--memories .memory-orbit')).maskImage,
     }));
     expect(perspective.memories).toBe(perspective.ring);
+    expect(perspective.memoryBand).toContain('radial-gradient');
     const portraitTreatment = await page.evaluate(() => {
       const memory = document.querySelector('.gate-memory');
       const portrait = memory.querySelector('.memory-portrait');
@@ -157,6 +159,10 @@ for (const width of [1440, 390]) {
         blend: getComputedStyle(portrait).mixBlendMode,
         mask: getComputedStyle(portrait).maskImage,
         fit: getComputedStyle(portrait.querySelector('img')).objectFit,
+        imageOpacity: Number(getComputedStyle(portrait.querySelector('img')).opacity),
+        flowOrigin: memory.style.getPropertyValue('--memory-flow-origin'),
+        waterThreads: memory.closest('.water-gate--memories')
+          .querySelectorAll('.water-gate__memory-wash .memory-current--wash').length,
         glintMask: getComputedStyle(portrait, '::after').maskImage,
         waterSurface: getComputedStyle(memory.closest('.water-gate--memories'), '::after').backgroundImage,
       };
@@ -166,8 +172,12 @@ for (const width of [1440, 390]) {
     expect(portraitTreatment.blend).toBe('normal');
     expect(portraitTreatment.mask).toContain('radial-gradient');
     expect(portraitTreatment.fit).toBe('contain');
+    expect(portraitTreatment.imageOpacity).toBeGreaterThanOrEqual(.8);
+    expect(portraitTreatment.flowOrigin).not.toBe('');
+    expect(portraitTreatment.waterThreads).toBe(4);
     expect(portraitTreatment.glintMask).toContain('/assets/images/full/');
     expect(portraitTreatment.waterSurface).toContain('memory-vortex-v2.webp');
+    await expect(page.locator('.water-gate__memory-wash')).toHaveCount(6);
     await expect(page.locator('.water-vortex-texture')).toHaveCount(6);
     await expect.poll(() => page.locator('.water-vortex-texture').evaluateAll(nodes => nodes.every(n => n.complete && n.naturalWidth === 1024))).toBe(true);
     await expect(page.locator('.water-vortex-texture').first()).toHaveAttribute('src', /memory-vortex-v2\.webp/);

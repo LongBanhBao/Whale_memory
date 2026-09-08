@@ -141,17 +141,22 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       // Place portraits on the same unprojected water plane as the vortex.
       // The shared orbit supplies perspective to both current and photograph.
       const angle = [-145, -35, 35, 145][n] * Math.PI / 180;
-      // Pull the silhouettes into the body of the vortex. The artwork-alpha
-      // mask trims them to real water pixels rather than detached cards.
-      memory.style.left = `${50 + Math.cos(angle) * 36}%`;
-      memory.style.top = `${50 + Math.sin(angle) * 36}%`;
+      // Keep the centre of every silhouette on the same radius as the drawn
+      // current. The portrait can then dissolve both inward and outward from
+      // the water body instead of floating beyond its outer edge.
+      memory.style.left = `${50 + Math.cos(angle) * 32}%`;
+      memory.style.top = `${50 + Math.sin(angle) * 32}%`;
       const image = imageById.get(id);
       const photo = makeImage(image);
       photo.loading = 'eager';
+      const imageRatio = image.width / image.height;
       memory.style.setProperty('--memory-image', `url("${assetUrl(image.src)}")`);
       memory.style.setProperty('--memory-focus', '32%');
       memory.style.setProperty('--memory-fit', 'contain');
+      memory.style.setProperty('--memory-box-width', `${Math.min(100, imageRatio * 100).toFixed(2)}%`);
+      memory.style.setProperty('--memory-box-height', `${Math.min(100, 100 / imageRatio).toFixed(2)}%`);
       memory.style.setProperty('--memory-lean', `${[-3.5, 2.5, -2, 3][n]}deg`);
+      memory.style.setProperty('--memory-flow-origin', ['122% 122%', '-22% 122%', '-22% -22%', '122% -22%'][n]);
       const portrait = document.createElement('span');
       portrait.className = 'memory-portrait';
       portrait.append(photo);
@@ -161,12 +166,27 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     });
     memoryGate.append(rearOrbit);
     nearMemoryGate.append(nearOrbit);
+    // A restrained foreground copy of the same currents crosses the photos.
+    // It is clipped to the real vortex alpha, so the subjects feel submerged
+    // in one stream without receiving a separate frame or halo.
+    const washSets = [memoryGate, nearMemoryGate].map((layer, layerIndex) => {
+      const wash = document.createElement('div');
+      wash.className = `water-gate__memory-wash water-gate__memory-wash--${layerIndex ? 'near' : 'rear'}`;
+      const flows = currents.map(current => {
+        const flow = current.cloneNode(true);
+        flow.classList.add('memory-current--wash');
+        wash.append(flow);
+        return flow;
+      });
+      layer.append(wash);
+      return flows;
+    });
     const lip = document.createElement('div');
     lip.className = 'water-gate water-gate--near';
     lip.append(ring.cloneNode(true));
     back.append(gate, memoryGate);
     front.append(lip, nearMemoryGate);
-    return { gate, lip, memoryGate, nearMemoryGate, memories, currents };
+    return { gate, lip, memoryGate, nearMemoryGate, memories, currents, washSets };
   });
 
   function pose(x, y, scale, rotation, bend = 0, effort = 0, bank = 0, wake = .35) {
@@ -193,7 +213,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     world.dataset.passed = String(state.passed);
     world.dataset.swimPhase = state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise';
     backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
-    gates.forEach(({ gate, lip, memoryGate, nearMemoryGate, memories, currents }, index) => {
+    gates.forEach(({ gate, lip, memoryGate, nearMemoryGate, memories, currents, washSets }, index) => {
       const frame = state.gates[index];
       for (const layer of [gate, lip, memoryGate, nearMemoryGate]) {
         layer.style.left = `${frame.x * 100}%`;
@@ -213,6 +233,10 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       currents.forEach((current, slot) => {
         current.style.setProperty('--recall', frame.recall[slot].toFixed(4));
         current.style.setProperty('--glint-light', `${.55 + Math.sin(state.time * 2.6 + slot * 1.7 + index) * .35}`);
+        washSets.forEach(set => {
+          set[slot].style.setProperty('--recall', frame.recall[slot].toFixed(4));
+          set[slot].style.setProperty('--glint-light', `${.55 + Math.sin(state.time * 2.6 + slot * 1.7 + index) * .35}`);
+        });
       });
       gate.dataset.active = frame.memories > .1 ? 'true' : 'false';
       gate.dataset.cleared = String(frame.cleared);
