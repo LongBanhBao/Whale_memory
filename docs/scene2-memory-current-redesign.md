@@ -6,11 +6,13 @@ smaller, circular memory fragments embedded directly in the outer current.
 Their shared perspective, restrained water rim and chapter
 label make each group read as a single passage through remembered moments.
 
-The portrait frames are removed completely. Each photograph is now a faded,
-softly feathered imprint composited directly into the outer current with a
-restrained teal color wash and screen blending. There is no independent water
-ring, border, plate or numbered marker around a memory; the four images feel
-like recollections briefly surfacing inside the same vortex.
+The portrait frames are removed completely. Each photograph is clipped by the
+actual alpha silhouette of the vortex artwork, then softly feathered and
+washed in pearl/teal light. Silhouette-masked glints and fine water streaks pass through
+the photographs without creating an oval plate. The two far-side memories sit
+behind the whale while the two near-side memories share the foreground rim, so
+all four feel printed into one volume of moving water. There is no independent
+ring, border, plate or numbered marker around a memory.
 
 The new `public/assets/scene/memory-vortex-v2.webp` texture uses a transparent
 center and exterior, layered navy/teal water and quieter cyan highlights. It was

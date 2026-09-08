@@ -1,6 +1,5 @@
-// Three gates share one continuous camera track. The near lip is composited
-// above the swimming mesh; faded memories stay with the rear vortex plane so
-// they read as imprints in the water instead of overlays on the whale.
+// Three gates share one continuous camera track. Memories are split across the
+// far and near halves of each rim so their depth agrees with the swimming mesh.
 import { journeyMotion } from './journey-motion.js';
 export { JOURNEY_DURATION } from './journey-motion.js';
 const clamp = (v) => Math.max(0, Math.min(1, v));
@@ -56,12 +55,6 @@ function createMemoryCurrent(slot) {
 }
 
 export function createWaterJourney({ world, back, front, groups, imageById, makeImage, assetUrl, swimmer, mesh }) {
-  const filters = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  filters.setAttribute('width', '0');
-  filters.setAttribute('height', '0');
-  filters.setAttribute('aria-hidden', 'true');
-  filters.innerHTML = '<defs><filter id="water-refraction" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".025 .06" numOctaves="2" seed="7" result="water"/><feDisplacementMap in="SourceGraphic" in2="water" scale="7" xChannelSelector="R" yChannelSelector="G"/></filter></defs>';
-  world.append(filters);
   const backdrop = document.createElement('img');
   backdrop.className = 'journey-backdrop';
   backdrop.src = assetUrl('assets/scene/journey-background.webp');
@@ -70,6 +63,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   world.prepend(backdrop);
   const transition = backdrop.cloneNode();
   transition.className = 'journey-transition-backdrop';
+  const vortexUrl = assetUrl('assets/scene/memory-vortex-v2.webp');
   const gates = groups.map((ids, index) => {
     const gate = document.createElement('div');
     gate.className = 'portal water-gate';
@@ -80,7 +74,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     depth.className = 'water-gate__depth';
     const texture = document.createElement('img');
     texture.className = 'water-vortex-texture';
-    texture.src = assetUrl('assets/scene/memory-vortex-v2.webp');
+    texture.src = vortexUrl;
     texture.alt = '';
     texture.decoding = 'async';
     ring.append(depth, texture);
@@ -116,15 +110,26 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     }
     ring.append(current);
     gate.append(ring);
-    const orbit = document.createElement('div');
-    orbit.className = 'memory-orbit';
+    const rearOrbit = document.createElement('div');
+    rearOrbit.className = 'memory-orbit';
+    const nearOrbit = document.createElement('div');
+    nearOrbit.className = 'memory-orbit';
     const memoryGate = document.createElement('div');
-    memoryGate.className = 'water-gate water-gate--memories';
+    memoryGate.className = 'water-gate water-gate--memories water-gate--memories-rear';
     memoryGate.dataset.gate = index + 1;
-    memoryGate.style.setProperty('--gate-accent', ['#76d7e4', '#72cde2', '#83c9e5'][index]);
+    const nearMemoryGate = document.createElement('div');
+    nearMemoryGate.className = 'water-gate water-gate--memories water-gate--memories-near';
+    nearMemoryGate.dataset.gate = index + 1;
+    const accent = ['#9be7e5', '#9ad7e8', '#b5c5ed'][index];
+    const warmth = ['#ffd9aa', '#f7d3b6', '#e7d4ff'][index];
+    for (const layer of [memoryGate, nearMemoryGate]) {
+      layer.style.setProperty('--gate-accent', accent);
+      layer.style.setProperty('--memory-warm', warmth);
+      layer.style.setProperty('--vortex-mask', `url("${vortexUrl}")`);
+    }
     const currents = ids.map((_, slot) => createMemoryCurrent(slot));
-    // Decorative currents belong behind the animal. Only the entrance lip
-    // overlaps its trailing body; portraits keep their independent clear plane.
+    // The water strands remain behind the animal; the photographs themselves
+    // are divided between the far and near rim so their depth matches the gate.
     const branches = document.createElement('div');
     branches.className = 'water-gate__branches';
     branches.append(...currents);
@@ -134,28 +139,33 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       memory.className = 'gate-memory';
       memory.dataset.image = id;
       // Place portraits on the same unprojected water plane as the vortex.
-      // The shared orbit supplies perspective to both frame and photograph.
+      // The shared orbit supplies perspective to both current and photograph.
       const angle = [-135, -45, 45, 135][n] * Math.PI / 180;
-      // The memories sit in the outer current instead of orbiting as detached
-      // cards. Together the four fragments read as one completed chapter.
-      memory.style.left = `${50 + Math.cos(angle) * 41}%`;
-      memory.style.top = `${50 + Math.sin(angle) * 41}%`;
-      const photo = makeImage(imageById.get(id));
+      // Pull the silhouettes into the body of the vortex. The artwork-alpha
+      // mask trims them to real water pixels rather than detached cards.
+      memory.style.left = `${50 + Math.cos(angle) * 35.5}%`;
+      memory.style.top = `${50 + Math.sin(angle) * 35.5}%`;
+      const image = imageById.get(id);
+      const photo = makeImage(image);
       photo.loading = 'eager';
+      memory.style.setProperty('--memory-image', `url("${assetUrl(image.src)}")`);
+      memory.style.setProperty('--memory-focus', '32%');
+      memory.style.setProperty('--memory-fit', id === 'p05' ? 'contain' : 'cover');
       const portrait = document.createElement('span');
       portrait.className = 'memory-portrait';
       portrait.append(photo);
       memory.append(portrait);
-      orbit.append(memory);
+      (n === 0 || n === 3 ? nearOrbit : rearOrbit).append(memory);
       return memory;
     });
-    memoryGate.append(orbit);
+    memoryGate.append(rearOrbit);
+    nearMemoryGate.append(nearOrbit);
     const lip = document.createElement('div');
     lip.className = 'water-gate water-gate--near';
     lip.append(ring.cloneNode(true));
     back.append(gate, memoryGate);
-    front.append(lip);
-    return { gate, lip, memoryGate, memories, currents };
+    front.append(lip, nearMemoryGate);
+    return { gate, lip, memoryGate, nearMemoryGate, memories, currents };
   });
 
   function pose(x, y, scale, rotation, bend = 0, effort = 0, bank = 0, wake = .35) {
@@ -182,9 +192,9 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     world.dataset.passed = String(state.passed);
     world.dataset.swimPhase = state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise';
     backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
-    gates.forEach(({ gate, lip, memoryGate, memories, currents }, index) => {
+    gates.forEach(({ gate, lip, memoryGate, nearMemoryGate, memories, currents }, index) => {
       const frame = state.gates[index];
-      for (const layer of [gate, lip, memoryGate]) {
+      for (const layer of [gate, lip, memoryGate, nearMemoryGate]) {
         layer.style.left = `${frame.x * 100}%`;
         layer.style.top = `${frame.y * 100}%`;
         layer.style.transform = `translate(-50%, -50%) scale(${frame.scale})`;
@@ -195,7 +205,10 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
         layer.style.setProperty('--flow-offset', `${-state.time * 15.5}`);
         layer.style.setProperty('--gate-pulse', frame.pulse.toFixed(4));
       }
-      memories.forEach((memory, slot) => memory.style.setProperty('--recall', frame.recall[slot].toFixed(4)));
+      memories.forEach((memory, slot) => {
+        memory.style.setProperty('--recall', frame.recall[slot].toFixed(4));
+        memory.style.setProperty('--memory-glint', `${50 + Math.sin(state.time * 1.9 + slot * 1.45 + index) * 42}%`);
+      });
       currents.forEach((current, slot) => {
         current.style.setProperty('--recall', frame.recall[slot].toFixed(4));
         current.style.setProperty('--glint-light', `${.55 + Math.sin(state.time * 2.6 + slot * 1.7 + index) * .35}`);

@@ -39,28 +39,41 @@ async function expectClearPassage(page, gateIndex) {
 
 async function expectMemoryImprints(page, gateIndex) {
   const state = await page.evaluate(index => {
-    const gate = document.querySelectorAll('.water-gate--memories')[index];
+    const gates = [...document.querySelectorAll(`.water-gate--memories[data-gate="${index + 1}"]`)];
     const rear = document.querySelectorAll('#portal-layer > .portal.water-gate')[index];
-    const portraits = [...gate.querySelectorAll('.memory-portrait')];
+    const portraits = gates.flatMap(gate => [...gate.querySelectorAll('.memory-portrait')]);
     return {
-      synchronized: gate.style.transform === rear.style.transform
-        && gate.style.left === rear.style.left && gate.style.top === rear.style.top,
+      synchronized: gates.length === 2 && gates.every(gate => gate.style.transform === rear.style.transform
+        && gate.style.left === rear.style.left && gate.style.top === rear.style.top),
       portraits: portraits.map(portrait => {
         const bounds = portrait.getBoundingClientRect();
         const style = getComputedStyle(portrait);
+        const visibleWidth = Math.max(0, Math.min(bounds.right, innerWidth) - Math.max(bounds.left, 0));
+        const visibleHeight = Math.max(0, Math.min(bounds.bottom, innerHeight) - Math.max(bounds.top, 0));
+        const visibleRatio = visibleWidth * visibleHeight / (bounds.width * bounds.height);
         return {
-          inViewport: bounds.left > 0 && bounds.right < innerWidth
-            && bounds.top > 0 && bounds.bottom < innerHeight,
+          inViewport: visibleRatio > .8,
           borderless: style.borderTopWidth === '0px' && style.backgroundImage === 'none',
-          blended: style.mixBlendMode === 'screen',
+          visible: Number(style.opacity) >= .75,
+          silhouetteGlint: getComputedStyle(portrait, '::after').maskImage.includes('/assets/images/full/'),
         };
       }),
     };
   }, gateIndex);
   expect(state.synchronized).toBe(true);
   expect(state.portraits).toEqual(Array.from({ length: 4 }, () => ({
-    inViewport: true, borderless: true, blended: true,
+    inViewport: true, borderless: true, visible: true, silhouetteGlint: true,
   })));
+}
+
+async function waitForGateCrest(page, gateIndex) {
+  const gate = page.locator(`#portal-layer > .portal.water-gate[data-gate="${gateIndex + 1}"]`);
+  await expect.poll(() => gate.evaluate(node => parseFloat(node.style.left)), { timeout: 12_000 })
+    .toBeLessThan(56);
+  const memories = page.locator(`.water-gate--memories[data-gate="${gateIndex + 1}"] .gate-memory`);
+  await expect.poll(() => memories.evaluateAll(nodes => nodes.length === 4
+    && nodes.every(node => Number(node.style.getPropertyValue('--recall')) > .98)), { timeout: 5_000 })
+    .toBe(true);
 }
 
 test('vòng giữ hướng, đồng bộ hai nửa và tan dần khi cá voi đi qua', async ({ page }) => {
@@ -126,7 +139,7 @@ for (const width of [1440, 390]) {
     await expect(page.locator('.gate-memory')).toHaveCount(12);
     await expect(page.locator('.memory-streams, .memory-stream, .memory-shimmer')).toHaveCount(0);
     await expect(page.locator('.memory-portrait')).toHaveCount(12);
-    await expect(page.locator('.memory-orbit')).toHaveCount(3);
+    await expect(page.locator('.memory-orbit')).toHaveCount(6);
     const perspective = await page.evaluate(() => ({
       ring: getComputedStyle(document.querySelector('#portal-layer .water-gate__ring')).transform,
       memories: getComputedStyle(document.querySelector('.water-gate--memories .memory-orbit')).transform,
@@ -140,12 +153,18 @@ for (const width of [1440, 390]) {
         border: getComputedStyle(portrait).borderTopWidth,
         blend: getComputedStyle(portrait).mixBlendMode,
         mask: getComputedStyle(portrait).maskImage,
+        annulus: getComputedStyle(memory.parentElement).maskImage,
+        glintMask: getComputedStyle(portrait, '::after').maskImage,
+        waterSurface: getComputedStyle(memory.closest('.water-gate--memories'), '::after').backgroundImage,
       };
     });
     expect(portraitTreatment.plate).toBe('none');
     expect(portraitTreatment.border).toBe('0px');
     expect(portraitTreatment.blend).toBe('screen');
     expect(portraitTreatment.mask).toContain('radial-gradient');
+    expect(portraitTreatment.annulus).toContain('memory-vortex-v2.webp');
+    expect(portraitTreatment.glintMask).toContain('/assets/images/full/');
+    expect(portraitTreatment.waterSurface).toContain('memory-vortex-v2.webp');
     await expect(page.locator('.water-vortex-texture')).toHaveCount(6);
     await expect.poll(() => page.locator('.water-vortex-texture').evaluateAll(nodes => nodes.every(n => n.complete && n.naturalWidth === 1024))).toBe(true);
     await expect(page.locator('.water-vortex-texture').first()).toHaveAttribute('src', /memory-vortex-v2\.webp/);
@@ -153,17 +172,17 @@ for (const width of [1440, 390]) {
     const ids = await page.locator('.gate-memory').evaluateAll(nodes => nodes.map(n => n.dataset.image));
     expect(new Set(ids).size).toBe(12);
     await expect.poll(() => page.locator('.journey-backdrop').evaluate(n => n.naturalWidth)).toBeGreaterThan(0);
-    await page.waitForTimeout(5000);
+    await waitForGateCrest(page, 0);
     await expectMemoryImprints(page, 0);
     await expectClearPassage(page, 0);
     await page.screenshot({ path: testInfo.outputPath('gate-one.png') });
     await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '1', { timeout: 6500 });
-    await page.waitForTimeout(7400);
+    await waitForGateCrest(page, 1);
     await expectMemoryImprints(page, 1);
     await expectClearPassage(page, 1);
     await page.screenshot({ path: testInfo.outputPath('gate-two.png') });
     await expect(page.locator('.journey-world')).toHaveAttribute('data-passed', '2', { timeout: 12000 });
-    await page.waitForTimeout(7400);
+    await waitForGateCrest(page, 2);
     await expectMemoryImprints(page, 2);
     await expectClearPassage(page, 2);
     await page.screenshot({ path: testInfo.outputPath('gate-three.png') });
