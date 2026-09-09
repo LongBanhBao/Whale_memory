@@ -2,24 +2,29 @@
 
 Scene 2 now treats each gate as one chapter of the journey rather than a
 central vortex surrounded by four detached cards. The four photographs are
-smaller, circular memory fragments embedded directly in the outer current.
-Their shared perspective, restrained water rim and chapter
+small, borderless memory silhouettes embedded directly in the outer current.
+Their shared orbit, restrained water rim and chapter
 label make each group read as a single passage through remembered moments.
 
 The portrait frames are removed completely. Every portal loads four curated
-Pastel sources directly from `Picture/`; `p2`, `p4` and `p5` are replaced by
-the clearer head-safe compositions `p13`, `p14` and `p15`. Their original
-aspect ratios are preserved with `object-fit: contain`, while a continuous soft
-portrait mask dissolves the source edges without applying a second ring-wide
-crop. This avoids both missing faces and sticker-like hard edges. Each subject
-has a tuned scale and vertical safe area: the complete head stays in the clear
-core, while hands, feet and the lower body fade before a source edge can appear.
-Their centres follow the same radius as the drawn current. Curved pearl/teal ripples
+Pastel sources directly from `Picture/`: `[p01,p13,p03,p14]`,
+`[p15,p16,p07,p08]` and `[p17,p19,p11,p12]`. Sources with a hidden face,
+rectangular crop or edge-heavy composition are excluded. Original aspect ratios
+are preserved with `object-fit: contain`. Intersecting vertical and horizontal
+fades keep the complete head in the clear core, dissolve side cuts, and make
+feet/lower body disappear before a source edge can show. No ring-wide mask or
+half-plane clip is allowed to cut a portrait.
+
+The four asymmetric anchors share the radius of the drawn current. Their
+positions inherit the gate perspective, while a local inverse transform keeps
+faces upright and restores their natural width after the oval projection.
+Subtle phase-offset floating and breathing prevent the arrangement from feeling
+static. Curved pearl/teal ripples
 are masked inside each photograph, while a restrained foreground copy of the
 real current crosses it and remains clipped by the vortex alpha. Each memory
 therefore surfaces from the water without an oval plate or independent halo.
-The two far-side memories sit
-behind the whale while the two near-side memories share the foreground rim, so
+The two far-side memories sit behind the whale while the two near-side memories
+share the foreground rim, so
 all four feel printed into one volume of moving water. There is no independent
 ring, border, plate or numbered marker around a memory.
 

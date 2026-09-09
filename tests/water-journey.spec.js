@@ -156,6 +156,10 @@ for (const width of [1440, 390]) {
         border: getComputedStyle(portrait).borderTopWidth,
         blend: getComputedStyle(portrait).mixBlendMode,
         mask: getComputedStyle(portrait).maskImage,
+        maskComposite: getComputedStyle(portrait).maskComposite,
+        orbitClip: getComputedStyle(memory.parentElement).clipPath,
+        portraitUncompress: Number(getComputedStyle(memory.closest('.water-gate--memories'))
+          .getPropertyValue('--portrait-uncompress')),
         fit: getComputedStyle(portrait.querySelector('img')).objectFit,
         imageOpacity: Number(getComputedStyle(portrait.querySelector('img')).opacity),
         flowOrigin: memory.style.getPropertyValue('--memory-flow-origin'),
@@ -168,7 +172,10 @@ for (const width of [1440, 390]) {
     expect(portraitTreatment.plate).toBe('none');
     expect(portraitTreatment.border).toBe('0px');
     expect(portraitTreatment.blend).toBe('normal');
-    expect(portraitTreatment.mask).toContain('radial-gradient');
+    expect(portraitTreatment.mask.match(/linear-gradient/g)).toHaveLength(2);
+    expect(portraitTreatment.maskComposite).toContain('intersect');
+    expect(portraitTreatment.orbitClip).toBe('none');
+    expect(portraitTreatment.portraitUncompress).toBeGreaterThan(1.4);
     expect(portraitTreatment.fit).toBe('contain');
     expect(portraitTreatment.imageOpacity).toBeGreaterThanOrEqual(.8);
     expect(portraitTreatment.flowOrigin).not.toBe('');
@@ -183,8 +190,8 @@ for (const width of [1440, 390]) {
     const ids = await page.locator('.gate-memory').evaluateAll(nodes => nodes.map(n => n.dataset.image));
     expect(new Set(ids).size).toBe(12);
     expect([...ids].sort()).toEqual([
-      'p01', 'p13', 'p03', 'p14', 'p15', 'p06',
-      'p07', 'p08', 'p09', 'p10', 'p11', 'p12',
+      'p01', 'p13', 'p03', 'p14', 'p15', 'p16',
+      'p07', 'p08', 'p17', 'p19', 'p11', 'p12',
     ].sort());
     await expect.poll(() => page.locator('.journey-backdrop').evaluate(n => n.naturalWidth)).toBeGreaterThan(0);
     await waitForGateCrest(page, 0);

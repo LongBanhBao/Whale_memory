@@ -3,19 +3,25 @@
 import { journeyMotion } from './journey-motion.js';
 export { JOURNEY_DURATION } from './journey-motion.js';
 const clamp = (v) => Math.max(0, Math.min(1, v));
+const memorySlots = [
+  { angle: -116, radius: 30.5, lean: -3, flowOrigin: '122% 122%' },
+  { angle: -28, radius: 30, lean: 2, flowOrigin: '-22% 122%' },
+  { angle: 64, radius: 29, lean: -2, flowOrigin: '-22% -22%' },
+  { angle: 152, radius: 29.5, lean: 3, flowOrigin: '122% -22%' },
+];
 const portraitTuning = {
-  p01: { shift: 8, scale: .92 },
-  p03: { shift: 10, scale: .9 },
-  p06: { shift: 10, scale: .88 },
-  p07: { shift: 10, scale: .9 },
-  p08: { shift: 12, scale: .86 },
-  p09: { shift: 12, scale: .86 },
-  p10: { shift: 12, scale: .86 },
-  p11: { shift: 12, scale: .88 },
-  p12: { shift: 12, scale: .88 },
-  p13: { shift: 12, scale: .86 },
-  p14: { shift: 12, scale: .86 },
-  p15: { shift: 12, scale: .86 },
+  p01: { x: 0, y: -6, scale: .98 },
+  p03: { x: 0, y: -8, scale: .96 },
+  p07: { x: 0, y: -2, scale: .9 },
+  p08: { x: 2, y: -2, scale: .86 },
+  p11: { x: 0, y: 5, scale: .78 },
+  p12: { x: 2, y: 4, scale: .8 },
+  p13: { x: 0, y: 4, scale: .78 },
+  p14: { x: 0, y: 4, scale: .76 },
+  p15: { x: 0, y: 5, scale: .78 },
+  p16: { x: 0, y: 5, scale: .8 },
+  p17: { x: 0, y: 4, scale: .79 },
+  p19: { x: 0, y: 5, scale: .78 },
 };
 
 // Four overlapping current segments bind the portraits into one continuous
@@ -26,7 +32,7 @@ function createMemoryCurrent(slot) {
   const flow = document.createElementNS(ns, 'svg');
   flow.setAttribute('viewBox', '0 0 400 400');
   flow.classList.add('memory-current');
-  const centerAngle = [-120, -60, 60, 120][slot] * Math.PI / 180;
+  const centerAngle = memorySlots[slot].angle * Math.PI / 180;
   const arcPoint = (radius, angle) => [
     200 + Math.cos(angle) * radius,
     200 + Math.sin(angle) * radius,
@@ -154,26 +160,25 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       memory.dataset.image = id;
       // Place portraits on the same unprojected water plane as the vortex.
       // The shared orbit supplies perspective to both current and photograph.
-      const angle = [-120, -60, 60, 120][n] * Math.PI / 180;
+      const slot = memorySlots[n];
+      const angle = slot.angle * Math.PI / 180;
       // Keep the centre of every silhouette on the same radius as the drawn
       // current. The portrait can then dissolve both inward and outward from
       // the water body instead of floating beyond its outer edge.
-      memory.style.left = `${50 + Math.cos(angle) * 34}%`;
-      memory.style.top = `${50 + Math.sin(angle) * 34}%`;
+      memory.style.left = `${50 + Math.cos(angle) * slot.radius}%`;
+      memory.style.top = `${50 + Math.sin(angle) * slot.radius}%`;
       const image = imageById.get(id);
       const photo = makeImage(image);
       photo.loading = 'eager';
-      const imageRatio = image.width / image.height;
-      const tuning = portraitTuning[id] || { shift: 10, scale: .88 };
+      const tuning = portraitTuning[id] || { x: 0, y: 0, scale: .82 };
       memory.style.setProperty('--memory-image', `url("${assetUrl(image.src)}")`);
       memory.style.setProperty('--memory-focus', '32%');
       memory.style.setProperty('--memory-fit', 'contain');
-      memory.style.setProperty('--memory-box-width', `${Math.min(100, imageRatio * 100).toFixed(2)}%`);
-      memory.style.setProperty('--memory-box-height', `${Math.min(100, 100 / imageRatio).toFixed(2)}%`);
-      memory.style.setProperty('--memory-subject-shift', `${tuning.shift}%`);
+      memory.style.setProperty('--memory-subject-x', `${tuning.x}%`);
+      memory.style.setProperty('--memory-subject-y', `${tuning.y}%`);
       memory.style.setProperty('--memory-subject-scale', tuning.scale);
-      memory.style.setProperty('--memory-lean', `${[-3.5, 2.5, -2, 3][n]}deg`);
-      memory.style.setProperty('--memory-flow-origin', ['122% 122%', '-22% 122%', '-22% -22%', '122% -22%'][n]);
+      memory.style.setProperty('--memory-lean', `${slot.lean}deg`);
+      memory.style.setProperty('--memory-flow-origin', slot.flowOrigin);
       const portrait = document.createElement('span');
       portrait.className = 'memory-portrait';
       portrait.append(photo);
@@ -246,6 +251,8 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       memories.forEach((memory, slot) => {
         memory.style.setProperty('--recall', frame.recall[slot].toFixed(4));
         memory.style.setProperty('--memory-glint', `${50 + Math.sin(state.time * 1.9 + slot * 1.45 + index) * 42}%`);
+        memory.style.setProperty('--memory-float', `${(Math.sin(state.time * .9 + slot * 1.7 + index) * 2.2).toFixed(2)}px`);
+        memory.style.setProperty('--memory-breathe', `${(1 + Math.sin(state.time * .72 + slot * 1.3) * .018).toFixed(4)}`);
       });
       currents.forEach((current, slot) => {
         current.style.setProperty('--recall', frame.recall[slot].toFixed(4));
