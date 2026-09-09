@@ -24,6 +24,136 @@ const portraitTuning = {
   p19: { x: 0, y: 5, scale: .78 },
 };
 
+const ambientCurrentPaths = [
+  'M -120 220 C 220 356 390 158 700 282 S 1180 430 1560 228',
+  'M -130 704 C 250 500 430 790 790 618 S 1210 428 1580 620',
+  'M -100 474 C 282 574 528 400 840 506 S 1268 674 1568 470',
+];
+
+const ambientMotifs = [
+  { kind: 'jelly', x: 8, y: 58, size: 78, duration: 21, delay: -8, drift: 18 },
+  { kind: 'frond', x: 16, y: 82, size: 94, duration: 24, delay: -15, drift: -13 },
+  { kind: 'shell', x: 27, y: 18, size: 48, duration: 19, delay: -4, drift: 11 },
+  { kind: 'jelly', x: 88, y: 22, size: 62, duration: 25, delay: -18, drift: -16 },
+  { kind: 'frond', x: 91, y: 66, size: 86, duration: 22, delay: -11, drift: 12 },
+  { kind: 'shell', x: 76, y: 84, size: 42, duration: 20, delay: -6, drift: -9 },
+];
+
+function createSvgElement(name, attributes = {}) {
+  const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+  Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+  return element;
+}
+
+function createAmbientMotif(spec, index) {
+  const motif = createSvgElement('svg', {
+    class: `journey-motif journey-motif--${spec.kind}`,
+    viewBox: '0 0 100 100',
+    'aria-hidden': 'true',
+    focusable: 'false',
+  });
+  motif.dataset.kind = spec.kind;
+  motif.style.setProperty('--motif-x', `${spec.x}%`);
+  motif.style.setProperty('--motif-y', `${spec.y}%`);
+  motif.style.setProperty('--motif-size', `${spec.size}px`);
+  motif.style.setProperty('--motif-duration', `${spec.duration}s`);
+  motif.style.setProperty('--motif-delay', `${spec.delay}s`);
+  motif.style.setProperty('--motif-drift', `${spec.drift}px`);
+  motif.style.setProperty('--motif-drift-back', `${spec.drift * -.35}px`);
+  motif.style.setProperty('--motif-turn', `${index % 2 ? -4 : 4}deg`);
+  motif.style.setProperty('--motif-turn-back', `${index % 2 ? 2.8 : -2.8}deg`);
+
+  if (spec.kind === 'jelly') {
+    motif.append(
+      createSvgElement('path', { class: 'journey-motif__wash', d: 'M16 47 C18 16 82 16 84 47 C69 39 60 50 50 42 C39 50 30 39 16 47 Z' }),
+      createSvgElement('path', { d: 'M16 47 C18 16 82 16 84 47 C69 39 60 50 50 42 C39 50 30 39 16 47 Z' }),
+      createSvgElement('path', { d: 'M31 47 C25 61 39 69 30 88 M48 45 C42 60 57 72 48 94 M66 47 C58 62 75 69 66 87' }),
+    );
+  } else if (spec.kind === 'frond') {
+    motif.append(
+      createSvgElement('path', { d: 'M48 94 C46 73 50 46 62 9' }),
+      createSvgElement('path', { d: 'M50 73 C34 70 24 61 20 49 M53 60 C69 56 78 47 83 34 M56 45 C43 40 36 31 34 20 M60 28 C70 25 78 18 82 10' }),
+      createSvgElement('path', { class: 'journey-motif__wash', d: 'M20 49 C35 51 45 60 50 73 C34 70 24 61 20 49 Z M83 34 C68 37 58 46 53 60 C69 56 78 47 83 34 Z' }),
+    );
+  } else {
+    motif.append(
+      createSvgElement('path', { class: 'journey-motif__wash', d: 'M50 18 C78 18 88 45 77 66 C65 89 27 85 18 59 C8 31 31 14 56 20 C75 24 79 47 66 60 C53 73 32 64 33 48 C34 35 50 30 59 38 C66 44 62 54 55 56 C48 58 43 52 45 47' }),
+      createSvgElement('path', { d: 'M50 18 C78 18 88 45 77 66 C65 89 27 85 18 59 C8 31 31 14 56 20 C75 24 79 47 66 60 C53 73 32 64 33 48 C34 35 50 30 59 38 C66 44 62 54 55 56 C48 58 43 52 45 47' }),
+    );
+  }
+  return motif;
+}
+
+function createJourneyAmbience(world) {
+  const far = document.createElement('div');
+  far.className = 'journey-ambience journey-ambience--far';
+  far.setAttribute('aria-hidden', 'true');
+  const currents = createSvgElement('svg', {
+    class: 'journey-currents',
+    viewBox: '0 0 1440 900',
+    preserveAspectRatio: 'none',
+    'aria-hidden': 'true',
+    focusable: 'false',
+  });
+  const defs = createSvgElement('defs');
+  const gradient = createSvgElement('linearGradient', {
+    id: 'journey-current-gradient', x1: '0%', y1: '0%', x2: '100%', y2: '0%',
+  });
+  [
+    ['0%', '#69b8d2', '0'],
+    ['22%', '#b9f7f3', '.7'],
+    ['52%', '#75cfe3', '.32'],
+    ['78%', '#d7f8ef', '.66'],
+    ['100%', '#779bd2', '0'],
+  ].forEach(([offset, color, opacity]) => gradient.append(createSvgElement('stop', {
+    offset, 'stop-color': color, 'stop-opacity': opacity,
+  })));
+  defs.append(gradient);
+  currents.append(defs);
+  ambientCurrentPaths.forEach((d, index) => {
+    const group = createSvgElement('g', { class: `journey-current journey-current--${index + 1}` });
+    group.style.setProperty('--current-delay', `${index * -2.8}s`);
+    const body = createSvgElement('path', { class: 'journey-current__body', d });
+    const glint = createSvgElement('path', { class: 'journey-current__glint', d, pathLength: '100' });
+    const echo = createSvgElement('path', { class: 'journey-current__echo', d, pathLength: '100' });
+    group.append(body, glint, echo);
+    currents.append(group);
+  });
+
+  const farBubbles = document.createElement('div');
+  farBubbles.className = 'journey-bubbles journey-bubbles--far';
+  const near = document.createElement('div');
+  near.className = 'journey-ambience journey-ambience--near';
+  near.setAttribute('aria-hidden', 'true');
+  const nearBubbles = document.createElement('div');
+  nearBubbles.className = 'journey-bubbles journey-bubbles--near';
+  for (let index = 0; index < 18; index += 1) {
+    const nearLayer = index >= 14;
+    const localIndex = nearLayer ? index - 14 : index;
+    const bubble = document.createElement('i');
+    bubble.className = 'journey-bubble';
+    const edgeBand = 4 + ((index * 17) % 25);
+    const x = index % 2 ? 100 - edgeBand : edgeBand;
+    bubble.style.setProperty('--bubble-x', `${x}%`);
+    bubble.style.setProperty('--bubble-y', `${4 + ((index * 29) % 91)}%`);
+    bubble.style.setProperty('--bubble-size', `${(nearLayer ? 5 : 2) + (index % 6) * (nearLayer ? 1.7 : 1.05)}px`);
+    bubble.style.setProperty('--bubble-duration', `${10 + (index % 7) * 1.75}s`);
+    bubble.style.setProperty('--bubble-delay', `${-((index * 13) % 19)}s`);
+    bubble.style.setProperty('--bubble-drift', `${(index % 2 ? -1 : 1) * (8 + (index % 5) * 5)}px`);
+    bubble.style.setProperty('--bubble-alpha', `${(nearLayer ? .2 : .13) + (index % 4) * .045}`);
+    bubble.dataset.layer = nearLayer ? 'near' : 'far';
+    (nearLayer ? nearBubbles : farBubbles).append(bubble);
+    if (nearLayer && localIndex >= 3) bubble.classList.add('journey-bubble--soft');
+  }
+
+  const motifs = document.createElement('div');
+  motifs.className = 'journey-motifs';
+  ambientMotifs.forEach((spec, index) => motifs.append(createAmbientMotif(spec, index)));
+  far.append(currents, farBubbles, motifs);
+  near.append(nearBubbles);
+  world.append(far, near);
+}
+
 // Four overlapping current segments bind the portraits into one continuous
 // chapter ring. Their short arcs echo the bitmap vortex without forming the
 // detached petal shapes of the previous composition.
@@ -81,6 +211,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   backdrop.alt = '';
   backdrop.decoding = 'async';
   world.prepend(backdrop);
+  createJourneyAmbience(world);
   const transition = backdrop.cloneNode();
   transition.className = 'journey-transition-backdrop';
   const vortexUrl = assetUrl('assets/scene/memory-vortex-v2.webp');
@@ -232,6 +363,8 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     const state = journeyMotion(p);
     world.style.setProperty('--journey-progress', p.toFixed(4));
     world.style.setProperty('--journey-light', '.8');
+    world.style.setProperty('--journey-ambient-shift', `${(-p * 2.8).toFixed(3)}vw`);
+    world.style.setProperty('--journey-ambient-opacity', `${(.68 + Math.max(...state.gates.map(gate => gate.pulse)) * .08).toFixed(3)}`);
     world.dataset.passed = String(state.passed);
     world.dataset.swimPhase = state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise';
     backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;

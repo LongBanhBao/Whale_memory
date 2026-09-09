@@ -42,6 +42,7 @@ Khi video được bổ sung, đặt bản nguồn trong thư mục `../Video`. 
 - Cảnh 1 giữ thao tác nhấn giữ; cảnh 2–4 tự chạy hiệu ứng khi được mở, dừng khi rời cảnh. Thời lượng hiện tại là 28, 14 và 12 giây.
 - Năm giọt ký ức lần lượt rơi xuống mặt nước, làm sáng đại dương rồi bay ngược vào vầng sáng để gọi cá voi xuất hiện.
 - Cá voi cảnh 1 bơi ra trong 4,8 giây bằng lưới WebGL: sóng chuyển động từ thân tới đuôi, vây đập lệch nhịp, quỹ đạo cong và phối cảnh xa–gần. Sau khi tới gần, cá voi tiếp tục bơi nhẹ. Trình duyệt không hỗ trợ WebGL dùng ảnh dự phòng; cảnh 2 dùng sprite như trước.
+- Cảnh 2 có ba dải nước nhiều lớp, các cụm bong bóng ở hai rìa và họa tiết sứa, rong, vỏ ốc trôi chậm để tạo chiều sâu mà không che cá voi hay chân dung ký ức.
 - Nhấn “Gửi một ánh sáng” ở cảnh cuối.
 - Sau đoạn kết có thể xem lại hành trình, mở thư tri ân hoặc xem toàn bộ thư viện ảnh.
 - Chế độ giảm chuyển động dùng cùng nút “tiếp” và hiển thị trực tiếp trạng thái tĩnh của mỗi cảnh.

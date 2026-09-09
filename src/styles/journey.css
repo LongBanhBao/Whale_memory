@@ -72,6 +72,164 @@
   pointer-events: none;
 }
 
+.journey-ambience {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+.journey-ambience--far {
+  z-index: 3;
+}
+
+.journey-ambience--far::before,
+.journey-ambience--far::after {
+  content: '';
+  position: absolute;
+  width: 58vmax;
+  aspect-ratio: 1.8;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(87, 205, 222, 0.075), rgba(58, 145, 186, 0.025) 43%, transparent 72%);
+  filter: blur(22px);
+  opacity: 0.76;
+  animation: journey-veil 17s ease-in-out infinite alternate;
+}
+
+.journey-ambience--far::before {
+  top: 8%;
+  left: -24%;
+  rotate: -13deg;
+}
+
+.journey-ambience--far::after {
+  right: -29%;
+  bottom: 2%;
+  rotate: 19deg;
+  animation-delay: -9s;
+  animation-direction: alternate-reverse;
+}
+
+.journey-ambience--near {
+  z-index: 32;
+}
+
+.journey-currents,
+.journey-bubbles,
+.journey-motifs {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.journey-currents {
+  inset: -4% -6%;
+  width: 112%;
+  height: 108%;
+  overflow: visible;
+  transform: translate3d(var(--journey-ambient-shift, 0), 0, 0);
+  mix-blend-mode: screen;
+  opacity: var(--journey-ambient-opacity, 0.68);
+}
+
+.journey-current {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.journey-current__body {
+  stroke: url('#journey-current-gradient');
+  stroke-width: 34;
+  opacity: 0.11;
+  filter: blur(9px);
+}
+
+.journey-current__glint,
+.journey-current__echo {
+  stroke: url('#journey-current-gradient');
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 3 8 15 31;
+  animation: journey-current-flow 18s linear var(--current-delay, 0s) infinite;
+  filter: drop-shadow(0 0 3px rgba(167, 246, 249, 0.5));
+  opacity: 0.48;
+}
+
+.journey-current__echo {
+  stroke: rgba(255, 226, 181, 0.56);
+  stroke-width: 0.75;
+  stroke-dasharray: 0.7 17 0.7 29;
+  animation-duration: 25s;
+  animation-direction: reverse;
+  filter: drop-shadow(0 0 3px rgba(255, 215, 168, 0.32));
+  opacity: 0.34;
+}
+
+.journey-current--3 .journey-current__body {
+  stroke-width: 24;
+  opacity: 0.075;
+}
+
+.journey-bubble {
+  position: absolute;
+  top: var(--bubble-y);
+  left: var(--bubble-x);
+  width: var(--bubble-size);
+  aspect-ratio: 1;
+  border: 1px solid rgba(187, 244, 249, 0.6);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 31% 25%, rgba(240, 255, 255, 0.84) 0 7%, transparent 9%),
+    radial-gradient(circle at 60% 68%, rgba(69, 168, 196, 0.08), rgba(183, 239, 244, 0.09) 58%, transparent 72%);
+  box-shadow: inset -1px -1px 3px rgba(22, 103, 145, 0.22), 0 0 7px rgba(99, 221, 235, 0.14);
+  opacity: 0;
+  animation: journey-bubble-rise var(--bubble-duration) ease-in-out var(--bubble-delay) infinite;
+}
+
+.journey-bubbles--far .journey-bubble {
+  filter: blur(0.15px);
+}
+
+.journey-bubbles--near .journey-bubble {
+  border-color: rgba(207, 251, 252, 0.42);
+  filter: blur(0.35px);
+  box-shadow: inset -1px -1px 4px rgba(17, 88, 132, 0.18), 0 0 9px rgba(119, 229, 238, 0.13);
+}
+
+.journey-bubble--soft {
+  filter: blur(1.15px) !important;
+}
+
+.journey-motif {
+  position: absolute;
+  top: var(--motif-y);
+  left: var(--motif-x);
+  width: var(--motif-size);
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: rgba(166, 230, 232, 0.42);
+  stroke-width: 1.15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: blur(0.2px) drop-shadow(0 0 8px rgba(80, 190, 214, 0.16));
+  opacity: 0.12;
+  animation: journey-motif-drift var(--motif-duration) ease-in-out var(--motif-delay) infinite;
+}
+
+.journey-motif__wash {
+  fill: rgba(91, 186, 201, 0.07);
+  stroke: rgba(199, 246, 241, 0.26);
+}
+
+.journey-motif--shell {
+  stroke: rgba(238, 220, 192, 0.35);
+  filter: blur(0.25px) drop-shadow(0 0 7px rgba(245, 207, 164, 0.1));
+}
+
 @keyframes ray-drift {
   from { transform: translateX(-52%) skewX(-2deg); }
   to { transform: translateX(-48%) skewX(2deg); }
@@ -80,4 +238,84 @@
 @keyframes haze-drift {
   from { transform: translate3d(-4%, -2%, 0) scale(0.92); }
   to { transform: translate3d(5%, 3%, 0) scale(1.08); }
+}
+
+@keyframes journey-current-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -100; }
+}
+
+@keyframes journey-bubble-rise {
+  0% {
+    transform: translate3d(0, 14vh, 0) scale(0.68);
+    opacity: 0;
+  }
+  14% { opacity: var(--bubble-alpha); }
+  78% { opacity: var(--bubble-alpha); }
+  100% {
+    transform: translate3d(var(--bubble-drift), -24vh, 0) scale(1.08);
+    opacity: 0;
+  }
+}
+
+@keyframes journey-motif-drift {
+  0%, 100% {
+    transform: translate3d(-50%, -50%, 0) translate3d(var(--motif-drift-back), 7px, 0) rotate(var(--motif-turn-back));
+    opacity: 0.07;
+  }
+  48% {
+    transform: translate3d(-50%, -50%, 0) translate3d(var(--motif-drift), -9px, 0) rotate(var(--motif-turn));
+    opacity: 0.15;
+  }
+}
+
+@keyframes journey-veil {
+  from { transform: translate3d(-3%, -2%, 0) scale(0.94); }
+  to { transform: translate3d(4%, 3%, 0) scale(1.08); }
+}
+
+@media (max-width: 760px) {
+  .journey-currents {
+    inset: -2% -25%;
+    width: 150%;
+    height: 104%;
+    opacity: 0.64;
+  }
+
+  .journey-current--3 {
+    opacity: 0.32;
+  }
+
+  .journey-bubbles--far .journey-bubble:nth-child(n + 9),
+  .journey-bubbles--near .journey-bubble:nth-child(n + 3),
+  .journey-motif:nth-child(3),
+  .journey-motif:nth-child(6) {
+    display: none;
+  }
+
+  .journey-motif {
+    opacity: 0.09;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-current__glint,
+  .journey-current__echo,
+  .journey-bubble,
+  .journey-motif,
+  .journey-ambience--far::before,
+  .journey-ambience--far::after {
+    animation: none;
+  }
+
+  .journey-bubble {
+    transform: none;
+    opacity: 0.12;
+  }
+
+  .journey-bubbles--far .journey-bubble:nth-child(n + 7),
+  .journey-bubbles--near .journey-bubble:nth-child(n + 2),
+  .journey-motif:nth-child(even) {
+    display: none;
+  }
 }

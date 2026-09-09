@@ -79,6 +79,70 @@ async function waitForGateCrest(page, gateIndex) {
     .toBe(true);
 }
 
+async function expectJourneyAmbience(page, width) {
+  const ambience = await page.evaluate(() => {
+    const layers = [...document.querySelectorAll('.journey-ambience')];
+    const far = document.querySelector('.journey-ambience--far');
+    const near = document.querySelector('.journey-ambience--near');
+    const whale = document.querySelector('.journey-world #intro-whale-swimmer');
+    const foreground = document.querySelector('.journey-world .foreground-layer');
+    const bubbles = [...document.querySelectorAll('.journey-bubble')];
+    const motifs = [...document.querySelectorAll('.journey-motif')];
+    const movingDetails = [
+      document.querySelector('.journey-current__glint'),
+      bubbles[0],
+      motifs[0],
+    ];
+    return {
+      layers: layers.length,
+      hidden: layers.every(layer => layer.getAttribute('aria-hidden') === 'true'),
+      pointerEvents: layers.map(layer => getComputedStyle(layer).pointerEvents),
+      currents: document.querySelectorAll('.journey-current').length,
+      currentBodies: document.querySelectorAll('.journey-current__body').length,
+      currentGlints: document.querySelectorAll('.journey-current__glint').length,
+      bubbles: bubbles.length,
+      visibleBubbles: bubbles.filter(bubble => getComputedStyle(bubble).display !== 'none').length,
+      edgeBiased: bubbles.every(bubble => {
+        const x = parseFloat(bubble.style.getPropertyValue('--bubble-x'));
+        return x <= 29 || x >= 71;
+      }),
+      motifs: motifs.length,
+      visibleMotifs: motifs.filter(motif => getComputedStyle(motif).display !== 'none').length,
+      motifKinds: [...new Set(motifs.map(motif => motif.dataset.kind))].sort(),
+      farZ: Number(getComputedStyle(far).zIndex),
+      nearZ: Number(getComputedStyle(near).zIndex),
+      whaleZ: Number(getComputedStyle(whale).zIndex),
+      foregroundZ: Number(getComputedStyle(foreground).zIndex),
+      animations: movingDetails.map(detail => ({
+        name: getComputedStyle(detail).animationName,
+        duration: parseFloat(getComputedStyle(detail).animationDuration),
+      })),
+      rasterAssets: far.querySelectorAll('img, canvas').length + near.querySelectorAll('img, canvas').length,
+      shift: getComputedStyle(document.querySelector('.journey-world'))
+        .getPropertyValue('--journey-ambient-shift').trim(),
+    };
+  });
+  expect(ambience.layers).toBe(2);
+  expect(ambience.hidden).toBe(true);
+  expect(ambience.pointerEvents).toEqual(['none', 'none']);
+  expect(ambience.currents).toBe(3);
+  expect(ambience.currentBodies).toBe(3);
+  expect(ambience.currentGlints).toBe(3);
+  expect(ambience.bubbles).toBe(18);
+  expect(ambience.visibleBubbles).toBe(width === 390 ? 10 : 18);
+  expect(ambience.edgeBiased).toBe(true);
+  expect(ambience.motifs).toBe(6);
+  expect(ambience.visibleMotifs).toBe(width === 390 ? 4 : 6);
+  expect(ambience.motifKinds).toEqual(['frond', 'jelly', 'shell']);
+  expect(ambience.farZ).toBeLessThan(8);
+  expect(ambience.nearZ).toBeGreaterThan(ambience.whaleZ);
+  expect(ambience.nearZ).toBeLessThan(ambience.foregroundZ);
+  expect(ambience.animations.every(animation => animation.name !== 'none'
+    && animation.duration >= 10)).toBe(true);
+  expect(ambience.rasterAssets).toBe(0);
+  expect(ambience.shift).toMatch(/vw$/);
+}
+
 test('vòng giữ hướng, đồng bộ hai nửa và tan dần khi cá voi đi qua', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.intro-world')).toHaveAttribute('data-stage', 'drops');
@@ -139,6 +203,7 @@ for (const width of [1440, 390]) {
     await expect(page.locator('#scene-next')).toBeEnabled();
     await expect(page.locator('.journey-world #intro-whale-swimmer')).toHaveCount(1);
     await expect(page.locator('#whale-canvas')).toHaveClass(/is-hidden/);
+    await expectJourneyAmbience(page, width);
     await expect(page.locator('.gate-memory')).toHaveCount(12);
     await expect(page.locator('.memory-streams, .memory-stream, .memory-shimmer')).toHaveCount(0);
     await expect(page.locator('.memory-portrait')).toHaveCount(12);
@@ -224,3 +289,27 @@ for (const width of [1440, 390]) {
     expect(errors).toEqual([]);
   });
 }
+
+test('môi trường cảnh 2 giữ trạng thái tĩnh khi giảm chuyển động', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await expect(page.locator('.journey-ambience')).toHaveCount(2);
+  const state = await page.evaluate(() => {
+    const nodes = [
+      document.querySelector('.journey-current__glint'),
+      document.querySelector('.journey-bubble'),
+      document.querySelector('.journey-motif'),
+    ];
+    const ambience = document.querySelector('.journey-ambience--far');
+    return {
+      animations: nodes.map(node => getComputedStyle(node).animationName),
+      veilBefore: getComputedStyle(ambience, '::before').animationName,
+      veilAfter: getComputedStyle(ambience, '::after').animationName,
+      noOverflow: document.documentElement.scrollWidth <= innerWidth,
+    };
+  });
+  expect(state.animations).toEqual(['none', 'none', 'none']);
+  expect(state.veilBefore).toBe('none');
+  expect(state.veilAfter).toBe('none');
+  expect(state.noOverflow).toBe(true);
+});
