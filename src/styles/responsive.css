@@ -89,10 +89,6 @@
     width: 62px;
   }
 
-  .memory-shard {
-    width: 78px;
-  }
-
   .memory-whale {
     top: 39%;
     width: clamp(350px, 77vw, 1050px);
@@ -249,9 +245,6 @@
     min-height: 36px;
   }
 
-  .storm-copy {
-    top: 11%;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -269,11 +262,8 @@
   }
 
   .film-grain,
-  .storm-current,
   .cosmic-current,
-  .depth-haze,
-  .ascent-lines,
-  .breakthrough-flash {
+  .depth-haze {
     display: none;
   }
 
@@ -285,9 +275,7 @@
 
   .memory-whale,
   .portal,
-  .memory-shard,
-  .companion-whale,
-  .suspended-drop {
+  .companion-whale {
     transition: none !important;
   }
 }

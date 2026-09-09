@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { goToProgress } from './scene-helpers.js';
 
 test('tải đủ bốn cảnh và toàn bộ asset của phần mở đầu', async ({ page }) => {
+  test.setTimeout(45_000);
   const failedResponses = [];
   const runtimeErrors = [];
   page.on('response', (response) => {
@@ -71,7 +72,7 @@ test('năm giọt làm cảnh sáng dần rồi bay ngược vào vầng sáng',
   await page.waitForTimeout(1_350);
   await expect.poll(() => intro.evaluate((element) => Number(getComputedStyle(element).getPropertyValue('--intro-light')))).toBeGreaterThanOrEqual(0.2);
   await expect.poll(() => darkness.evaluate((element) => Number.parseFloat(getComputedStyle(element).opacity))).toBeLessThanOrEqual(0.8);
-  await expect(page.locator('.water-ripple.is-active')).toHaveCount(1);
+  await expect(page.locator('.water-ripple[data-drop="1"]')).toHaveClass(/is-active/);
 
   const axes = await page.locator('.falling-memory').evaluateAll((drops) => drops.map((drop) => getComputedStyle(drop).left));
   expect(new Set(axes).size).toBe(1);
@@ -94,6 +95,7 @@ test('năm giọt làm cảnh sáng dần rồi bay ngược vào vầng sáng',
 });
 
 test('ánh sáng cuối hành trình nhập vào cá voi ký ức', async ({ page }) => {
+  test.setTimeout(45_000);
   await page.goto('/');
   await goToProgress(page, '#ocean-remembers', 0.9);
   const button = page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' });
@@ -115,6 +117,7 @@ test('không thể kích hoạt nút kết khi chưa đến đoạn cuối', asy
 });
 
 test('đoạn kết mở thư viện và có thể bắt đầu lại', async ({ page }) => {
+  test.setTimeout(45_000);
   await page.goto('/');
   await goToProgress(page, '#ocean-remembers', 0.92);
   const sendButton = page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' });

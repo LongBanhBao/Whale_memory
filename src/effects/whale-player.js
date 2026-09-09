@@ -87,6 +87,10 @@ export function createWhalePlayer(canvas, manifest, spriteUrl, reducedMotion = f
     setPose(pose) {
       Object.assign(target, pose);
     },
+    snapPose(pose) {
+      Object.assign(target, pose);
+      Object.assign(current, pose);
+    },
     destroy() {
       cancelAnimationFrame(frameHandle);
       window.removeEventListener('resize', resize);

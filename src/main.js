@@ -4,11 +4,13 @@ import { images, whale } from './data/assets.generated.js';
 import { dropIds, portalGroups } from './data/journey.js';
 import { createWhalePlayer } from './effects/whale-player.js';
 import { createWaterJourney, JOURNEY_DURATION } from './effects/water-journey.js';
+import { stormMotion, STORM_DURATION, STORM_OBSTACLES } from './effects/storm-motion.js';
 import { createIntroWhale } from './effects/intro-whale.js';
 import { createAmbientCanvas } from './effects/ambient-canvas.js';
 
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const stormMobileQuery = window.matchMedia('(max-width: 760px)');
 const assetUrl = (path) => `${window.__BLUE_VOYAGE_ASSET_ROOT__ ?? import.meta.env.BASE_URL}${path}`;
 const imageById = new Map(images.map((image) => [image.id, image]));
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -40,12 +42,17 @@ const portalLayer = document.querySelector('#portal-layer');
 const foregroundLayer = document.querySelector('#foreground-layer');
 const journeyWorld = document.querySelector('.journey-world');
 const stormWorld = document.querySelector('.storm-world');
-const shardField = document.querySelector('#shard-field');
-const memoryParticles = document.querySelector('#memory-particles');
-const companionWhales = document.querySelector('#companion-whales');
-const ascentLines = document.querySelector('#ascent-lines');
-const suspendedDrops = document.querySelector('#suspended-drops');
-const breakthroughFlash = document.querySelector('#breakthrough-flash');
+const stormBackdrop = document.querySelector('#storm-backdrop');
+const stormRain = document.querySelector('#storm-rain');
+const stormObstacleField = document.querySelector('#storm-obstacle-field');
+const stormCompanionWhales = document.querySelector('#storm-companion-whales');
+const familyCurrent = document.querySelector('#family-current');
+const stormImpactField = document.querySelector('#storm-impact-field');
+const stormDebris = document.querySelector('#storm-debris');
+const stormDestination = document.querySelector('#storm-destination');
+const stormCopyLines = [...document.querySelectorAll('.storm-copy__line')];
+const stormEntryVeil = document.querySelector('#storm-entry-veil');
+const stormTransitionLight = document.querySelector('#storm-transition-light');
 const finaleWorld = document.querySelector('.finale-world');
 const tributeLines = [...document.querySelectorAll('.tribute-sequence p')];
 const memoryWhale = document.querySelector('#memory-whale');
@@ -88,90 +95,78 @@ function makeImage(image, variant = 'src', decorative = true) {
 }
 
 function buildStorm() {
-  const shardIds = ['p01', 'p04', 'p06', 'p09', 'p12', 'p16', 'p18', 'p19'];
-  const clips = [
-    'polygon(0 0, 78% 8%, 54% 100%, 8% 83%)',
-    'polygon(19% 0, 100% 14%, 79% 91%, 0 100%)',
-    'polygon(0 15%, 91% 0, 100% 75%, 24% 100%)',
-    'polygon(13% 0, 100% 27%, 68% 100%, 0 71%)',
-  ];
-  const positions = [
-    [13, 27, -13, -95], [86, 23, 11, 88], [22, 73, 8, -130], [79, 70, -9, 115],
-    [42, 17, 18, -70], [60, 81, -16, 90], [95, 49, 7, 130], [5, 52, -6, -120],
-  ];
+  stormBackdrop.src = assetUrl('assets/scene/storm-ocean-v1.webp');
+  stormBackdrop.loading = 'eager';
+  stormBackdrop.decoding = 'async';
 
-  const shards = shardIds.map((id, index) => {
-    const shard = document.createElement('div');
-    const [x, y, rotation, travel] = positions[index];
-    shard.className = 'memory-shard';
-    shard.style.setProperty('--x', `${x}%`);
-    shard.style.setProperty('--y', `${y}%`);
-    shard.style.setProperty('--rotation', `${rotation}deg`);
-    shard.style.setProperty('--travel', `${travel}px`);
-    shard.style.setProperty('--clip', clips[index % clips.length]);
-    shard.append(makeImage(imageById.get(id), 'thumb'));
-    shardField.append(shard);
-    return shard;
+  const obstacles = STORM_OBSTACLES.map((definition, index) => {
+    const obstacle = document.createElement('div');
+    const signal = document.createElement('i');
+    const label = document.createElement('strong');
+    const detail = document.createElement('span');
+    obstacle.className = `storm-obstacle storm-obstacle--${index + 1}`;
+    obstacle.dataset.obstacle = `${index + 1}`;
+    obstacle.dataset.state = 'approach';
+    signal.className = 'storm-obstacle__signal';
+    label.textContent = definition.label;
+    detail.textContent = definition.detail;
+    obstacle.append(signal, label, detail);
+    for (let fragment = 0; fragment < 3; fragment += 1) {
+      const shard = document.createElement('i');
+      shard.className = 'storm-obstacle__fragment';
+      shard.style.setProperty('--fragment', fragment);
+      obstacle.append(shard);
+    }
+    stormObstacleField.append(obstacle);
+    return obstacle;
   });
 
-  for (let index = 0; index < 32; index += 1) {
-    const angle = (index / 32) * Math.PI * 2 + (index % 4) * 0.13;
-    const radius = 12 + (index % 7) * 4.2;
-    const particle = document.createElement('span');
-    particle.className = 'memory-particle';
-    particle.style.setProperty('--x', `${50 + Math.cos(angle) * radius}%`);
-    particle.style.setProperty('--y', `${58 + Math.sin(angle) * radius * 0.72}%`);
-    particle.style.setProperty('--drift-x', `${Math.cos(angle) * (80 + (index % 5) * 24)}px`);
-    particle.style.setProperty('--drift-y', `${Math.sin(angle) * (70 + (index % 4) * 22)}px`);
-    particle.style.setProperty('--size', `${index % 6 === 0 ? 20 : 3 + (index % 4) * 1.5}px`);
-    particle.style.setProperty('--delay', `${(index % 8) * 0.06}`);
-    particle.style.setProperty('--alpha', `${0.28 + (index % 5) * 0.11}`);
-    if (index % 6 === 0) particle.append(makeImage(images[(index * 3) % images.length], 'thumb'));
-    memoryParticles.append(particle);
+  const companions = Array.from({ length: 9 }, (_, index) => {
+    const companion = document.createElement('img');
+    companion.className = `companion-whale companion-whale--${index % 3 ? 'front' : 'rear'}`;
+    companion.dataset.companion = `${index + 1}`;
+    companion.src = assetUrl(whale.still);
+    companion.alt = '';
+    companion.loading = 'eager';
+    companion.decoding = 'async';
+    companion.style.setProperty('--companion-delay', `${index * -.17}s`);
+    stormCompanionWhales.append(companion);
+    return companion;
+  });
+
+  const impacts = STORM_OBSTACLES.slice(0, 3).map((_, index) => {
+    const impact = document.createElement('i');
+    impact.className = 'storm-impact';
+    impact.dataset.impact = `${index + 1}`;
+    impact.append(document.createElement('i'), document.createElement('i'));
+    stormImpactField.append(impact);
+    return impact;
+  });
+
+  for (let index = 0; index < 36; index += 1) {
+    const streak = document.createElement('i');
+    streak.className = 'storm-rain__streak';
+    streak.style.setProperty('--rain-x', `${-5 + ((index * 37) % 112)}%`);
+    streak.style.setProperty('--rain-y', `${-12 + ((index * 29) % 114)}%`);
+    streak.style.setProperty('--rain-length', `${34 + (index % 7) * 13}px`);
+    streak.style.setProperty('--rain-delay', `${(index % 12) * -.13}s`);
+    streak.style.setProperty('--rain-speed', `${.72 + (index % 5) * .11}s`);
+    streak.style.setProperty('--rain-alpha', `${.16 + (index % 4) * .06}`);
+    stormRain.append(streak);
   }
 
-  const companions = [];
-  for (let index = 0; index < 18; index += 1) {
-    const angle = Math.PI * (0.1 + (index / 17) * 0.8);
-    const radiusX = 31 + (index % 3) * 2.5;
-    const radiusY = 25 + (index % 4) * 1.4;
-    const whaleImage = document.createElement('img');
-    whaleImage.className = 'companion-whale';
-    whaleImage.src = assetUrl(whale.still);
-    whaleImage.alt = '';
-    whaleImage.loading = 'lazy';
-    whaleImage.decoding = 'async';
-    whaleImage.style.setProperty('--x', `${50 - Math.cos(angle) * radiusX}%`);
-    whaleImage.style.setProperty('--y', `${67 - Math.sin(angle) * radiusY}%`);
-    whaleImage.style.setProperty('--rotation', `${-24 + (index / 17) * 38}deg`);
-    whaleImage.style.setProperty('--alpha', `${0.28 + (index % 5) * 0.09}`);
-    companionWhales.append(whaleImage);
-    companions.push(whaleImage);
+  for (let index = 0; index < 24; index += 1) {
+    const debris = document.createElement('i');
+    debris.className = 'storm-debris__piece';
+    debris.style.setProperty('--debris-x', `${48 + ((index * 19) % 38)}%`);
+    debris.style.setProperty('--debris-y', `${20 + ((index * 23) % 52)}%`);
+    debris.style.setProperty('--debris-dx', `${(index % 2 ? -1 : 1) * (80 + (index % 6) * 34)}px`);
+    debris.style.setProperty('--debris-dy', `${(index % 3 - 1) * (70 + (index % 5) * 26)}px`);
+    debris.style.setProperty('--debris-delay', `${(index % 8) * .045}`);
+    stormDebris.append(debris);
   }
 
-  const lineCount = window.innerWidth < 720 ? 18 : 34;
-  for (let index = 0; index < lineCount; index += 1) {
-    const line = document.createElement('i');
-    line.className = 'ascent-line';
-    line.style.setProperty('--x', `${3 + ((index * 37) % 94)}%`);
-    line.style.setProperty('--y', `${10 + ((index * 29) % 84)}%`);
-    line.style.setProperty('--size', `${40 + (index % 6) * 24}px`);
-    line.style.setProperty('--delay', `${(index % 9) * -0.11}s`);
-    ascentLines.append(line);
-  }
-
-  const dropCount = window.innerWidth < 720 ? 36 : 64;
-  for (let index = 0; index < dropCount; index += 1) {
-    const drop = document.createElement('i');
-    drop.className = 'suspended-drop';
-    drop.style.setProperty('--x', `${2 + ((index * 43) % 96)}%`);
-    drop.style.setProperty('--y', `${7 + ((index * 31) % 88)}%`);
-    drop.style.setProperty('--size', `${2 + (index % 5) * 1.2}px`);
-    drop.style.setProperty('--delay', `${(index % 11) * 0.035}`);
-    suspendedDrops.append(drop);
-  }
-
-  return { shards, companions };
+  return { obstacles, companions, impacts };
 }
 
 function buildMemoryWhale() {
@@ -223,7 +218,7 @@ const waterJourney = createWaterJourney({
 });
 introWorld.append(waterJourney.transition);
 let sceneTransition = null;
-const { companions } = buildStorm();
+const stormActors = buildStorm();
 buildMemoryWhale();
 buildGallery();
 outroButtons.forEach((button) => { button.disabled = true; });
@@ -236,8 +231,8 @@ const HOLD_RING_LENGTH = 2 * Math.PI * 67;
 let activeScene = 0;
 let lightSent = false;
 let finalTimeline = null;
-let previousStormProgress = 0;
-let flashPlayed = false;
+let stormEntryTimeline = null;
+let stormTransitionTimeline = null;
 let holding = false;
 let holdProgress = 0;
 let heldAt = 0;
@@ -499,6 +494,91 @@ function setActiveScene(index) {
   updateReducedNext();
 }
 
+function resetStormTransitionLight() {
+  stormTransitionLight.style.setProperty('--storm-wipe', '0');
+  stormTransitionLight.style.setProperty('--storm-wipe-radius', '0vmax');
+  stormTransitionLight.style.removeProperty('opacity');
+}
+
+function releaseStormTransitionLight() {
+  stormTransitionTimeline?.kill();
+  if (reducedMotion || Number(stormTransitionLight.style.getPropertyValue('--storm-wipe')) < .08) {
+    resetStormTransitionLight();
+    return;
+  }
+  stormTransitionTimeline = gsap.to(stormTransitionLight, {
+    opacity: 0,
+    duration: .82,
+    ease: 'sine.out',
+    onComplete: resetStormTransitionLight,
+  });
+}
+
+function stormEntryPose() {
+  const { whale: pose } = stormMotion(0, { mobile: stormMobileQuery.matches });
+  return {
+    x: pose.x,
+    y: pose.y,
+    scale: pose.scale,
+    rotation: pose.rotation,
+    opacity: .98,
+    glow: pose.glow,
+    brightness: pose.brightness,
+  };
+}
+
+function startStormHandoff() {
+  if (stormEntryTimeline?.isActive()) return;
+  sceneTimeline?.kill();
+  sceneTimeline = null;
+  const target = stormEntryPose();
+  const readWhaleValue = (property, fallback, divisor = 1) => {
+    const value = parseFloat(introWhaleSwimmer.style.getPropertyValue(property));
+    return Number.isFinite(value) ? value / divisor : fallback;
+  };
+  const from = {
+    x: readWhaleValue('--whale-x', .55, 100),
+    y: readWhaleValue('--whale-y', .49, 100),
+    scale: readWhaleValue('--whale-scale', 1),
+    rotation: readWhaleValue('--whale-rotation', -9),
+  };
+
+  whalePlayer.snapPose(target);
+  if (reducedMotion) {
+    advanceScene();
+    return;
+  }
+
+  reducedNext.disabled = true;
+  const transfer = { progress: 0 };
+  stormEntryTimeline = gsap.timeline({
+    onComplete: () => {
+      whalePlayer.snapPose(target);
+      advanceScene();
+      gsap.to(stormEntryVeil, { opacity: 0, duration: .68, ease: 'sine.out' });
+    },
+  })
+    .to(transfer, {
+      progress: 1,
+      duration: 1.35,
+      ease: 'sine.inOut',
+      onUpdate: () => {
+        const amount = smoothstep(transfer.progress);
+        waterJourney.pose(
+          lerp(from.x, target.x, amount),
+          lerp(from.y, target.y, amount),
+          lerp(from.scale, target.scale, amount),
+          lerp(from.rotation, target.rotation, amount),
+          Math.sin(amount * Math.PI) * .12,
+          .56,
+          lerp(0, -5, amount),
+          lerp(.28, .18, amount),
+        );
+      },
+    }, 0)
+    .to(stormEntryVeil, { opacity: 1, duration: 1.05, ease: 'sine.inOut' }, .16);
+}
+
 holdControl.addEventListener('pointerdown', beginHolding);
 holdControl.addEventListener('pointerup', endHolding);
 holdControl.addEventListener('pointercancel', endHolding);
@@ -523,18 +603,28 @@ setWhaleEmergence(0);
 requestAnimationFrame(renderHoldFrame);
 
 function advanceScene() {
+  const leavingScene = activeScene;
   setActiveScene(activeScene + 1);
   const render = [null, renderJourney, renderStorm, renderFinale][activeScene];
   const state = { progress: 0 };
-  render({ progress: reducedMotion ? (activeScene === 1 ? 1 : 0.92) : 0 });
+  const reducedProgress = activeScene === 1 ? 1 : activeScene === 2 ? .875 : .92;
+  if (activeScene === 2) {
+    stormTransitionTimeline?.kill();
+    stormTransitionLight.style.removeProperty('opacity');
+  }
+  render({ progress: reducedMotion ? reducedProgress : 0 });
   if (!reducedMotion) {
     sceneTimeline = gsap.to(state, {
       progress: 1,
-      duration: [0, JOURNEY_DURATION, 14, 12][activeScene],
+      duration: [0, JOURNEY_DURATION, STORM_DURATION, 12][activeScene],
       ease: 'none',
       onUpdate: () => render(state),
+      onComplete: activeScene === 2 ? () => {
+        if (activeScene === 2) advanceScene();
+      } : undefined,
     });
   }
+  if (leavingScene === 2) releaseStormTransitionLight();
   reducedNext.disabled = false;
   sections[activeScene].focus({ preventScroll: true });
 }
@@ -543,6 +633,10 @@ reducedNext.addEventListener('click', () => {
   if (activeScene >= 3 || reducedNext.disabled) return;
   endHolding({ type: 'pointercancel' });
   postTimeline?.kill();
+  if (activeScene === 1) {
+    startStormHandoff();
+    return;
+  }
   if (activeScene !== 0 || reducedMotion) {
     advanceScene();
     return;
@@ -571,61 +665,72 @@ function renderJourney(state) {
   ambient.setMood('journey', .68);
 }
 
-function playBreakthroughFlash() {
-  if (reducedMotion) return;
-  gsap.killTweensOf(breakthroughFlash);
-  gsap.timeline()
-    .set(breakthroughFlash, { opacity: 0 })
-    .to(breakthroughFlash, { opacity: 1, duration: 0.15, ease: 'power3.in' })
-    .to(breakthroughFlash, { opacity: 1, duration: 0.42 })
-    .to(breakthroughFlash, { opacity: 0, duration: 0.62, ease: 'power2.out' });
-}
-
 function renderStorm({ progress }) {
-    const scatter = smoothstep(progress / 0.25);
-    const memoryReturn = smoothstep((progress - 0.38) / 0.24);
-    const companionsReveal = smoothstep((progress - 0.4) / 0.2);
-    const ascent = smoothstep((progress - 0.64) / 0.29);
-    const drops = smoothstep((progress - 0.83) / 0.1);
-    const stars = smoothstep((progress - 0.93) / 0.055);
+  const frame = stormMotion(progress, { mobile: stormMobileQuery.matches });
+  stormWorld.dataset.stormPhase = frame.phase;
+  stormWorld.style.setProperty('--storm-progress', frame.progress.toFixed(4));
+  stormWorld.style.setProperty('--storm-intensity', frame.storm.intensity.toFixed(4));
+  stormWorld.style.setProperty('--storm-clear', frame.storm.clear.toFixed(4));
+  stormWorld.style.setProperty('--storm-rain', frame.storm.rain.toFixed(4));
+  stormWorld.style.setProperty('--storm-lightning', frame.storm.lightning.toFixed(4));
+  stormWorld.style.setProperty('--storm-flow', `${(-frame.storm.flow).toFixed(3)}px`);
+  stormWorld.style.setProperty('--storm-impact', frame.impact.toFixed(4));
+  stormWorld.style.setProperty('--storm-family', frame.family.toFixed(4));
+  stormWorld.style.setProperty('--storm-breakthrough', frame.breakthrough.toFixed(4));
+  stormWorld.style.setProperty('--storm-debris', bell(frame.progress, .62, .74, .91).toFixed(4));
+  stormWorld.style.setProperty('--storm-copy-one', frame.copy.struggle.toFixed(4));
+  stormWorld.style.setProperty('--storm-copy-two', frame.copy.family.toFixed(4));
+  stormWorld.style.setProperty('--storm-whale-x', `${(frame.whale.x * 100).toFixed(3)}%`);
+  stormWorld.style.setProperty('--storm-whale-y', `${(frame.whale.y * 100).toFixed(3)}%`);
+  stormWorld.style.setProperty('--storm-whale-scale', frame.whale.scale.toFixed(4));
+  stormWorld.style.setProperty('--storm-whale-rotation', `${frame.whale.rotation.toFixed(3)}deg`);
+  stormWorld.style.setProperty('--storm-beacon', frame.light.beacon.toFixed(4));
+  stormWorld.style.setProperty('--storm-beacon-x', `${frame.light.x}%`);
+  stormWorld.style.setProperty('--storm-beacon-y', `${frame.light.y}%`);
 
-    stormWorld.style.setProperty('--storm-intensity', `${clamp(progress * 1.35)}`);
-    stormWorld.style.setProperty('--storm-light', `${companionsReveal}`);
-    stormWorld.style.setProperty('--companions', `${companionsReveal}`);
-    stormWorld.style.setProperty('--shard-flow', (scatter * (1 - memoryReturn)).toFixed(4));
-    stormWorld.style.setProperty('--memory-return', memoryReturn.toFixed(4));
-    stormWorld.style.setProperty('--line-one', bell(progress, 0.18, 0.27, 0.43).toFixed(4));
-    stormWorld.style.setProperty('--line-two', bell(progress, 0.43, 0.53, 0.68).toFixed(4));
-    stormWorld.style.setProperty('--ascent', ascent.toFixed(4));
-    stormWorld.style.setProperty('--rift', smoothstep((progress - 0.72) / 0.2).toFixed(4));
-    stormWorld.style.setProperty('--drops', drops.toFixed(4));
-    stormWorld.style.setProperty('--stars', stars.toFixed(4));
-    ambient.setMood('storm', 0.45 + progress * 0.5);
+  stormActors.obstacles.forEach((obstacle, index) => {
+    const obstacleFrame = frame.obstacles[index];
+    obstacle.style.left = `${(obstacleFrame.x * 100).toFixed(3)}%`;
+    obstacle.style.top = `${(obstacleFrame.y * 100).toFixed(3)}%`;
+    obstacle.style.setProperty('--obstacle-rotation', `${obstacleFrame.rotation.toFixed(3)}deg`);
+    obstacle.style.setProperty('--obstacle-scale', obstacleFrame.scale.toFixed(4));
+    obstacle.style.setProperty('--obstacle-opacity', obstacleFrame.opacity.toFixed(4));
+    obstacle.style.setProperty('--obstacle-impact', obstacleFrame.impact.toFixed(4));
+    obstacle.style.setProperty('--obstacle-expel', obstacleFrame.expel.toFixed(4));
+    obstacle.dataset.state = obstacleFrame.state;
+  });
 
-    companions.forEach((companion, index) => {
-      const wave = Math.sin(progress * Math.PI * 5 + index * 0.7);
-      companion.style.setProperty('--companion-scale', `${0.52 + companionsReveal * 0.34 + wave * 0.04}`);
-      companion.style.translate = `${wave * 8}px ${-ascent * (25 + (index % 5) * 7)}px`;
-    });
+  stormActors.companions.forEach((companion, index) => {
+    const companionFrame = frame.companions[index];
+    companion.style.left = `${(companionFrame.x * 100).toFixed(3)}%`;
+    companion.style.top = `${(companionFrame.y * 100).toFixed(3)}%`;
+    companion.style.setProperty('--companion-rotation', `${companionFrame.rotation.toFixed(3)}deg`);
+    companion.style.setProperty('--companion-scale', companionFrame.scale.toFixed(4));
+    companion.style.setProperty('--companion-opacity', companionFrame.opacity.toFixed(4));
+    companion.style.setProperty('--companion-arrival', companionFrame.arrival.toFixed(4));
+    companion.dataset.formation = companionFrame.arrival > .92 ? 'formed' : 'arriving';
+  });
 
-    if (!flashPlayed && previousStormProgress < 0.9 && progress >= 0.9) {
-      flashPlayed = true;
-      playBreakthroughFlash();
-    } else if (progress < 0.72) {
-      flashPlayed = false;
-      if (reducedMotion) breakthroughFlash.style.opacity = '0';
-    }
-    previousStormProgress = progress;
+  stormActors.impacts.forEach((impact, index) => {
+    const obstacleFrame = frame.obstacles[index];
+    impact.style.left = `${(obstacleFrame.x * 100).toFixed(3)}%`;
+    impact.style.top = `${(obstacleFrame.y * 100).toFixed(3)}%`;
+    impact.style.setProperty('--impact', obstacleFrame.impact.toFixed(4));
+  });
 
-    whalePlayer.setPose({
-      x: lerp(0.53, 0.58, ascent),
-      y: lerp(0.64, 0.1, ascent),
-      scale: lerp(0.82, 1.1, ascent),
-      rotation: lerp(8, -27, ascent),
-      opacity: progress > 0.985 ? 0 : 0.96,
-      glow: lerp(0.1, 1, companionsReveal),
-      brightness: lerp(0.52, 1.38, companionsReveal),
-    });
+  stormCopyLines.forEach((line, index) => {
+    const visibility = index ? frame.copy.family : frame.copy.struggle;
+    line.setAttribute('aria-hidden', visibility < .08 ? 'true' : 'false');
+  });
+  familyCurrent.dataset.active = frame.family > .1 ? 'true' : 'false';
+  stormDestination.dataset.active = frame.light.beacon > .1 ? 'true' : 'false';
+  stormTransitionLight.style.setProperty('--storm-wipe', frame.light.wipe.toFixed(4));
+  stormTransitionLight.style.setProperty('--storm-wipe-radius', `${frame.light.radius.toFixed(3)}vmax`);
+  stormTransitionLight.style.setProperty('--storm-wipe-x', `${frame.light.x}%`);
+  stormTransitionLight.style.setProperty('--storm-wipe-y', `${frame.light.y}%`);
+
+  whalePlayer.setPose(frame.whale);
+  ambient.setMood('storm', .58 + frame.storm.intensity * .34 - frame.storm.clear * .18);
 }
 
 function renderFinale({ progress }) {
@@ -736,13 +841,17 @@ for (const dialog of [letterDialog, galleryDialog]) {
 
 function resetJourney() {
   sceneTransition?.kill();
+  stormEntryTimeline?.kill();
+  stormTransitionTimeline?.kill();
   gsap.set(waterJourney.transition, { opacity: 0 });
+  gsap.killTweensOf([stormEntryVeil, stormTransitionLight]);
+  gsap.set(stormEntryVeil, { opacity: 0 });
+  resetStormTransitionLight();
   reducedNext.disabled = false;
   introWhale.setActive(false);
   introWhale.reset();
   finalTimeline?.kill();
   postTimeline?.kill();
-  gsap.killTweensOf(breakthroughFlash);
   introDrops.forEach(({ wrapper, ripple }) => {
     gsap.killTweensOf(wrapper);
     wrapper.classList.remove('is-returning');
@@ -752,8 +861,8 @@ function resetJourney() {
   for (const dialog of [letterDialog, galleryDialog]) if (dialog.open) dialog.close();
   lightLayer.replaceChildren();
   lightSent = false;
-  flashPlayed = false;
-  previousStormProgress = 0;
+  stormEntryTimeline = null;
+  stormTransitionTimeline = null;
   finaleWorld.classList.remove('is-complete');
   memoryWhale.classList.remove('is-lit');
   finaleWorld.style.setProperty('--outro', '0');
