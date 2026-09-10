@@ -18,16 +18,19 @@ The 24-second sequence is deterministic and divided into eight phases:
 | `.225–.37` | `5.4–8.88s` | Second advance, impact and recoil |
 | `.37–.52` | `8.88–12.48s` | Third advance and deepest recoil |
 | `.52–.585` | `12.48–14.04s` | Fatigue trough; the whale visibly droops and grieves |
-| `.585–.68` | `14.04–16.32s` | Eighteen family whales arrive in three waves |
-| `.68–.9` | `16.32–21.6s` | The formation advances and expels every obstacle |
-| `.9–1` | `21.6–24s` | The destination opens into a full-screen light wipe |
+| `.585–.735` | `14.04–17.64s` | Eighteen family whales swim in from the left and assemble in three waves |
+| `.735–.95` | `17.64–22.8s` | The formation advances and expels every obstacle |
+| `.95–1` | `22.8–24s` | Contact with the destination immediately triggers the light wipe |
 
-Six obstacles turn online pressure into visible pieces of the sea: `LỜI NÓI TOXIC`,
-`ÁP LỰC`, `SO SÁNH`, `TIN ĐỒN`, `MỆT MỎI` and `TỰ NGHI NGỜ`. They travel
-against the whale, lock into its route during the struggle, then break apart
-and leave the viewport after the family formation reaches them. Desktop renders
-all 18 companions around and behind the protagonist; mobile keeps the first 12
-visible to preserve the diagonal route and legibility.
+Six obstacles turn online pressure into large extruded words floating directly
+in the sea: `TOXIC`, `ÁP LỰC`, `BẾU`, `MỆT MỎI`, `SO SÁNH` and `TỰ NGHI NGỜ`.
+There are no backing cards or captions. The words travel against the whale,
+lock into its route during the struggle, then break apart and leave the viewport
+after the family formation reaches them. Desktop renders all 18 companions around
+and behind the protagonist; mobile keeps the first 12 visible to preserve the
+diagonal route and legibility. Every companion enters from outside the left edge,
+follows a curved lane into formation and carries a staggered “Hu raaaaa” speech
+bubble until the protagonist touches the light.
 
 ## Whale renderer and expression
 
@@ -66,6 +69,7 @@ current then fades over 0.72 seconds. Mobile uses a slightly deeper, safer entry
 and a tighter diagonal route.
 
 At the destination, a cyan-white beacon expands from the upper right into a
-`175vmax` light field. The wipe remains above both scenes while scene 4 opens,
-then fades away there, so the bright ending of the storm becomes the first
-light of the finale instead of a hard cut.
+`175vmax` light field. Its easing is front-loaded at the contact frame, removing
+the former pause between arrival and glare. The wipe remains above both scenes
+while scene 4 opens, then fades away there, so the bright ending of the storm
+becomes the first light of the finale instead of a hard cut.

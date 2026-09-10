@@ -112,16 +112,12 @@ function buildStorm() {
 
   const obstacles = STORM_OBSTACLES.map((definition, index) => {
     const obstacle = document.createElement('div');
-    const signal = document.createElement('i');
     const label = document.createElement('strong');
-    const detail = document.createElement('span');
     obstacle.className = `storm-obstacle storm-obstacle--${index + 1}`;
     obstacle.dataset.obstacle = `${index + 1}`;
     obstacle.dataset.state = 'approach';
-    signal.className = 'storm-obstacle__signal';
     label.textContent = definition.label;
-    detail.textContent = definition.detail;
-    obstacle.append(signal, label, detail);
+    obstacle.append(label);
     for (let fragment = 0; fragment < 3; fragment += 1) {
       const shard = document.createElement('i');
       shard.className = 'storm-obstacle__fragment';
@@ -133,14 +129,24 @@ function buildStorm() {
   });
 
   const companions = Array.from({ length: STORM_COMPANION_COUNT }, (_, index) => {
-    const companion = document.createElement('img');
+    const companion = document.createElement('div');
+    const companionImage = document.createElement('img');
+    const cheer = document.createElement('span');
     companion.className = `companion-whale companion-whale--${index % 4 ? 'front' : 'rear'}`;
     companion.dataset.companion = `${index + 1}`;
-    companion.src = assetUrl(whale.still);
-    companion.alt = '';
-    companion.loading = 'eager';
-    companion.decoding = 'async';
+    companion.dataset.route = 'from-left';
+    companion.dataset.cheering = 'false';
+    companionImage.className = 'companion-whale__image';
+    companionImage.src = assetUrl(whale.still);
+    companionImage.alt = '';
+    companionImage.loading = 'eager';
+    companionImage.decoding = 'async';
+    cheer.className = 'companion-cheer';
+    cheer.textContent = 'Hu raaaaa';
+    cheer.setAttribute('aria-hidden', 'true');
     companion.style.setProperty('--companion-delay', `${index * -.17}s`);
+    companion.style.setProperty('--cheer-delay', `${index * -.23}s`);
+    companion.append(companionImage, cheer);
     stormCompanionWhales.append(companion);
     return companion;
   });
@@ -647,7 +653,7 @@ function advanceScene() {
   setActiveScene(activeScene + 1);
   const render = [null, renderJourney, renderStorm, renderFinale][activeScene];
   const state = { progress: 0 };
-  const reducedProgress = activeScene === 1 ? 1 : activeScene === 2 ? .895 : .92;
+  const reducedProgress = activeScene === 1 ? 1 : activeScene === 2 ? .94 : .92;
   if (activeScene === 2) {
     stormTransitionTimeline?.kill();
     stormTransitionLight.style.removeProperty('opacity');
@@ -763,6 +769,8 @@ function renderStorm({ progress }) {
     companion.style.setProperty('--companion-opacity', companionFrame.opacity.toFixed(4));
     companion.style.setProperty('--companion-arrival', companionFrame.arrival.toFixed(4));
     companion.dataset.formation = companionFrame.arrival > .92 ? 'formed' : 'arriving';
+    companion.dataset.cheering = companionFrame.arrival > .08 && frame.phase !== 'light-wipe'
+      ? 'true' : 'false';
   });
 
   stormActors.impacts.forEach((impact, index) => {

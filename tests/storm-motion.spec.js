@@ -18,8 +18,8 @@ test('nhịp kể cảnh bão đủ chậm để người xem theo dõi từng c
   expect(durationOf(STORM_PHASES.STRUGGLE_THREE)).toBeGreaterThanOrEqual(3.5);
   expect(durationOf(STORM_PHASES.FATIGUE) + durationOf(STORM_PHASES.FAMILY_ARRIVAL))
     .toBeGreaterThanOrEqual(3.8);
-  expect(durationOf(STORM_PHASES.BREAKTHROUGH)).toBeGreaterThanOrEqual(5.2);
-  expect(durationOf(STORM_PHASES.LIGHT_WIPE)).toBeGreaterThanOrEqual(2.3);
+  expect(durationOf(STORM_PHASES.BREAKTHROUGH)).toBeGreaterThanOrEqual(5);
+  expect(durationOf(STORM_PHASES.LIGHT_WIPE)).toBeGreaterThanOrEqual(1.2);
 });
 
 test('cá voi tiến lên rồi bị đẩy lùi ba lần trước khi family xuất hiện', () => {
@@ -80,6 +80,9 @@ test('cá voi giữ đà liên tục trong pha Family cùng bứt phá', () => {
 
 test('vật cản trôi ngược chiều, chặn đường rồi bị cả đàn đánh bật khỏi khung', () => {
   expect(STORM_OBSTACLES).toHaveLength(6);
+  expect(STORM_OBSTACLES.map(obstacle => obstacle.label)).toEqual([
+    'TOXIC', 'ÁP LỰC', 'BẾU', 'MỆT MỎI', 'SO SÁNH', 'TỰ NGHI NGỜ',
+  ]);
   STORM_OBSTACLES.forEach((definition, index) => {
     const approaching = stormMotion(Math.max(0, definition.impact - .07)).obstacles[index];
     const blocked = stormMotion(definition.impact + .05).obstacles[index];
@@ -97,7 +100,13 @@ test('mười tám cá voi con hội tụ quanh cá voi lớn rồi cùng tiến
   expect(STORM_MOBILE_COMPANION_COUNT).toBe(12);
   expect(stormMotion(.575).companions.every(companion => companion.opacity === 0)).toBe(true);
 
-  const assembled = stormMotion(.755);
+  const entering = stormMotion(.64);
+  const visibleEntrants = entering.companions.filter(companion => companion.opacity > .08);
+  expect(visibleEntrants.length).toBeGreaterThan(0);
+  expect(visibleEntrants.length).toBeLessThan(STORM_COMPANION_COUNT);
+  expect(visibleEntrants.every(companion => companion.x < 0)).toBe(true);
+
+  const assembled = stormMotion(.735);
   expect(assembled.phase).toBe('breakthrough');
   expect(assembled.companions).toHaveLength(STORM_COMPANION_COUNT);
   expect(assembled.companions.every(companion => companion.arrival > .92)).toBe(true);
@@ -106,7 +115,7 @@ test('mười tám cá voi con hội tụ quanh cá voi lớn rồi cùng tiến
   expect(assembled.companions.some(companion => companion.y < assembled.whale.y)).toBe(true);
   expect(assembled.companions.some(companion => companion.y > assembled.whale.y)).toBe(true);
 
-  const destination = stormMotion(.9);
+  const destination = stormMotion(.95);
   expect(destination.whale.x).toBeGreaterThan(assembled.whale.x + .3);
   expect(destination.whale.y).toBeLessThan(assembled.whale.y - .3);
   expect(destination.breakthrough).toBe(1);
@@ -116,7 +125,7 @@ test('mưa, sóng và sấm chớp có nhiều lớp độc lập rồi dịu d�
   const nearStrike = stormMotion(.155).storm;
   const farStrike = stormMotion(.255).storm;
   const sheetStrike = stormMotion(.345).storm;
-  const clearing = stormMotion(.88).storm;
+  const clearing = stormMotion(.94).storm;
 
   expect(nearStrike.lightningNear).toBeGreaterThan(.95);
   expect(farStrike.lightningFar).toBeGreaterThan(.95);
@@ -130,9 +139,15 @@ test('mưa, sóng và sấm chớp có nhiều lớp độc lập rồi dịu d�
 });
 
 test('ánh sáng chỉ phủ màn hình sau khi cả đàn tới đích', () => {
-  expect(stormMotion(.899).light.wipe).toBe(0);
-  expect(stormMotion(.9).phase).toBe('light-wipe');
-  expect(stormMotion(.95).light.wipe).toBeGreaterThan(.5);
+  const beforeContact = stormMotion(.944);
+  const contact = stormMotion(.95);
+  expect(beforeContact.light.wipe).toBe(0);
+  expect(beforeContact.phase).toBe('breakthrough');
+  expect(contact.phase).toBe('light-wipe');
+  expect(contact.breakthrough).toBe(1);
+  expect(contact.light.wipe).toBeGreaterThan(.35);
+  expect(contact.light.radius).toBeGreaterThan(65);
+  expect(stormMotion(.955).light.wipe).toBeGreaterThan(contact.light.wipe);
   const end = stormMotion(1);
   expect(end.light.wipe).toBe(1);
   expect(end.light.radius).toBe(175);
@@ -142,12 +157,12 @@ test('ánh sáng chỉ phủ màn hình sau khi cả đàn tới đích', () => 
 
 test('mobile giữ hành trình trong vùng an toàn và cùng nhịp kể chuyện', () => {
   const start = stormMotion(0, { mobile: true });
-  const family = stormMotion(.755, { mobile: true });
-  const destination = stormMotion(.9, { mobile: true });
+  const family = stormMotion(.76, { mobile: true });
+  const destination = stormMotion(.95, { mobile: true });
   expect(start.whale).toMatchObject({ x: .23, y: .79, scale: .46 });
   expect(family.phase).toBe('breakthrough');
   expect(family.companions.every(companion => companion.arrival > .92)).toBe(true);
-  expect(destination.whale.x).toBeCloseTo(.7);
-  expect(destination.whale.y).toBeCloseTo(.21);
+  expect(destination.whale.x).toBeCloseTo(.735);
+  expect(destination.whale.y).toBeCloseTo(.165);
   expect(destination.light).toMatchObject({ x: 76, y: 10 });
 });

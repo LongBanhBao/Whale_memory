@@ -46,6 +46,24 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
 
   await expect(page.locator('.storm-obstacle')).toHaveCount(6);
   await expect(page.locator('.companion-whale')).toHaveCount(18);
+  await expect(page.locator('.storm-obstacle > strong')).toHaveText([
+    'TOXIC', 'ÁP LỰC', 'BẾU', 'MỆT MỎI', 'SO SÁNH', 'TỰ NGHI NGỜ',
+  ]);
+  await expect(page.locator('.storm-obstacle > span, .storm-obstacle__signal')).toHaveCount(0);
+  await expect(page.locator('.companion-whale[data-route="from-left"]')).toHaveCount(18);
+  await expect(page.locator('.companion-whale > .companion-whale__image')).toHaveCount(18);
+  await expect(page.locator('.companion-whale > .companion-cheer')).toHaveCount(18);
+  const floatingWordStyle = await page.locator('.storm-obstacle').first().evaluate((node) => {
+    const box = getComputedStyle(node);
+    const word = getComputedStyle(node.querySelector('strong'));
+    return {
+      backgroundImage: box.backgroundImage,
+      borderWidth: box.borderTopWidth,
+      fontSize: parseFloat(word.fontSize),
+    };
+  });
+  expect(floatingWordStyle).toMatchObject({ backgroundImage: 'none', borderWidth: '0px' });
+  expect(floatingWordStyle.fontSize).toBeGreaterThan(30);
   await expect(page.locator('.storm-backdrop-echo')).toHaveCount(2);
   await expect(page.locator('.storm-surface-churn i')).toHaveCount(3);
   await expect(page.locator('.storm-cloud-field i')).toHaveCount(5);
@@ -64,6 +82,8 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
   )), { timeout: 9_000 }).toBe(18);
   await expect(page.locator('#family-current')).toHaveAttribute('data-active', 'true');
   await expect(page.locator('#whale-canvas')).toHaveAttribute('data-expression', 'hopeful');
+  await expect(page.locator('.companion-whale[data-cheering="true"]')).toHaveCount(18);
+  await expect(page.locator('.companion-cheer').first()).toHaveCSS('animation-name', 'companion-cheer-pulse');
   await page.screenshot({ path: testInfo.outputPath('storm-family-arrival.png') });
 
   await expect.poll(() => page.locator('.storm-obstacle[data-state="expelled"]').count(), {
@@ -84,13 +104,14 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
     Number(node.style.getPropertyValue('--storm-wipe'))
   )), { timeout: 8_000 }).toBeGreaterThan(.15);
   await expect(storm).toHaveAttribute('data-storm-phase', 'light-wipe');
+  await expect(page.locator('.companion-whale[data-cheering="false"]')).toHaveCount(18);
   await expect(page.locator('#storm-destination')).toHaveAttribute('data-active', 'true');
   const wipe = await page.locator('#storm-transition-light').evaluate(node => ({
     opacity: Number(node.style.getPropertyValue('--storm-wipe')),
     radius: parseFloat(node.style.getPropertyValue('--storm-wipe-radius')),
   }));
   expect(wipe.opacity).toBeGreaterThan(.15);
-  expect(wipe.radius).toBeGreaterThan(25);
+  expect(wipe.radius).toBeGreaterThan(55);
   await page.screenshot({ path: testInfo.outputPath('storm-light-wipe.png') });
 
   await expect(page.locator('#ocean-remembers')).toBeVisible({ timeout: 5_000 });
@@ -118,7 +139,7 @@ test('cảnh bão mobile giữ mười hai cá voi con trong đội hình và kh
   expect(state.visibleCompanions).toBe(12);
   expect(state.formedVisibleCompanions).toBe(12);
   expect(state.pageWidth).toBeLessThanOrEqual(state.viewport + 1);
-  expect(state.whaleX).toBeGreaterThan(52);
+  expect(state.whaleX).toBeGreaterThan(45);
   await page.screenshot({ path: testInfo.outputPath('storm-mobile-family.png') });
 });
 
