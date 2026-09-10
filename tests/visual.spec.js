@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { goToProgress } from './scene-helpers.js';
 
-test.setTimeout(120_000);
+// Scene 3 intentionally runs for 24 seconds now; the desktop capture traverses
+// the full four-scene experience and needs headroom on a saturated CI worker.
+test.setTimeout(180_000);
 
 const pause = (page) => page.waitForTimeout(550);
 

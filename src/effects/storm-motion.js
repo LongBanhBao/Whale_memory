@@ -1,22 +1,27 @@
-export const STORM_DURATION = 14;
+export const STORM_DURATION = 24;
 
 export const STORM_PHASES = Object.freeze({
-  STRUGGLE_ONE: [0, .2],
-  STRUGGLE_TWO: [.2, .38],
-  STRUGGLE_THREE: [.38, .54],
-  FAMILY_ARRIVAL: [.54, .64],
-  BREAKTHROUGH: [.64, .88],
-  LIGHT_WIPE: [.88, 1],
+  ENTRY: [0, .08],
+  STRUGGLE_ONE: [.08, .225],
+  STRUGGLE_TWO: [.225, .37],
+  STRUGGLE_THREE: [.37, .52],
+  FATIGUE: [.52, .585],
+  FAMILY_ARRIVAL: [.585, .68],
+  BREAKTHROUGH: [.68, .9],
+  LIGHT_WIPE: [.9, 1],
 });
 
 export const STORM_OBSTACLES = Object.freeze([
-  { label: 'LỜI NÓI TOXIC', detail: 'bình luận tiêu cực', impact: .12, expel: .64 },
-  { label: 'ÁP LỰC', detail: 'phải luôn hoàn hảo', impact: .3, expel: .675 },
-  { label: 'SO SÁNH', detail: 'những con số lạnh lùng', impact: .47, expel: .71 },
-  { label: 'TIN ĐỒN', detail: 'những lời chưa từng đúng', impact: .52, expel: .745 },
-  { label: 'MỆT MỎI', detail: 'những ngày không thể nghỉ', impact: .555, expel: .78 },
-  { label: 'TỰ NGHI NGỜ', detail: 'mình có đủ tốt không?', impact: .59, expel: .81 },
+  { label: 'LỜI NÓI TOXIC', detail: 'bình luận tiêu cực', impact: .155, expel: .69 },
+  { label: 'ÁP LỰC', detail: 'phải luôn hoàn hảo', impact: .3, expel: .72 },
+  { label: 'SO SÁNH', detail: 'những con số lạnh lùng', impact: .445, expel: .75 },
+  { label: 'TIN ĐỒN', detail: 'những lời chưa từng đúng', impact: .505, expel: .78 },
+  { label: 'MỆT MỎI', detail: 'những ngày không thể nghỉ', impact: .545, expel: .81 },
+  { label: 'TỰ NGHI NGỜ', detail: 'mình có đủ tốt không?', impact: .575, expel: .835 },
 ]);
+
+export const STORM_COMPANION_COUNT = 18;
+export const STORM_MOBILE_COMPANION_COUNT = 12;
 
 const clamp = value => Math.max(0, Math.min(1, value));
 const lerp = (from, to, amount) => from + (to - from) * amount;
@@ -32,52 +37,63 @@ const bell = (value, start, peak, end) => (
   smoothstep((value - start) / (peak - start))
   * (1 - smoothstep((value - peak) / (end - peak)))
 );
+const pulse = (value, center, width = .018) => bell(
+  value, center - width, center, center + width * 1.35,
+);
 
 const whaleFrames = [
-  { p: 0, x: .21, y: .76, mx: .23, my: .79, scale: .48, rotation: -25 },
-  { p: .12, x: .41, y: .61, mx: .44, my: .65, scale: .52, rotation: -23 },
-  { p: .2, x: .26, y: .72, mx: .25, my: .77, scale: .47, rotation: -30 },
-  { p: .3, x: .48, y: .53, mx: .49, my: .57, scale: .52, rotation: -23 },
-  { p: .38, x: .28, y: .7, mx: .26, my: .75, scale: .46, rotation: -30 },
-  { p: .47, x: .52, y: .47, mx: .52, my: .51, scale: .53, rotation: -23 },
-  { p: .54, x: .3, y: .68, mx: .28, my: .73, scale: .46, rotation: -31 },
-  { p: .64, x: .38, y: .59, mx: .35, my: .66, scale: .5, rotation: -27 },
-  { p: .88, x: .81, y: .15, mx: .7, my: .22, scale: .55, rotation: -32 },
-  { p: 1, x: .86, y: .08, mx: .76, my: .1, scale: .48, rotation: -34 },
+  { p: 0, x: .2, y: .76, mx: .23, my: .79, scale: .46, rotation: -24 },
+  { p: .08, x: .24, y: .73, mx: .26, my: .77, scale: .47, rotation: -24 },
+  { p: .155, x: .43, y: .59, mx: .45, my: .64, scale: .52, rotation: -22 },
+  { p: .225, x: .27, y: .72, mx: .27, my: .77, scale: .46, rotation: -31 },
+  { p: .3, x: .48, y: .51, mx: .49, my: .57, scale: .52, rotation: -22 },
+  { p: .37, x: .28, y: .71, mx: .27, my: .76, scale: .45, rotation: -32 },
+  { p: .445, x: .53, y: .45, mx: .53, my: .51, scale: .53, rotation: -21 },
+  { p: .52, x: .25, y: .74, mx: .25, my: .79, scale: .43, rotation: -35 },
+  { p: .585, x: .27, y: .755, mx: .27, my: .795, scale: .43, rotation: -32 },
+  { p: .68, x: .36, y: .64, mx: .35, my: .69, scale: .49, rotation: -27 },
+  { p: .9, x: .81, y: .14, mx: .7, my: .21, scale: .56, rotation: -32 },
+  { p: 1, x: .87, y: .055, mx: .76, my: .095, scale: .47, rotation: -35 },
 ];
 
 const obstacleLayout = [
-  { start: [1.12, .34], block: [.56, .58], mobile: [.66, .62], scatter: [-.82, .46], rotation: -8 },
-  { start: [1.08, .12], block: [.64, .49], mobile: [.72, .53], scatter: [.82, -.5], rotation: 7 },
-  { start: [.94, -.12], block: [.7, .42], mobile: [.78, .46], scatter: [.78, .48], rotation: -5 },
-  { start: [1.15, .48], block: [.66, .35], mobile: [.7, .4], scatter: [-.92, -.48], rotation: 9 },
-  { start: [.84, -.16], block: [.72, .25], mobile: [.75, .3], scatter: [.76, -.58], rotation: -10 },
-  { start: [1.18, .65], block: [.79, .18], mobile: [.81, .23], scatter: [.72, .58], rotation: 5 },
+  { start: [1.12, .39], block: [.56, .58], mobile: [.67, .63], scatter: [-.84, .42], rotation: -8 },
+  { start: [1.08, .12], block: [.64, .48], mobile: [.73, .53], scatter: [.83, -.51], rotation: 7 },
+  { start: [.96, -.13], block: [.7, .39], mobile: [.79, .45], scatter: [.8, .49], rotation: -5 },
+  { start: [1.15, .5], block: [.67, .34], mobile: [.71, .4], scatter: [-.94, -.5], rotation: 9 },
+  { start: [.86, -.16], block: [.73, .24], mobile: [.76, .3], scatter: [.78, -.6], rotation: -10 },
+  { start: [1.18, .68], block: [.8, .17], mobile: [.82, .23], scatter: [.74, .6], rotation: 5 },
 ];
 
 const companionSlots = [
-  [-.14, .035], [-.1, -.095], [-.055, .125], [.025, -.145],
-  [.105, .08], [-.155, .135], [.055, .155], [-.03, -.19], [.15, -.075],
+  [-.16, .03], [-.13, -.1], [-.1, .13], [-.04, -.16],
+  [.09, .11], [.14, -.06], [-.18, .16], [.03, .18],
+  [.02, -.21], [.18, .14], [.19, -.16], [-.21, -.04],
+  [-.27, .1], [-.19, -.22], [-.07, .26], [.13, .25],
+  [.27, .04], [.2, -.25],
 ];
 
 const companionStarts = [
-  [-.12, .84], [.03, 1.08], [-.08, .58], [.2, 1.12],
-  [-.15, .96], [.39, 1.1], [-.1, .7], [.54, 1.08], [-.12, .48],
+  [-.16, .88], [.04, 1.1], [-.12, .57], [.18, 1.13],
+  [-.2, .99], [.42, 1.12], [-.15, .69], [.58, 1.1],
+  [-.13, .46], [.72, 1.06], [-.08, .34], [.88, .93],
+  [-.2, .78], [.28, 1.16], [-.15, .55], [.52, 1.15],
+  [-.1, .4], [.76, 1.08],
 ];
 
 function interpolateWhale(progress, mobile) {
-  if (progress >= .64 && progress <= .88) {
-    const previous = whaleFrames[7];
-    const next = whaleFrames[8];
+  if (progress >= STORM_PHASES.BREAKTHROUGH[0] && progress <= STORM_PHASES.BREAKTHROUGH[1]) {
+    const previous = whaleFrames[9];
+    const next = whaleFrames[10];
     const amount = smoothstep((progress - previous.p) / (next.p - previous.p));
     const arc = Math.sin(amount * Math.PI);
     const xKey = mobile ? 'mx' : 'x';
     const yKey = mobile ? 'my' : 'y';
     return {
       x: lerp(previous[xKey], next[xKey], amount),
-      y: lerp(previous[yKey], next[yKey], amount) - arc * (mobile ? .018 : .025),
-      scale: lerp(previous.scale, next.scale, amount) + arc * .035,
-      rotation: lerp(previous.rotation, next.rotation, amount) - arc,
+      y: lerp(previous[yKey], next[yKey], amount) - arc * (mobile ? .018 : .028),
+      scale: lerp(previous.scale, next.scale, amount) + arc * .04,
+      rotation: lerp(previous.rotation, next.rotation, amount) - arc * 1.4,
     };
   }
 
@@ -97,31 +113,33 @@ function interpolateWhale(progress, mobile) {
 }
 
 function phaseAt(progress) {
-  if (progress < .2) return 'struggle-1';
-  if (progress < .38) return 'struggle-2';
-  if (progress < .54) return 'struggle-3';
-  if (progress < .64) return 'family-arrival';
-  if (progress < .88) return 'breakthrough';
+  if (progress < .08) return 'entry';
+  if (progress < .225) return 'struggle-1';
+  if (progress < .37) return 'struggle-2';
+  if (progress < .52) return 'struggle-3';
+  if (progress < .585) return 'fatigue';
+  if (progress < .68) return 'family-arrival';
+  if (progress < .9) return 'breakthrough';
   return 'light-wipe';
 }
 
 function obstacleFrame(progress, definition, layout, mobile, index) {
   const appear = definition.impact - (index < 3 ? .105 : .07);
   const arrival = smootherstep((progress - appear) / (definition.impact - appear));
-  const expel = smootherstep((progress - definition.expel) / .06);
+  const expel = smootherstep((progress - definition.expel) / .055);
   const block = mobile ? layout.mobile : layout.block;
-  const settledDrift = Math.sin((progress - definition.impact) * 18 + index) * .006
+  const settledDrift = Math.sin((progress - definition.impact) * 24 + index) * .006
     * (1 - expel) * (progress > definition.impact ? 1 : 0);
   return {
     x: lerp(layout.start[0], block[0], arrival) + layout.scatter[0] * expel + settledDrift,
     y: lerp(layout.start[1], block[1], arrival) + layout.scatter[1] * expel - settledDrift * .7,
-    rotation: layout.rotation + arrival * (index % 2 ? -4 : 5) + expel * (index % 2 ? 54 : -58),
-    scale: lerp(.72, 1, arrival) * lerp(1, .82, expel),
-    opacity: smoothstep((progress - appear) / .035) * (1 - smoothstep((expel - .72) / .28)),
-    impact: bell(progress, definition.impact - .016, definition.impact, definition.impact + .032),
+    rotation: layout.rotation + arrival * (index % 2 ? -4 : 5) + expel * (index % 2 ? 58 : -62),
+    scale: lerp(.7, 1, arrival) * lerp(1, .8, expel),
+    opacity: smoothstep((progress - appear) / .035) * (1 - smoothstep((expel - .68) / .32)),
+    impact: pulse(progress, definition.impact, .016),
     expel,
     state: progress < definition.impact - .018
-      ? 'approach' : progress < definition.impact + .032
+      ? 'approach' : progress < definition.impact + .035
         ? 'impact' : progress < definition.expel
           ? 'blocked' : 'expelled',
   };
@@ -129,20 +147,22 @@ function obstacleFrame(progress, definition, layout, mobile, index) {
 
 function companionFrames(progress, whale, mobile, wipe) {
   return companionSlots.map(([offsetX, offsetY], index) => {
-    const revealStart = .505 + index * .004;
-    const arrival = smootherstep((progress - revealStart) / .1);
-    const formationScale = mobile ? .82 : 1;
+    const wave = Math.floor(index / 6);
+    const revealStart = .58 + wave * .026 + (index % 6) * .005;
+    const arrival = smootherstep((progress - revealStart) / .095);
+    const formationScale = mobile ? .76 : 1;
     const formationX = whale.x + offsetX * formationScale;
-    const formationY = whale.y + offsetY * (mobile ? .76 : 1);
-    const pulse = Math.sin(progress * 32 + index * 1.7);
+    const formationY = whale.y + offsetY * (mobile ? .69 : 1);
+    const swim = Math.sin(progress * 39 + index * 1.55);
     return {
       x: lerp(companionStarts[index][0], formationX, arrival),
-      y: lerp(companionStarts[index][1], formationY, arrival) + pulse * .003 * arrival,
-      rotation: whale.rotation + (index % 3 - 1) * 3 + pulse * 1.2,
-      scale: (.64 + (index % 4) * .055) * lerp(.74, 1, arrival),
-      opacity: arrival * (.48 + (index % 4) * .075) * (1 - wipe * .72),
-      front: index % 3 !== 0,
+      y: lerp(companionStarts[index][1], formationY, arrival) + swim * .0035 * arrival,
+      rotation: whale.rotation + (index % 3 - 1) * 3.5 + swim * 1.4,
+      scale: (.58 + (index % 5) * .065) * lerp(.68, 1, arrival),
+      opacity: arrival * (.5 + (index % 5) * .075) * (1 - wipe * .68),
+      front: index % 4 !== 0,
       arrival,
+      wave,
     };
   });
 }
@@ -151,30 +171,48 @@ export function stormMotion(value, { mobile = false } = {}) {
   const progress = clamp(value);
   const whale = interpolateWhale(progress, mobile);
   const impacts = STORM_OBSTACLES.slice(0, 3).map(obstacle => (
-    bell(progress, obstacle.impact - .016, obstacle.impact, obstacle.impact + .032)
+    pulse(progress, obstacle.impact, .016)
   ));
   const impact = Math.max(...impacts);
-  const family = smoothstep((progress - .515) / .125);
-  const breakthrough = smoothstep((progress - .63) / .25);
-  const clear = smoothstep((progress - .66) / .25);
-  const wipe = smootherstep((progress - .88) / .115);
-  const lightning = Math.max(
-    ...STORM_OBSTACLES.slice(0, 3).map(obstacle => (
-      bell(progress, obstacle.impact - .02, obstacle.impact - .006, obstacle.impact + .025)
-    )),
-    bell(progress, .565, .578, .603) * (1 - family),
-  );
+  const family = smoothstep((progress - .575) / .15);
+  const hope = smoothstep((progress - .6) / .14);
+  const breakthrough = smoothstep((progress - .67) / .23);
+  const clear = smoothstep((progress - .7) / .2);
+  const wipe = smootherstep((progress - .9) / .095);
+  const fatigue = bell(progress, .28, .545, .69);
+  const lonely = 1 - smoothstep((progress - .595) / .14);
+  const sadness = clamp((.28 + smoothstep((progress - .13) / .39) * .74) * lonely);
+
+  const lightningFar = Math.max(
+    pulse(progress, .075, .018), pulse(progress, .255, .016),
+    pulse(progress, .39, .018), pulse(progress, .535, .017),
+  ) * (1 - clear * .82);
+  const lightningNear = Math.max(
+    pulse(progress, .155, .014), pulse(progress, .3, .014),
+    pulse(progress, .445, .014), pulse(progress, .575, .015),
+  ) * (1 - clear * .9);
+  const lightningSheet = Math.max(
+    pulse(progress, .19, .026), pulse(progress, .345, .024),
+    pulse(progress, .49, .025), pulse(progress, .63, .026),
+  ) * (1 - clear * .84);
+  const lightning = Math.max(lightningFar, lightningNear, lightningSheet * .72);
+  const rainBase = (1 - clear) * (.86 + Math.sin(progress * Math.PI * 13) * .08);
   const obstacles = STORM_OBSTACLES.map((obstacle, index) => (
     obstacleFrame(progress, obstacle, obstacleLayout[index], mobile, index)
   ));
 
-  whale.rotation += impact * 7;
-  whale.scale *= 1 - impact * .045;
-  whale.opacity = 1 - smoothstep((progress - .94) / .06) * .84;
-  whale.glow = .08 + family * .38 + breakthrough * .38;
-  whale.brightness = .56 + clear * .68;
-  whale.effort = .46 + (1 - family) * .34 + impact * .2;
-  whale.wake = .18 + breakthrough * .72 + impact * .12;
+  whale.rotation += impact * 7.5 + fatigue * 1.4;
+  whale.scale *= 1 - impact * .05;
+  whale.opacity = 1 - smoothstep((progress - .955) / .045) * .86;
+  whale.glow = .06 + family * .34 + breakthrough * .44;
+  whale.brightness = .66 + clear * .52 - sadness * .09;
+  whale.effort = clamp(.76 + impact * .24 - fatigue * .46 + hope * .28);
+  whale.wake = .16 + breakthrough * .78 + impact * .14;
+  whale.sadness = sadness;
+  whale.hope = hope;
+  whale.impact = impact;
+  whale.bend = Math.sin(progress * Math.PI * 18) * .055 * whale.effort - sadness * .045;
+  whale.bank = -fatigue * 5 + impact * 3;
 
   return {
     progress,
@@ -187,22 +225,33 @@ export function stormMotion(value, { mobile = false } = {}) {
     obstacles,
     companions: companionFrames(progress, whale, mobile, wipe),
     storm: {
-      intensity: .94 - clear * .78,
+      intensity: 1 - clear * .78,
       clear,
-      rain: (1 - clear) * (.7 + Math.sin(progress * Math.PI * 9) * .12),
+      rain: rainBase,
+      rainFar: rainBase * .62,
+      rainMid: rainBase * .82,
+      rainNear: rainBase,
       lightning,
-      flow: progress * 100,
+      lightningFar,
+      lightningNear,
+      lightningSheet,
+      swell: (1 - clear * .7) * (.82 + Math.sin(progress * Math.PI * 10) * .1),
+      spray: (1 - clear) * (.62 + lightningSheet * .25),
+      flow: progress * 168,
+      shakeX: Math.sin(progress * 740) * impact * (mobile ? 3 : 7),
+      shakeY: Math.cos(progress * 610) * impact * (mobile ? 2 : 4.5),
     },
     light: {
-      beacon: smoothstep((progress - .76) / .12),
+      beacon: smoothstep((progress - .79) / .11),
       wipe,
       radius: wipe * 175,
       x: mobile ? 76 : 86,
       y: mobile ? 10 : 8,
     },
     copy: {
-      struggle: bell(progress, .07, .15, .29),
-      family: bell(progress, .49, .59, .74),
+      struggle: bell(progress, .09, .18, .36),
+      fatigue: bell(progress, .43, .535, .625),
+      family: bell(progress, .575, .655, .78),
     },
   };
 }

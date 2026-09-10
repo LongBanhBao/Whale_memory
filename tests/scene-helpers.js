@@ -8,7 +8,14 @@ export async function goToProgress(page, selector, progress) {
   await expect(page.locator('.intro-world')).toHaveAttribute('data-stage', /drops|pause|whale/);
   while (!(await page.locator(selector).isVisible())) {
     const current = await page.locator('.scene:visible').getAttribute('id');
-    await page.locator('#scene-next').click();
+    try {
+      await page.locator('#scene-next').click({ timeout: 1_500 });
+    } catch (error) {
+      // Scene 3 advances itself at the end of its light wipe. When a visual
+      // capture lands close to 100%, that transition can win the race against
+      // the helper click; treat the already-visible target as success.
+      if (!(await page.locator(selector).isVisible())) throw error;
+    }
     await expect(page.locator(`#${current}`)).toBeHidden({
       timeout: current === 'blue-road' ? 10_000 : 5_000,
     });

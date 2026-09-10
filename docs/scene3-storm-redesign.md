@@ -1,43 +1,71 @@
 # Scene 3 — storm and family breakthrough
 
 Scene 3 represents Pastel's difficult period as a physical journey through a
-dark, turbulent sea. The large whale repeatedly tries to swim from the lower
-left toward the light at the upper right, but hostile currents and submerged
-fragments force it back. Family Nhà Cá then arrives as nine smaller whales,
-forms a protective school and helps carry the journey through the storm.
+violent open sea. The large whale repeatedly tries to swim from the lower left
+toward the light at the upper right, but hostile currents and submerged
+fragments force it back. The slower pacing leaves room for the whale's fatigue
+and sadness to register before Family Nhà Cá arrives, forms a protective school
+and helps carry the journey through the storm.
 
-The 14-second sequence is deterministic and divided into six phases:
+## Timeline
+
+The 24-second sequence is deterministic and divided into eight phases:
 
 | Progress | Time | Story beat |
 | --- | --- | --- |
-| `0–.20` | `0–2.8s` | First advance, impact and recoil |
-| `.20–.38` | `2.8–5.32s` | Second advance, impact and recoil |
-| `.38–.54` | `5.32–7.56s` | Third advance and deepest recoil |
-| `.54–.64` | `7.56–8.96s` | Nine family whales converge around the protagonist |
-| `.64–.88` | `8.96–12.32s` | The formation advances and expels every obstacle |
-| `.88–1` | `12.32–14s` | The destination opens into a full-screen light wipe |
+| `0–.08` | `0–1.92s` | The whale settles into the lower-left storm entry |
+| `.08–.225` | `1.92–5.4s` | First advance, impact and recoil |
+| `.225–.37` | `5.4–8.88s` | Second advance, impact and recoil |
+| `.37–.52` | `8.88–12.48s` | Third advance and deepest recoil |
+| `.52–.585` | `12.48–14.04s` | Fatigue trough; the whale visibly droops and grieves |
+| `.585–.68` | `14.04–16.32s` | Eighteen family whales arrive in three waves |
+| `.68–.9` | `16.32–21.6s` | The formation advances and expels every obstacle |
+| `.9–1` | `21.6–24s` | The destination opens into a full-screen light wipe |
 
 Six obstacles turn online pressure into visible pieces of the sea: `LỜI NÓI TOXIC`,
 `ÁP LỰC`, `SO SÁNH`, `TIN ĐỒN`, `MỆT MỎI` and `TỰ NGHI NGỜ`. They travel
 against the whale, lock into its route during the struggle, then break apart
-and leave the viewport after the family formation reaches them. Rain,
-lightning, rough wave contours, foam, drifting debris and changing color grade
-support the action without replacing its narrative beats.
+and leave the viewport after the family formation reaches them. Desktop renders
+all 18 companions around and behind the protagonist; mobile keeps the first 12
+visible to preserve the diagonal route and legibility.
+
+## Whale renderer and expression
+
+The storm whale no longer advances a GIF-like sprite sheet. It samples the
+existing static transparent whale still onto a `58 × 36` WebGL mesh. The vertex
+shader sends an asymmetric travelling wave through the body, folds the flukes,
+delays the pectoral-fin beat and changes posture for effort, impact, fatigue and
+hope. The fragment shader adds a restrained downturned brow, half-lidded eye and
+tear during the lonely section, then dissolves those marks into a soft cyan aura
+as the family arrives. Browsers without WebGL use a Canvas 2D fallback based on
+the same still and emotional pose values; neither path requests the storm sprite.
+
+## Layered storm
+
+`public/assets/scene/storm-ocean-v2.webp` is the AI-generated base environment,
+optimized as a 1672 × 941 WebP. It shows the underside of a violently churning
+ocean surface, with a dark but readable lower-left start and a pale cyan opening
+at the upper right. Two offset background echoes, surface churn, five cloud
+masses and five rough-water contours create parallax depth around that route.
+
+The weather remains code-native and independently controllable: far, mid and
+near rain planes; foreground spray; distant and near branching lightning;
+full-field sheet flashes; foam, currents and debris. Storm intensity gradually
+clears during the breakthrough while impact pulses add short camera shake. This
+separation keeps the narrative timing deterministic and lets reduced-motion
+render a complete, calm end state without decorative weather animation.
+
+## Scene handoffs
 
 The scene-2 handoff preserves one continuous animal. Its final journey pose is
-animated for 1.35 seconds toward the storm entry pose at the lower left while a
-dark water veil rises. The storm sprite is snapped to the same destination
-before the renderers swap, avoiding a visible jump in position, size or heading.
-Mobile uses a slightly deeper, safer entry and a tighter diagonal route.
+animated for 1.6 seconds toward the storm entry pose while a circular current
+reveals the actual storm texture. There is no black veil or full-screen darkening.
+The procedural storm whale is snapped to the same destination before the
+renderers swap, avoiding a visible jump in position, size or heading. The reveal
+current then fades over 0.72 seconds. Mobile uses a slightly deeper, safer entry
+and a tighter diagonal route.
 
 At the destination, a cyan-white beacon expands from the upper right into a
 `175vmax` light field. The wipe remains above both scenes while scene 4 opens,
 then fades away there, so the bright ending of the storm becomes the first
 light of the finale instead of a hard cut.
-
-`public/assets/scene/storm-ocean-v1.webp` is the AI-generated background for
-this scene, optimized as a 1672 × 941 WebP. Its direction is a cinematic
-underwater storm with deep navy water, layered cloud and wave depth, restrained
-violet-cyan light and a clear diagonal route for the whale. Lightning, rain,
-obstacles, family whales and the final beacon remain code-native layers so their
-timing, responsive layout and reduced-motion state stay controllable.
