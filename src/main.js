@@ -8,14 +8,19 @@ import {
   stormMotion,
   STORM_COMPANION_COUNT,
   STORM_DURATION,
+  STORM_MOBILE_COMPANION_COUNT,
   STORM_OBSTACLES,
 } from './effects/storm-motion.js';
 import { createIntroWhale } from './effects/intro-whale.js';
 import { createAmbientCanvas } from './effects/ambient-canvas.js';
-
+import { isCompactRuntime, syncRuntimeProfile } from './effects/runtime-profile.js';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const stormMobileQuery = window.matchMedia('(max-width: 760px)');
+const compactRuntime = isCompactRuntime();
+syncRuntimeProfile();
+window.addEventListener('resize', syncRuntimeProfile, { passive: true });
+if (compactRuntime && !reducedMotion) gsap.ticker.fps(45);
 const assetUrl = (path) => `${window.__BLUE_VOYAGE_ASSET_ROOT__ ?? import.meta.env.BASE_URL}${path}`;
 const imageById = new Map(images.map((image) => [image.id, image]));
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -83,12 +88,9 @@ const sceneDots = [...document.querySelectorAll('.scene-progress__dot')];
 const progressLine = document.querySelector('#progress-line');
 
 const ambient = createAmbientCanvas(document.querySelector('#ambient-canvas'), reducedMotion);
-const stormWhale = createStormWhale(
-  document.querySelector('#whale-canvas'),
-  whale,
-  assetUrl(whale.still),
-  reducedMotion,
-);
+let stormWhale = { setPose() {}, snapPose() {}, destroy() {} };
+let waterJourney = null;
+let stormActors = { obstacles: [], companions: [], impacts: [] };
 
 function makeImage(image, variant = 'src', decorative = true) {
   const element = document.createElement('img');
@@ -132,14 +134,14 @@ function buildStorm() {
     const companion = document.createElement('div');
     const companionImage = document.createElement('img');
     const cheer = document.createElement('span');
-    companion.className = `companion-whale companion-whale--${index % 4 ? 'front' : 'rear'}`;
+    companion.className = `companion-whale companion-whale--${index % 3 ? 'front' : 'rear'}`;
     companion.dataset.companion = `${index + 1}`;
     companion.dataset.route = 'from-left';
     companion.dataset.cheering = 'false';
     companionImage.className = 'companion-whale__image';
     companionImage.src = assetUrl(whale.still);
     companionImage.alt = '';
-    companionImage.loading = 'eager';
+    companionImage.loading = 'lazy';
     companionImage.decoding = 'async';
     cheer.className = 'companion-cheer';
     cheer.textContent = 'Hu raaaaa';
@@ -241,16 +243,68 @@ for (const artwork of [introBackdrop, introHalo, introWhaleStill, holdWaterDrop]
   artwork.fetchPriority = 'high';
   artwork.decoding = 'async';
 }
-const waterJourney = createWaterJourney({
-  world: journeyWorld, back: portalLayer, front: foregroundLayer,
-  groups: portalGroups, imageById, makeImage, assetUrl,
-  swimmer: introWhaleSwimmer, mesh: introWhale,
-});
-introWorld.append(waterJourney.transition);
+function prepareJourney() {
+  if (waterJourney) return waterJourney;
+  waterJourney = createWaterJourney({
+    world: journeyWorld, back: portalLayer, front: foregroundLayer,
+    groups: portalGroups, imageById, makeImage, assetUrl,
+    swimmer: introWhaleSwimmer, mesh: introWhale,
+  });
+  introWorld.append(waterJourney.transition);
+  document.documentElement.dataset.journeyReady = 'true';
+  return waterJourney;
+}
+
+function prepareStorm() {
+  if (stormActors.companions.length) return stormActors;
+  stormWhale = createStormWhale(
+    document.querySelector('#whale-canvas'),
+    whale,
+    assetUrl(whale.still),
+    reducedMotion,
+  );
+  stormActors = buildStorm();
+  document.documentElement.dataset.stormReady = 'true';
+  return stormActors;
+}
+
+let finalePrepared = false;
+function prepareFinale() {
+  if (finalePrepared) return;
+  finalePrepared = true;
+  buildMemoryWhale();
+  buildGallery();
+  document.documentElement.dataset.finaleReady = 'true';
+}
+
+function prepareForScene(index) {
+  if (index >= 1) prepareJourney();
+  if (index >= 2) prepareStorm();
+  if (index >= 3) prepareFinale();
+}
+
+function scheduleWhenIdle(callback, timeout) {
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(callback, { timeout });
+  } else {
+    window.setTimeout(callback, Math.min(timeout, 900));
+  }
+}
+
+function warmDeferredScenes() {
+  // On phones, keep boot light and prepare each following scene during the
+  // generous cinematic lead-in instead of constructing the whole site at once.
+  if (compactRuntime) return;
+  scheduleWhenIdle(() => {
+    prepareJourney();
+    scheduleWhenIdle(() => {
+      prepareStorm();
+      scheduleWhenIdle(prepareFinale, 1800);
+    }, 1800);
+  }, 1200);
+}
+
 let sceneTransition = null;
-const stormActors = buildStorm();
-buildMemoryWhale();
-buildGallery();
 outroButtons.forEach((button) => { button.disabled = true; });
 
 const DROP_FALL_STARTS = [0, 0.2, 0.4, 0.6, 0.8];
@@ -271,6 +325,7 @@ let landedCount = 0;
 let introComplete = false;
 let postStarted = false;
 let postTimeline = null;
+let holdFrame = 0;
 
 function buildIntroDrops() {
   return dropIds.map((id, index) => {
@@ -388,8 +443,11 @@ function unlockIntro() {
 
 function startReturnSequence() {
   if (postStarted) return;
+  prepareJourney();
   postStarted = true;
   holding = false;
+  cancelAnimationFrame(holdFrame);
+  holdFrame = 0;
   holdProgress = 1;
   accumulatedHoldMs = HOLD_DURATION;
   renderHoldProgress(1);
@@ -473,12 +531,12 @@ function startReturnSequence() {
 }
 
 function renderHoldFrame(now) {
-  if (holding && !postStarted) {
-    holdProgress = clamp((accumulatedHoldMs + now - heldAt) / HOLD_DURATION);
-    renderHoldProgress(holdProgress);
-    if (holdProgress >= 1) startReturnSequence();
-  }
-  requestAnimationFrame(renderHoldFrame);
+  holdFrame = 0;
+  if (!holding || postStarted) return;
+  holdProgress = clamp((accumulatedHoldMs + now - heldAt) / HOLD_DURATION);
+  renderHoldProgress(holdProgress);
+  if (holdProgress >= 1) startReturnSequence();
+  else holdFrame = requestAnimationFrame(renderHoldFrame);
 }
 
 function beginHolding(event) {
@@ -491,7 +549,10 @@ function beginHolding(event) {
   holdControl.classList.add('is-holding');
   holdLabel.textContent = 'ĐANG THẢ KÝ ỨC';
   holdStatus.textContent = 'Tiếp tục giữ để thả đủ năm giọt ký ức.';
-  if (event.pointerId !== undefined) holdControl.setPointerCapture?.(event.pointerId);
+  if (!holdFrame) holdFrame = requestAnimationFrame(renderHoldFrame);
+  if (event.pointerId !== undefined && holdControl.setPointerCapture) {
+    try { holdControl.setPointerCapture(event.pointerId); } catch { /* Synthetic/legacy touch event. */ }
+  }
 }
 
 function endHolding(event) {
@@ -499,6 +560,8 @@ function endHolding(event) {
   if (event.type === 'keyup' && !['Enter', ' '].includes(event.key)) return;
   accumulatedHoldMs += performance.now() - heldAt;
   holding = false;
+  cancelAnimationFrame(holdFrame);
+  holdFrame = 0;
   heldAt = 0;
   holdControl.classList.remove('is-holding');
   holdLabel.textContent = holdProgress > 0 ? 'GIỮ TIẾP ĐỂ ĐÁNH THỨC ĐẠI DƯƠNG' : 'NHẤN VÀ GIỮ';
@@ -560,6 +623,7 @@ function resetStormEntryCurrent() {
 
 function startStormHandoff() {
   if (stormEntryTimeline?.isActive()) return;
+  prepareForScene(2);
   sceneTimeline?.kill();
   sceneTimeline = null;
   const target = stormEntryPose();
@@ -646,10 +710,10 @@ holdProgressRing.style.strokeDasharray = `${HOLD_RING_LENGTH}`;
 holdProgressRing.style.strokeDashoffset = `${HOLD_RING_LENGTH}`;
 renderHoldProgress(0);
 setWhaleEmergence(0);
-requestAnimationFrame(renderHoldFrame);
 
 function advanceScene() {
   const leavingScene = activeScene;
+  prepareForScene(activeScene + 1);
   setActiveScene(activeScene + 1);
   const render = [null, renderJourney, renderStorm, renderFinale][activeScene];
   const state = { progress: 0 };
@@ -670,6 +734,11 @@ function advanceScene() {
       } : undefined,
     });
   }
+  if (compactRuntime && activeScene === 1) {
+    window.setTimeout(() => scheduleWhenIdle(prepareStorm, 1200), 900);
+  } else if (compactRuntime && activeScene === 2) {
+    window.setTimeout(() => scheduleWhenIdle(prepareFinale, 1200), 900);
+  }
   if (leavingScene === 2) releaseStormTransitionLight();
   reducedNext.disabled = false;
   sections[activeScene].focus({ preventScroll: true });
@@ -677,6 +746,7 @@ function advanceScene() {
 
 reducedNext.addEventListener('click', () => {
   if (activeScene >= 3 || reducedNext.disabled) return;
+  prepareForScene(activeScene + 1);
   endHolding({ type: 'pointercancel' });
   postTimeline?.kill();
   if (activeScene === 1) {
@@ -707,11 +777,13 @@ reducedNext.addEventListener('click', () => {
 });
 
 function renderJourney(state) {
+  prepareJourney();
   waterJourney.render(state);
   ambient.setMood('journey', .68);
 }
 
 function renderStorm({ progress }) {
+  prepareStorm();
   const frame = stormMotion(progress, { mobile: stormMobileQuery.matches });
   stormWorld.dataset.stormPhase = frame.phase;
   stormWorld.style.setProperty('--storm-progress', frame.progress.toFixed(4));
@@ -761,6 +833,7 @@ function renderStorm({ progress }) {
   });
 
   stormActors.companions.forEach((companion, index) => {
+    if (stormMobileQuery.matches && index >= STORM_MOBILE_COMPANION_COUNT) return;
     const companionFrame = frame.companions[index];
     companion.style.left = `${(companionFrame.x * 100).toFixed(3)}%`;
     companion.style.top = `${(companionFrame.y * 100).toFixed(3)}%`;
@@ -801,6 +874,7 @@ function renderStorm({ progress }) {
 }
 
 function renderFinale({ progress }) {
+    prepareFinale();
     [0.1, 0.24, 0.38, 0.52].forEach((center, index) => {
       const opacity = bell(progress, center - 0.085, center, center + 0.1);
       finaleWorld.style.setProperty(`--tribute-${index + 1}`, opacity.toFixed(4));
@@ -910,7 +984,7 @@ function resetJourney() {
   sceneTransition?.kill();
   stormEntryTimeline?.kill();
   stormTransitionTimeline?.kill();
-  gsap.set(waterJourney.transition, { opacity: 0 });
+  if (waterJourney) gsap.set(waterJourney.transition, { opacity: 0 });
   gsap.killTweensOf([stormEntryCurrent, stormTransitionLight]);
   resetStormEntryCurrent();
   resetStormTransitionLight();
@@ -940,6 +1014,8 @@ function resetJourney() {
   sendLight.classList.remove('is-ready');
   outroButtons.forEach((button) => { button.disabled = true; });
   holding = false;
+  cancelAnimationFrame(holdFrame);
+  holdFrame = 0;
   holdProgress = 0;
   heldAt = 0;
   accumulatedHoldMs = 0;
@@ -975,3 +1051,6 @@ document.querySelector('.wordmark').addEventListener('click', (event) => {
 });
 sections.forEach((section) => { section.tabIndex = -1; });
 setActiveScene(0);
+document.documentElement.dataset.appReady = 'true';
+window.dispatchEvent(new CustomEvent('bluevoyage:ready'));
+warmDeferredScenes();

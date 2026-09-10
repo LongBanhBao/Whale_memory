@@ -7,7 +7,10 @@ export default defineConfig({
   testDir: './tests',
   timeout: 30_000,
   expect: { timeout: 5_000 },
-  fullyParallel: true,
+  // The visual suites exercise WebGL and full-screen compositing. Running one
+  // browser at a time avoids GPU contention masquerading as animation faults.
+  fullyParallel: false,
+  workers: 1,
   reporter: 'list',
   use: {
     baseURL: 'http://127.0.0.1:4173',

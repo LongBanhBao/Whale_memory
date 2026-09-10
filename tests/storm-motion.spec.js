@@ -95,16 +95,17 @@ test('vật cản trôi ngược chiều, chặn đường rồi bị cả đàn
   });
 });
 
-test('mười tám cá voi con hội tụ quanh cá voi lớn rồi cùng tiến tới vùng sáng', () => {
-  expect(STORM_COMPANION_COUNT).toBe(18);
-  expect(STORM_MOBILE_COMPANION_COUNT).toBe(12);
+test('hai mươi bốn cá voi con hội tụ thành đội hình gọn quanh cá voi lớn', () => {
+  expect(STORM_COMPANION_COUNT).toBe(24);
+  expect(STORM_MOBILE_COMPANION_COUNT).toBe(16);
   expect(stormMotion(.575).companions.every(companion => companion.opacity === 0)).toBe(true);
 
   const entering = stormMotion(.64);
   const visibleEntrants = entering.companions.filter(companion => companion.opacity > .08);
   expect(visibleEntrants.length).toBeGreaterThan(0);
   expect(visibleEntrants.length).toBeLessThan(STORM_COMPANION_COUNT);
-  expect(visibleEntrants.every(companion => companion.x < 0)).toBe(true);
+  expect(visibleEntrants.some(companion => companion.x < 0)).toBe(true);
+  expect(visibleEntrants.some(companion => companion.x >= 0)).toBe(true);
 
   const assembled = stormMotion(.735);
   expect(assembled.phase).toBe('breakthrough');
@@ -114,6 +115,11 @@ test('mười tám cá voi con hội tụ quanh cá voi lớn rồi cùng tiến
   expect(assembled.companions.some(companion => companion.x > assembled.whale.x)).toBe(true);
   expect(assembled.companions.some(companion => companion.y < assembled.whale.y)).toBe(true);
   expect(assembled.companions.some(companion => companion.y > assembled.whale.y)).toBe(true);
+  expect(Math.max(...assembled.companions.map(companion => Math.hypot(
+    companion.x - assembled.whale.x,
+    companion.y - assembled.whale.y,
+  )))).toBeLessThan(.19);
+  expect(Math.min(...assembled.companions.map(companion => companion.scale))).toBeGreaterThanOrEqual(.76);
 
   const destination = stormMotion(.95);
   expect(destination.whale.x).toBeGreaterThan(assembled.whale.x + .3);

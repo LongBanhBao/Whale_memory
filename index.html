@@ -215,12 +215,33 @@
 
     <script type="module">
       const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      if (isDevelopment) {
-        await import('/src/main.js');
-      } else {
-        window.__BLUE_VOYAGE_ASSET_ROOT__ = './public/';
-        await import('./app/main.js');
-      }
+      const recoverBoot = (message = 'Không thể tải hành trình. Chạm để thử lại.') => {
+        document.documentElement.dataset.appReady = 'failed';
+        document.body.classList.remove('is-intro-locked');
+        const control = document.querySelector('#hold-control');
+        const label = document.querySelector('#hold-label');
+        const status = document.querySelector('#hold-status');
+        if (control) {
+          control.disabled = false;
+          control.removeAttribute('inert');
+          control.addEventListener('click', () => window.location.reload(), { once: true });
+        }
+        if (label) label.textContent = 'CHẠM ĐỂ TẢI LẠI';
+        if (status) status.textContent = message;
+      };
+      window.__blueVoyageEmergencyUnlock = (...args) => {
+        if (document.documentElement.dataset.appReady === 'true') {
+          document.documentElement.dataset.rendererFallback = 'true';
+          return;
+        }
+        recoverBoot(...args);
+      };
+      if (!isDevelopment) window.__BLUE_VOYAGE_ASSET_ROOT__ = './public/';
+      const entry = isDevelopment ? '/src/main.js' : './app/main.js';
+      import(/* @vite-ignore */ entry).catch((error) => {
+        console.error('Blue Voyage boot failed:', error);
+        recoverBoot();
+      });
     </script>
   </body>
 </html>

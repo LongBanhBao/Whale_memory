@@ -20,8 +20,8 @@ export const STORM_OBSTACLES = Object.freeze([
   { label: 'TỰ NGHI NGỜ', detail: 'mình có đủ tốt không?', impact: .575, expel: .872 },
 ]);
 
-export const STORM_COMPANION_COUNT = 18;
-export const STORM_MOBILE_COMPANION_COUNT = 12;
+export const STORM_COMPANION_COUNT = 24;
+export const STORM_MOBILE_COMPANION_COUNT = 16;
 
 const clamp = value => Math.max(0, Math.min(1, value));
 const lerp = (from, to, amount) => from + (to - from) * amount;
@@ -65,12 +65,15 @@ const obstacleLayout = [
   { start: [1.18, .68], block: [.8, .17], mobile: [.82, .23], scatter: [.74, .6], rotation: 5 },
 ];
 
+// Local coordinates follow the main whale's swimming axis. The first sixteen
+// slots form the compact mobile school; the final eight add depth on desktop.
 const companionSlots = [
-  [-.13, -.04], [-.09, -.13], [.02, -.16], [.11, -.1],
-  [.14, .02], [.09, .14], [-.02, .18], [-.12, .11],
-  [-.25, -.08], [-.19, -.2], [-.05, -.26], [.12, -.22],
-  [.24, -.1], [.25, .09], [.15, .23], [0, .28],
-  [-.16, .24], [-.26, .1],
+  [-.16, -.03], [-.16, .03], [-.13, -.08], [-.13, .08],
+  [-.085, -.12], [-.085, .12], [-.03, -.145], [-.03, .145],
+  [.03, -.145], [.03, .145], [.085, -.12], [.085, .12],
+  [.13, -.08], [.13, .08], [.16, -.03], [.16, .03],
+  [-.075, -.055], [-.075, .055], [-.015, -.075], [-.015, .075],
+  [.045, -.07], [.045, .07], [.105, -.04], [.105, .04],
 ];
 
 const companionStarts = [
@@ -78,7 +81,8 @@ const companionStarts = [
   [-.38, .76], [-.27, .38], [-.43, .6], [-.24, .9],
   [-.36, .47], [-.29, .72], [-.42, .3], [-.25, .57],
   [-.39, .86], [-.3, .43], [-.44, .69], [-.26, .27],
-  [-.37, .55], [-.31, .96],
+  [-.37, .55], [-.31, .96], [-.42, .4], [-.28, .8],
+  [-.39, .62], [-.24, .34], [-.44, .88], [-.29, .5],
 ];
 
 function interpolateWhale(progress, mobile) {
@@ -100,7 +104,7 @@ function interpolateWhale(progress, mobile) {
   let nextIndex = whaleFrames.findIndex(frame => frame.p >= progress);
   if (nextIndex <= 0) nextIndex = 1;
   const previous = whaleFrames[nextIndex - 1];
-  const next = whaleFrames[nextIndex] || whaleFrames.at(-1);
+  const next = whaleFrames[nextIndex] || whaleFrames[whaleFrames.length - 1];
   const amount = smootherstep((progress - previous.p) / (next.p - previous.p));
   const xKey = mobile ? 'mx' : 'x';
   const yKey = mobile ? 'my' : 'y';
@@ -146,14 +150,18 @@ function obstacleFrame(progress, definition, layout, mobile, index) {
 }
 
 function companionFrames(progress, whale, mobile, wipe) {
-  return companionSlots.map(([offsetX, offsetY], index) => {
+  const heading = whale.rotation * Math.PI / 180;
+  const cosine = Math.cos(heading);
+  const sine = Math.sin(heading);
+  return companionSlots.map(([along, cross], index) => {
     const wave = Math.floor(index / 6);
     const lane = index % 6;
-    const revealStart = .58 + wave * .012 + lane * .0025;
-    const arrival = smootherstep((progress - revealStart) / .145);
-    const formationScale = mobile ? .74 : 1;
-    const formationX = whale.x + offsetX * formationScale;
-    const formationY = whale.y + offsetY * (mobile ? .69 : 1);
+    const revealStart = .575 + wave * .015 + lane * .004;
+    const arrival = smootherstep((progress - revealStart) / .09);
+    const localAlong = along * (mobile ? 1.02 : 1);
+    const localCross = cross * (mobile ? .86 : 1);
+    const formationX = whale.x + localAlong * cosine - localCross * sine;
+    const formationY = whale.y + localAlong * sine + localCross * cosine;
     const swim = Math.sin(progress * 39 + index * 1.55);
     const entryArc = Math.sin(arrival * Math.PI) * (lane % 2 ? -.055 : .045);
     const visible = smoothstep((arrival - .08) / .72);
@@ -163,9 +171,9 @@ function companionFrames(progress, whale, mobile, wipe) {
         + entryArc + swim * .004 * arrival,
       rotation: lerp(-8 + (lane % 3 - 1) * 2.5, whale.rotation, arrival)
         + (index % 3 - 1) * 3 + swim * 1.25,
-      scale: (.7 + (index % 5) * .055) * lerp(.72, 1, arrival),
-      opacity: visible * (.7 + (index % 5) * .065) * (1 - wipe * .68),
-      front: index % 4 !== 0,
+      scale: (.76 + (index % 5) * .05) * lerp(.72, 1, arrival),
+      opacity: visible * (.76 + (index % 5) * .055) * (1 - wipe * .68),
+      front: index % 3 !== 0,
       arrival,
       wave,
     };

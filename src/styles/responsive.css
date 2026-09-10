@@ -247,6 +247,89 @@
 
 }
 
+/* Phones render several translucent ocean layers at once. Keep the same art
+   direction while reducing the full-screen blur, blend and particle work that
+   causes frame drops on high-DPR touch devices. */
+html[data-runtime-profile='compact'] .film-grain {
+  opacity: 0.022;
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-runtime-profile='compact'] .reduced-next,
+html[data-runtime-profile='compact'] .light-button,
+html[data-runtime-profile='compact'] .outro-actions button,
+html[data-runtime-profile='compact'] .memory-dialog::backdrop {
+  backdrop-filter: none;
+}
+
+html[data-runtime-profile='compact'] .intro-memory-light i:nth-of-type(even),
+html[data-runtime-profile='compact'] .depth-haze--two,
+html[data-runtime-profile='compact'] .journey-ambience--far::after,
+html[data-runtime-profile='compact'] .journey-current__echo,
+html[data-runtime-profile='compact'] .storm-backdrop-echo--near,
+html[data-runtime-profile='compact'] .storm-cloud-field i:nth-child(n + 4),
+html[data-runtime-profile='compact'] .storm-surface-churn i:nth-child(3),
+html[data-runtime-profile='compact'] .storm-wave--deep,
+html[data-runtime-profile='compact'] .storm-wave--cross,
+html[data-runtime-profile='compact'] .cosmic-current--two,
+html[data-runtime-profile='compact'] .water-current path:nth-of-type(even),
+html[data-runtime-profile='compact'] .water-current circle:nth-of-type(even),
+html[data-runtime-profile='compact'] .memory-current__foam:nth-child(even) {
+  display: none;
+}
+
+html[data-runtime-profile='compact'] .water-rays,
+html[data-runtime-profile='compact'] .depth-haze--one,
+html[data-runtime-profile='compact'] .journey-ambience--far::before,
+html[data-runtime-profile='compact'] .cosmic-current--one {
+  animation: none;
+}
+
+html[data-runtime-profile='compact'] .water-rays,
+html[data-runtime-profile='compact'] .depth-haze--one {
+  filter: none;
+}
+
+html[data-runtime-profile='compact'] .journey-ambience--far::before {
+  filter: blur(10px);
+}
+
+html[data-runtime-profile='compact'] .journey-current__body {
+  filter: blur(3px);
+}
+
+html[data-runtime-profile='compact'] .storm-backdrop-echo--far {
+  filter: blur(3px) saturate(.7) brightness(.72);
+}
+
+html[data-runtime-profile='compact'] .storm-surface-churn i {
+  filter: blur(4px);
+}
+
+html[data-runtime-profile='compact'] .storm-cloud-field i {
+  filter: blur(15px);
+}
+
+html[data-runtime-profile='compact'] .storm-wave--surface {
+  filter: blur(5px);
+}
+
+html[data-runtime-profile='compact'] .storm-wave--middle {
+  filter: blur(2px);
+}
+
+html[data-runtime-profile='compact'] .cosmic-current--one {
+  filter: blur(14px);
+  opacity: 0.48;
+}
+
+html[data-runtime-profile='compact'] .storm-rain__streak:nth-child(n + 25),
+html[data-runtime-profile='compact'] .storm-spray__drop:nth-child(n + 19),
+html[data-runtime-profile='compact'] .storm-debris__piece:nth-child(n + 17) {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

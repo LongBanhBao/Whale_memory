@@ -1,3 +1,5 @@
+import { isCompactRuntime, renderPixelRatio } from './runtime-profile.js';
+
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const lerp = (from, to, amount) => from + (to - from) * amount;
 const WHALE_ANCHOR_Y = .742;
@@ -76,6 +78,12 @@ function makeController(target, current, reducedMotion, schedule) {
 
 function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
   const context = canvas.getContext('2d', { alpha: true });
+  if (!context) {
+    canvas.classList.add('is-unavailable');
+    return { setPose() {}, snapPose() {}, destroy() {} };
+  }
+  const compactRuntime = isCompactRuntime();
+  const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 45 : 0;
   const image = new Image();
   const target = { ...POSE_DEFAULTS };
   const current = { ...target };
@@ -88,16 +96,24 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
   let destroyed = false;
   let frameHandle = 0;
   let previousTime = 0;
+  let previousDrawTime = 0;
+  let resizeTimer = 0;
 
   function resize() {
-    ratio = Math.min(window.devicePixelRatio || 1, 2);
+    ratio = renderPixelRatio(2, 1.2);
     width = window.innerWidth;
     height = window.innerHeight;
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     canvas.style.width = '100%';
     canvas.style.height = '100%';
+    canvas.dataset.pixelRatio = ratio.toFixed(2);
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
+
+  function scheduleResize() {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(resize, 120);
   }
 
   function drawExpression(drawWidth, drawHeight, time) {
@@ -137,6 +153,11 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
   function render(time = performance.now()) {
     frameHandle = 0;
     if (destroyed || document.hidden) return;
+    if (minimumFrameTime && previousDrawTime && time - previousDrawTime < minimumFrameTime) {
+      schedule();
+      return;
+    }
+    previousDrawTime = time;
     const delta = previousTime ? Math.min((time - previousTime) / 1000, .05) : 0;
     previousTime = time;
     if (!reducedMotion) {
@@ -197,6 +218,7 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
 
   function onVisibilityChange() {
     previousTime = 0;
+    previousDrawTime = 0;
     if (document.hidden) {
       cancelAnimationFrame(frameHandle);
       frameHandle = 0;
@@ -204,7 +226,7 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
   }
 
   resize();
-  window.addEventListener('resize', resize, { passive: true });
+  window.addEventListener('resize', scheduleResize, { passive: true });
   document.addEventListener('visibilitychange', onVisibilityChange);
   image.addEventListener('load', onLoad, { once: true });
   image.addEventListener('error', onError, { once: true });
@@ -217,7 +239,8 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
     destroy() {
       destroyed = true;
       cancelAnimationFrame(frameHandle);
-      window.removeEventListener('resize', resize);
+      window.clearTimeout(resizeTimer);
+      window.removeEventListener('resize', scheduleResize);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       image.removeEventListener('load', onLoad);
       image.removeEventListener('error', onError);
@@ -228,10 +251,13 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
 }
 
 export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = false) {
+  const compactRuntime = isCompactRuntime();
+  const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 45 : 0;
   const gl = canvas.getContext('webgl', {
     alpha: true,
-    antialias: true,
+    antialias: !compactRuntime,
     depth: false,
+    powerPreference: compactRuntime ? 'low-power' : 'default',
     premultipliedAlpha: true,
     preserveDrawingBuffer: false,
   });
@@ -456,22 +482,35 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
   let contextLost = false;
   let frameHandle = 0;
   let previousTime = 0;
+  let previousDrawTime = 0;
+  let resizeTimer = 0;
 
   function resize() {
-    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    pixelRatio = renderPixelRatio(2, 1.2);
     width = window.innerWidth;
     height = window.innerHeight;
     canvas.width = Math.round(width * pixelRatio);
     canvas.height = Math.round(height * pixelRatio);
     canvas.style.width = '100%';
     canvas.style.height = '100%';
+    canvas.dataset.pixelRatio = pixelRatio.toFixed(2);
     gl.viewport(0, 0, canvas.width, canvas.height);
     schedule();
+  }
+
+  function scheduleResize() {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(resize, 120);
   }
 
   function render(time = performance.now()) {
     frameHandle = 0;
     if (destroyed || contextLost || document.hidden) return;
+    if (minimumFrameTime && previousDrawTime && time - previousDrawTime < minimumFrameTime) {
+      schedule();
+      return;
+    }
+    previousDrawTime = time;
     const delta = previousTime ? Math.min((time - previousTime) / 1000, .05) : 0;
     previousTime = time;
 
@@ -546,6 +585,7 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
 
   function onVisibilityChange() {
     previousTime = 0;
+    previousDrawTime = 0;
     if (document.hidden) {
       cancelAnimationFrame(frameHandle);
       frameHandle = 0;
@@ -562,7 +602,7 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
   }
 
   resize();
-  window.addEventListener('resize', resize, { passive: true });
+  window.addEventListener('resize', scheduleResize, { passive: true });
   document.addEventListener('visibilitychange', onVisibilityChange);
   canvas.addEventListener('webglcontextlost', onContextLost);
   image.addEventListener('load', upload, { once: true });
@@ -577,7 +617,8 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
     destroy() {
       destroyed = true;
       cancelAnimationFrame(frameHandle);
-      window.removeEventListener('resize', resize);
+      window.clearTimeout(resizeTimer);
+      window.removeEventListener('resize', scheduleResize);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       canvas.removeEventListener('webglcontextlost', onContextLost);
       image.removeEventListener('load', upload);

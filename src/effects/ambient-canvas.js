@@ -1,3 +1,5 @@
+import { isCompactRuntime, renderPixelRatio } from './runtime-profile.js';
+
 const palettes = {
   intro: ['90, 220, 255', '64, 128, 196'],
   journey: ['95, 232, 255', '82, 151, 255'],
@@ -7,7 +9,13 @@ const palettes = {
 
 export function createAmbientCanvas(canvas, reducedMotion = false) {
   const context = canvas.getContext('2d', { alpha: true });
-  const particleCount = reducedMotion ? 26 : window.innerWidth < 720 ? 52 : 88;
+  if (!context) {
+    canvas.classList.add('is-unavailable');
+    return { setMood() {}, destroy() {} };
+  }
+  const compactRuntime = isCompactRuntime();
+  const particleCount = reducedMotion ? 22 : compactRuntime ? 34 : 88;
+  const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 30 : 0;
   const particles = [];
   let width = 0;
   let height = 0;
@@ -15,6 +23,8 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
   let mood = 'intro';
   let intensity = 0.45;
   let animationFrame = 0;
+  let previousDrawTime = 0;
+  let resizeTimer = 0;
 
   function randomParticle(initial = false) {
     return {
@@ -29,17 +39,27 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
   }
 
   function resize() {
-    ratio = Math.min(window.devicePixelRatio || 1, 2);
+    ratio = renderPixelRatio(2, 1.2);
     width = window.innerWidth;
     height = window.innerHeight;
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
+    canvas.dataset.pixelRatio = ratio.toFixed(2);
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
   }
 
   function draw(time) {
+    if (document.hidden) {
+      animationFrame = 0;
+      return;
+    }
+    if (minimumFrameTime && previousDrawTime && time - previousDrawTime < minimumFrameTime) {
+      animationFrame = requestAnimationFrame(draw);
+      return;
+    }
+    previousDrawTime = time;
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
     const palette = palettes[mood] || palettes.intro;
@@ -76,9 +96,23 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
     animationFrame = requestAnimationFrame(draw);
   }
 
+  function scheduleResize() {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(resize, 120);
+  }
+
+  function onVisibilityChange() {
+    previousDrawTime = 0;
+    if (document.hidden) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+    } else if (!animationFrame) animationFrame = requestAnimationFrame(draw);
+  }
+
   for (let i = 0; i < particleCount; i += 1) particles.push(randomParticle(true));
   resize();
-  window.addEventListener('resize', resize, { passive: true });
+  window.addEventListener('resize', scheduleResize, { passive: true });
+  document.addEventListener('visibilitychange', onVisibilityChange);
   animationFrame = requestAnimationFrame(draw);
 
   return {
@@ -88,7 +122,9 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
     },
     destroy() {
       cancelAnimationFrame(animationFrame);
-      window.removeEventListener('resize', resize);
+      window.clearTimeout(resizeTimer);
+      window.removeEventListener('resize', scheduleResize);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     },
   };
 }

@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 export default defineConfig({
   base: './',
   build: {
-    target: 'es2020',
+    target: 'es2019',
     assetsInlineLimit: 4096,
     copyPublicDir: false,
     rollupOptions: {

@@ -1,8 +1,16 @@
+import { isCompactRuntime, renderPixelRatio } from './runtime-profile.js';
+
 // Continuous swimming on a deformable mesh, independent of scene 2's sprite loop.
 // UV coordinates refer to the original frame; its transparent top margin is
 // compensated in the vertex shader so the whale's body starts at the portal.
 export function createIntroWhale(canvas, image, reducedMotion = false) {
-  const gl = canvas.getContext('webgl', { alpha: true, antialias: true, premultipliedAlpha: true });
+  const compactRuntime = isCompactRuntime();
+  const gl = canvas.getContext('webgl', {
+    alpha: true,
+    antialias: !compactRuntime,
+    powerPreference: compactRuntime ? 'low-power' : 'default',
+    premultipliedAlpha: true,
+  });
   if (!gl) return { setDepth() {}, setActive() {}, reset() {} };
 
   const vertexSource = `
@@ -128,12 +136,13 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
     const delta = previousTime ? Math.min((time - previousTime) / 1000, 0.05) : 0;
     previousTime = time;
     if (!reducedMotion) phase += delta * (3.9 - depth * 1.35 + effort * .55);
-    const ratio = Math.min(devicePixelRatio || 1, 1.75);
+    const ratio = renderPixelRatio(1.75, 1.25);
     const width = Math.round(Math.min(innerWidth < 720 ? innerWidth * 0.96 : innerWidth * 0.62, 900) * ratio);
     const height = Math.round(width * 0.59);
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width = width;
       canvas.height = height;
+      canvas.dataset.pixelRatio = ratio.toFixed(2);
       gl.viewport(0, 0, width, height);
     }
     gl.clear(gl.COLOR_BUFFER_BIT);
