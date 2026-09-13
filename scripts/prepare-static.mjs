@@ -33,6 +33,7 @@ await Promise.all([
   access(path.join(rootApp, 'main.css')),
   access(path.join(rootApp, 'main.js')),
   access(path.join(distRoot, 'public', 'assets', 'scene', 'blue-room.webp')),
+  access(path.join(distRoot, 'public', 'assets', 'video', 'P.mp4')),
 ]);
 
 console.log('Đã chuẩn bị bản tĩnh cho cả GitHub Pages workflow và main/root.');

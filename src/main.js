@@ -259,7 +259,7 @@ function prepareJourney() {
   waterJourney = createWaterJourney({
     world: journeyWorld, back: portalLayer, front: foregroundLayer,
     groups: portalGroups, imageById, makeImage, assetUrl,
-    swimmer: introWhaleSwimmer, mesh: introWhale,
+    swimmer: introWhaleSwimmer, mesh: introWhale, reducedMotion,
   });
   introWorld.append(waterJourney.transition);
   document.documentElement.dataset.journeyReady = 'true';
@@ -587,6 +587,10 @@ function updateReducedNext() {
 function setActiveScene(index) {
   sceneTimeline?.kill();
   activeScene = index;
+  if (waterJourney) {
+    if (index === 1) waterJourney.activateVideo();
+    else waterJourney.deactivateVideo({ immediate: index === 0, reset: index === 0 });
+  }
   (index === 1 ? journeyWorld : introWorld).append(introWhaleSwimmer);
   introWhale.setActive(index === 1 || (index === 0 && introComplete));
   sections.forEach((section, sectionIndex) => {
@@ -638,6 +642,7 @@ function startStormHandoff() {
   prepareForScene(2);
   sceneTimeline?.kill();
   sceneTimeline = null;
+  waterJourney.deactivateVideo();
   const target = stormEntryPose();
   const readWhaleValue = (property, fallback, divisor = 1) => {
     const value = parseFloat(introWhaleSwimmer.style.getPropertyValue(property));

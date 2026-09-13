@@ -212,7 +212,9 @@ function createMemoryCurrent(slot, compactRuntime = false) {
   return flow;
 }
 
-export function createWaterJourney({ world, back, front, groups, imageById, makeImage, assetUrl, swimmer, mesh }) {
+export function createWaterJourney({
+  world, back, front, groups, imageById, makeImage, assetUrl, swimmer, mesh, reducedMotion = false,
+}) {
   const compactRuntime = isCompactRuntime();
   const vortexStrandCount = compactRuntime ? 4 : 28;
   const vortexStepCount = compactRuntime ? 18 : 48;
@@ -223,6 +225,71 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   backdrop.alt = '';
   backdrop.decoding = 'async';
   world.prepend(backdrop);
+
+  const memoryFilm = document.createElement('div');
+  memoryFilm.className = 'journey-memory-film';
+  memoryFilm.setAttribute('aria-hidden', 'true');
+  memoryFilm.dataset.playback = 'idle';
+  const memoryVideo = document.createElement('video');
+  memoryVideo.id = 'journey-memory-video';
+  memoryVideo.className = 'journey-memory-video';
+  memoryVideo.src = assetUrl('assets/video/P.mp4');
+  memoryVideo.preload = 'auto';
+  memoryVideo.loop = true;
+  memoryVideo.muted = true;
+  memoryVideo.defaultMuted = true;
+  memoryVideo.playsInline = true;
+  memoryVideo.controls = false;
+  memoryVideo.tabIndex = -1;
+  memoryVideo.disablePictureInPicture = true;
+  memoryVideo.disableRemotePlayback = true;
+  memoryVideo.setAttribute('muted', '');
+  memoryVideo.setAttribute('playsinline', '');
+  memoryVideo.setAttribute('webkit-playsinline', '');
+  memoryVideo.setAttribute('controlslist', 'nodownload noplaybackrate noremoteplayback');
+  memoryVideo.setAttribute('aria-hidden', 'true');
+  memoryFilm.append(memoryVideo);
+  backdrop.after(memoryFilm);
+
+  let videoPauseTimer = 0;
+  const rewindVideo = () => {
+    const rewind = () => {
+      try { memoryVideo.currentTime = 0; } catch { /* Metadata is not ready yet. */ }
+    };
+    if (memoryVideo.readyState >= HTMLMediaElement.HAVE_METADATA) rewind();
+    else memoryVideo.addEventListener('loadedmetadata', rewind, { once: true });
+  };
+  const activateVideo = ({ restart = true } = {}) => {
+    window.clearTimeout(videoPauseTimer);
+    videoPauseTimer = 0;
+    if (restart) rewindVideo();
+    if (reducedMotion) {
+      memoryVideo.pause();
+      setData(memoryFilm, 'playback', 'still');
+      return;
+    }
+    setData(memoryFilm, 'playback', 'starting');
+    const playback = memoryVideo.play();
+    playback?.then(() => setData(memoryFilm, 'playback', 'playing')).catch(() => {
+      setData(memoryFilm, 'playback', 'blocked');
+    });
+  };
+  const deactivateVideo = ({ immediate = false, reset = false } = {}) => {
+    world.style.setProperty('--journey-film-opacity', '0');
+    window.clearTimeout(videoPauseTimer);
+    const pause = () => {
+      memoryVideo.pause();
+      if (reset) rewindVideo();
+      setData(memoryFilm, 'playback', 'paused');
+      videoPauseTimer = 0;
+    };
+    if (immediate) pause();
+    else {
+      setData(memoryFilm, 'playback', 'fading');
+      videoPauseTimer = window.setTimeout(pause, 720);
+    }
+  };
+
   createJourneyAmbience(world);
   if (compactRuntime) {
     world.style.setProperty('--journey-light', '.8');
@@ -394,6 +461,11 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     // progress contract, this is a single cheap style write and lets controls
     // observe that the mobile journey is actually advancing.
     world.style.setProperty('--journey-progress', p.toFixed(4));
+    world.style.setProperty('--journey-film-opacity', `${1 - state.returning}`);
+    if (state.returning > .998 && !memoryVideo.paused) {
+      memoryVideo.pause();
+      setData(memoryFilm, 'playback', 'paused');
+    }
     if (!compactRuntime) {
       world.style.setProperty('--journey-light', '.8');
       world.style.setProperty('--journey-ambient-shift', `${(-p * 2.8).toFixed(3)}vw`);
@@ -461,5 +533,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     pose(state.x, state.y, state.scale, state.rotation, state.bend, state.effort, state.bank, state.wake);
   }
 
-  return { render, pose, transition };
+  return {
+    render, pose, transition, memoryFilm, memoryVideo, activateVideo, deactivateVideo,
+  };
 }
