@@ -64,6 +64,8 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
   });
   expect(floatingWordStyle).toMatchObject({ backgroundImage: 'none', borderWidth: '0px' });
   expect(floatingWordStyle.fontSize).toBeGreaterThan(30);
+  await expect(page.locator('.storm-obstacle > strong[data-text]')).toHaveCount(6);
+  await expect(page.locator('.storm-impact > i')).toHaveCount(24);
   await expect(page.locator('.storm-backdrop-echo')).toHaveCount(2);
   await expect(page.locator('.storm-surface-churn i')).toHaveCount(3);
   await expect(page.locator('.storm-cloud-field i')).toHaveCount(5);
@@ -72,6 +74,10 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
   await expect(page.locator('.storm-rain__plane')).toHaveCount(3);
   await expect(page.locator('.storm-rain__streak')).toHaveCount(28);
   await expect(page.locator('.storm-spray__drop')).toHaveCount(24);
+  await expect(page.locator('.storm-backdrop-echo').first()).toHaveCSS('display', 'block');
+  await expect(page.locator('.storm-surface-churn')).toHaveCSS('display', 'block');
+  await expect(page.locator('.storm-wave--surface')).toHaveCSS('display', 'block');
+  await expect(page.locator('.storm-rain__plane--far')).toHaveCSS('display', 'block');
   await expect(page.locator('.memory-shard, .memory-particle, .ascent-line, .suspended-drop')).toHaveCount(0);
   await expect(page.locator('#storm-backdrop')).toHaveAttribute('src', /storm-ocean-v2\.webp/);
   expect(requestedAssets.some(url => /blue-whale-sprite/i.test(url))).toBe(false);

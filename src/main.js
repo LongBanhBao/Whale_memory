@@ -132,6 +132,7 @@ function buildStorm() {
     obstacle.dataset.obstacle = `${index + 1}`;
     obstacle.dataset.state = 'approach';
     label.textContent = definition.label;
+    label.dataset.text = definition.label;
     obstacle.append(label);
     for (let fragment = 0; fragment < 3; fragment += 1) {
       const shard = document.createElement('i');
@@ -170,7 +171,13 @@ function buildStorm() {
     const impact = document.createElement('i');
     impact.className = 'storm-impact';
     impact.dataset.impact = `${index + 1}`;
-    impact.append(document.createElement('i'), document.createElement('i'));
+    const rayCount = compactRuntime ? 2 : 8;
+    for (let rayIndex = 0; rayIndex < rayCount; rayIndex += 1) {
+      const ray = document.createElement('i');
+      ray.style.setProperty('--impact-ray', `${rayIndex * (360 / rayCount)}deg`);
+      ray.style.setProperty('--impact-ray-length', `${84 + (rayIndex % 3) * 19}%`);
+      impact.append(ray);
+    }
     stormImpactField.append(impact);
     return impact;
   });
@@ -799,6 +806,15 @@ function renderStorm({ progress }) {
   stormWorld.style.setProperty('--storm-lightning-sheet', frame.storm.lightningSheet.toFixed(4));
   stormWorld.style.setProperty('--storm-swell', frame.storm.swell.toFixed(4));
   stormWorld.style.setProperty('--storm-spray', frame.storm.spray.toFixed(4));
+  if (!compactRuntime) {
+    stormWorld.style.setProperty('--storm-progress', frame.progress.toFixed(4));
+    stormWorld.style.setProperty('--storm-rain-far', frame.storm.rainFar.toFixed(4));
+    stormWorld.style.setProperty('--storm-rain-mid', frame.storm.rainMid.toFixed(4));
+    stormWorld.style.setProperty('--storm-impact', frame.impact.toFixed(4));
+    stormWorld.style.setProperty('--storm-shake-x', `${(frame.storm.shakeX * .46).toFixed(3)}px`);
+    stormWorld.style.setProperty('--storm-shake-y', `${(frame.storm.shakeY * .46).toFixed(3)}px`);
+    stormWorld.style.setProperty('--storm-flow', `${(-frame.storm.flow * .24).toFixed(3)}px`);
+  }
   stormWorld.style.setProperty('--storm-family', frame.family.toFixed(4));
   stormWorld.style.setProperty('--storm-breakthrough', frame.breakthrough.toFixed(4));
   stormWorld.style.setProperty('--storm-debris', bell(frame.progress, .65, .78, .92).toFixed(4));
@@ -858,7 +874,9 @@ function renderStorm({ progress }) {
       return;
     }
     if (impact.style.visibility !== 'visible') impact.style.visibility = 'visible';
-    impact.style.transform = `translate3d(${(obstacleFrame.x * viewport.width).toFixed(2)}px, ${(obstacleFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) scale(${(.3 + obstacleFrame.impact * .92).toFixed(4)})`;
+    const impactX = obstacleFrame.x - (compactRuntime ? 0 : .052);
+    const impactY = obstacleFrame.y + (compactRuntime ? 0 : .008);
+    impact.style.transform = `translate3d(${(impactX * viewport.width).toFixed(2)}px, ${(impactY * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) scale(${(.3 + obstacleFrame.impact * .92).toFixed(4)})`;
     impact.style.setProperty('--impact', obstacleFrame.impact.toFixed(4));
   });
 
