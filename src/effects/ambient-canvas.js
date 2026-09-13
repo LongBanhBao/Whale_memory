@@ -11,10 +11,10 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
   const context = canvas.getContext('2d', { alpha: true });
   if (!context) {
     canvas.classList.add('is-unavailable');
-    return { setMood() {}, destroy() {} };
+    return { setMood() {}, setActive() {}, destroy() {} };
   }
   const compactRuntime = isCompactRuntime();
-  const particleCount = reducedMotion ? 22 : compactRuntime ? 26 : 88;
+  const particleCount = reducedMotion ? 18 : compactRuntime ? 22 : 46;
   const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 30 : 0;
   const particles = [];
   let width = 0;
@@ -25,6 +25,7 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
   let animationFrame = 0;
   let previousDrawTime = 0;
   let resizeTimer = 0;
+  let active = true;
 
   function randomParticle(initial = false) {
     return {
@@ -39,7 +40,7 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
   }
 
   function resize() {
-    ratio = renderPixelRatio(2, 1);
+    ratio = renderPixelRatio(1.25, 1);
     ({ width, height } = runtimeViewport());
     const backingWidth = Math.round(width * ratio);
     const backingHeight = Math.round(height * ratio);
@@ -52,8 +53,8 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
   }
 
   function draw(time) {
-    if (document.hidden) {
-      animationFrame = 0;
+    animationFrame = 0;
+    if (!active || document.hidden) {
       return;
     }
     if (minimumFrameTime && previousDrawTime && time - previousDrawTime < minimumFrameTime) {
@@ -94,7 +95,7 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
       }
     }
 
-    animationFrame = requestAnimationFrame(draw);
+    if (!reducedMotion) animationFrame = requestAnimationFrame(draw);
   }
 
   function scheduleResize() {
@@ -121,6 +122,19 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
     setMood(nextMood, nextIntensity = intensity) {
       mood = nextMood;
       intensity = Math.max(0, Math.min(1, nextIntensity));
+      if (reducedMotion && active && !animationFrame) animationFrame = requestAnimationFrame(draw);
+    },
+    setActive(value) {
+      const next = Boolean(value);
+      if (active === next) return;
+      active = next;
+      previousDrawTime = 0;
+      if (!active) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = 0;
+      } else if (!animationFrame && !document.hidden) {
+        animationFrame = requestAnimationFrame(draw);
+      }
     },
     destroy() {
       cancelAnimationFrame(animationFrame);

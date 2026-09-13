@@ -167,10 +167,13 @@ function createMemoryCurrent(slot, compactRuntime = false) {
   flow.setAttribute('viewBox', '0 0 400 400');
   flow.classList.add('memory-current');
   const centerAngle = memorySlots[slot].angle * Math.PI / 180;
-  const strandCount = compactRuntime ? 1 : 19;
+  // The bitmap vortex already carries most of the fine water texture. A
+  // handful of vector strands is enough to bind the portraits to that ring
+  // without asking the browser to rasterise hundreds of filtered SVG paths.
+  const strandCount = compactRuntime ? 1 : 9;
   const centerStrand = Math.floor(strandCount / 2);
-  const strandSpacing = compactRuntime ? 8 : 1.65;
-  const sparkleCount = compactRuntime ? 0 : 7;
+  const strandSpacing = compactRuntime ? 8 : 3.25;
+  const sparkleCount = compactRuntime ? 0 : 3;
   const arcPoint = (radius, angle) => [
     200 + Math.cos(angle) * radius,
     200 + Math.sin(angle) * radius,
@@ -216,9 +219,9 @@ export function createWaterJourney({
   world, back, front, groups, imageById, makeImage, assetUrl, swimmer, mesh, reducedMotion = false,
 }) {
   const compactRuntime = isCompactRuntime();
-  const vortexStrandCount = compactRuntime ? 4 : 28;
-  const vortexStepCount = compactRuntime ? 18 : 48;
-  const vortexBubbleCount = compactRuntime ? 4 : 40;
+  const vortexStrandCount = compactRuntime ? 4 : 14;
+  const vortexStepCount = compactRuntime ? 18 : 30;
+  const vortexBubbleCount = compactRuntime ? 4 : 14;
   const backdrop = document.createElement('img');
   backdrop.className = 'journey-backdrop';
   backdrop.src = assetUrl('assets/scene/journey-background.webp');
@@ -231,10 +234,16 @@ export function createWaterJourney({
   memoryFilm.setAttribute('aria-hidden', 'true');
   memoryFilm.dataset.playback = 'idle';
   const memoryVideo = document.createElement('video');
+  // The scene is deliberately silent and heavily blended into the water, so use
+  // the web-optimised encode to reduce Pages bandwidth and mobile decode work.
+  const memoryVideoUrl = assetUrl('assets/video/P.optimized.mp4');
   memoryVideo.id = 'journey-memory-video';
   memoryVideo.className = 'journey-memory-video';
-  memoryVideo.src = assetUrl('assets/video/P.mp4');
-  memoryVideo.preload = 'auto';
+  memoryVideo.src = memoryVideoUrl;
+  // Downloading and decoding the whole 44-second film while scene one is
+  // playing caused a visible hitch. Playback still warms as soon as scene two
+  // is activated, while metadata is enough for the idle scene.
+  memoryVideo.preload = 'metadata';
   memoryVideo.loop = true;
   memoryVideo.muted = true;
   memoryVideo.defaultMuted = true;
@@ -252,35 +261,78 @@ export function createWaterJourney({
   backdrop.after(memoryFilm);
 
   let videoPauseTimer = 0;
+  let playbackGeneration = 0;
+  const ensureVideoSource = () => {
+    if (memoryVideo.getAttribute('src')) return;
+    memoryVideo.src = memoryVideoUrl;
+    memoryVideo.load();
+  };
+  const releaseVideo = () => {
+    playbackGeneration += 1;
+    memoryVideo.pause();
+    memoryVideo.removeAttribute('src');
+    memoryVideo.load();
+    setData(memoryFilm, 'playback', 'released');
+  };
   const rewindVideo = () => {
     const rewind = () => {
+      if (memoryVideo.currentTime <= .05) return;
       try { memoryVideo.currentTime = 0; } catch { /* Metadata is not ready yet. */ }
     };
     if (memoryVideo.readyState >= HTMLMediaElement.HAVE_METADATA) rewind();
     else memoryVideo.addEventListener('loadedmetadata', rewind, { once: true });
   };
+  const primeVideo = () => {
+    if (reducedMotion || memoryFilm.dataset.playback === 'primed') return;
+    window.clearTimeout(videoPauseTimer);
+    ensureVideoSource();
+    const generation = ++playbackGeneration;
+    const finishPrime = () => {
+      if (generation !== playbackGeneration) return;
+      memoryVideo.pause();
+      setData(memoryFilm, 'playback', 'primed');
+    };
+    setData(memoryFilm, 'playback', 'priming');
+    const playback = memoryVideo.play();
+    if (typeof memoryVideo.requestVideoFrameCallback === 'function') {
+      memoryVideo.requestVideoFrameCallback(finishPrime);
+    } else if (memoryVideo.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      finishPrime();
+    } else {
+      memoryVideo.addEventListener('loadeddata', finishPrime, { once: true });
+    }
+    playback?.catch(() => {
+      if (generation === playbackGeneration) setData(memoryFilm, 'playback', 'idle');
+    });
+  };
   const activateVideo = ({ restart = true } = {}) => {
     window.clearTimeout(videoPauseTimer);
     videoPauseTimer = 0;
+    ensureVideoSource();
     if (restart) rewindVideo();
     if (reducedMotion) {
       memoryVideo.pause();
       setData(memoryFilm, 'playback', 'still');
       return;
     }
+    const generation = ++playbackGeneration;
     setData(memoryFilm, 'playback', 'starting');
     const playback = memoryVideo.play();
-    playback?.then(() => setData(memoryFilm, 'playback', 'playing')).catch(() => {
-      setData(memoryFilm, 'playback', 'blocked');
+    playback?.then(() => {
+      if (generation === playbackGeneration && memoryVideo.getAttribute('src')) {
+        setData(memoryFilm, 'playback', 'playing');
+      }
+    }).catch(() => {
+      if (generation === playbackGeneration && memoryVideo.getAttribute('src')) {
+        setData(memoryFilm, 'playback', 'blocked');
+      }
     });
   };
-  const deactivateVideo = ({ immediate = false, reset = false } = {}) => {
+  const deactivateVideo = ({ immediate = false } = {}) => {
     world.style.setProperty('--journey-film-opacity', '0');
     window.clearTimeout(videoPauseTimer);
     const pause = () => {
-      memoryVideo.pause();
-      if (reset) rewindVideo();
-      setData(memoryFilm, 'playback', 'paused');
+      releaseVideo();
       videoPauseTimer = 0;
     };
     if (immediate) pause();
@@ -404,16 +456,22 @@ export function createWaterJourney({
     memoryGate.append(rearOrbit);
     nearMemoryGate.append(nearOrbit);
     // A restrained foreground copy of the same currents crosses the photos.
-    // It is clipped to the real vortex alpha, so the subjects feel submerged
-    // in one stream without receiving a separate frame or halo.
+    // Clone only the visually dominant strokes: deep-cloning every foam strand
+    // here multiplied the SVG tree threefold without adding readable detail.
     const washSets = [memoryGate, nearMemoryGate].map((layer, layerIndex) => {
       const wash = document.createElement('div');
       wash.className = `water-gate__memory-wash water-gate__memory-wash--${layerIndex ? 'near' : 'rear'}`;
       const flows = currents.map(current => {
-        const flow = compactRuntime
-          ? document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-          : current.cloneNode(true);
-        if (compactRuntime) flow.setAttribute('viewBox', '0 0 400 400');
+        const flow = current.cloneNode(false);
+        if (!compactRuntime) {
+          const visibleStrokes = [
+            current.querySelector('.memory-current__body'),
+            current.querySelector('.memory-current__glow'),
+            current.querySelector('.memory-current__highlights'),
+            ...[...current.querySelectorAll('.memory-current__foam')].filter((_, stroke) => stroke % 3 === 0),
+          ].filter(Boolean);
+          flow.append(...visibleStrokes.map(stroke => stroke.cloneNode()));
+        }
         flow.classList.add('memory-current');
         flow.classList.add('memory-current--wash');
         wash.append(flow);
@@ -424,14 +482,17 @@ export function createWaterJourney({
     });
     const lip = document.createElement('div');
     lip.className = 'water-gate water-gate--near';
-    lip.append(ring.cloneNode(true));
-    if (compactRuntime) {
-      for (const layer of [gate, lip, memoryGate, nearMemoryGate]) {
-        layer.style.visibility = 'hidden';
-        layer.style.setProperty('--current-angle', `${index * 57}deg`);
-        layer.style.setProperty('--portrait-current', '0deg');
-        layer.style.setProperty('--flow-offset', '0');
-      }
+    const lipRing = ring.cloneNode(true);
+    // The textured lip supplies the foreground depth. Repeating the detailed
+    // current SVG on both halves doubles paint work but is visually covered by
+    // the same vortex bitmap.
+    lipRing.querySelector('.water-current')?.remove();
+    lip.append(lipRing);
+    for (const layer of [gate, lip, memoryGate, nearMemoryGate]) {
+      layer.style.visibility = 'hidden';
+      layer.style.setProperty('--current-angle', `${index * 57}deg`);
+      layer.style.setProperty('--portrait-current', '0deg');
+      layer.style.setProperty('--flow-offset', '0');
     }
     back.append(gate, memoryGate);
     front.append(lip, nearMemoryGate);
@@ -462,9 +523,8 @@ export function createWaterJourney({
     // observe that the mobile journey is actually advancing.
     world.style.setProperty('--journey-progress', p.toFixed(4));
     world.style.setProperty('--journey-film-opacity', `${1 - state.returning}`);
-    if (state.returning > .998 && !memoryVideo.paused) {
-      memoryVideo.pause();
-      setData(memoryFilm, 'playback', 'paused');
+    if (state.returning > .998 && memoryFilm.dataset.playback !== 'released') {
+      releaseVideo();
     }
     if (!compactRuntime) {
       world.style.setProperty('--journey-light', '.8');
@@ -473,29 +533,32 @@ export function createWaterJourney({
     }
     setData(world, 'passed', String(state.passed));
     setData(world, 'swimPhase', state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise');
-    if (!compactRuntime) {
-      backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
-    }
     gates.forEach(({ gate, lip, memoryGate, nearMemoryGate, memories, currents, washSets }, index) => {
       const frame = state.gates[index];
-      const renderGate = !compactRuntime || (frame.opacity > .005 && frame.x > -.34 && frame.x < 1.34);
+      const renderGate = frame.opacity > .005 && frame.x > -.34 && frame.x < 1.34;
       for (const layer of [gate, lip, memoryGate, nearMemoryGate]) {
-        if (compactRuntime) {
-          const visibility = renderGate ? 'visible' : 'hidden';
-          if (layer.style.visibility !== visibility) layer.style.visibility = visibility;
-        }
-        if (!renderGate) continue;
+        const visibility = renderGate ? 'visible' : 'hidden';
+        if (layer.style.visibility !== visibility) layer.style.visibility = visibility;
+        // Keep the public motion state current even while a gate is culled;
+        // descendants are the expensive part and can safely remain untouched.
         layer.style.left = `${frame.x * 100}%`;
         layer.style.top = `${frame.y * 100}%`;
         layer.style.transform = `translate(-50%, -50%) scale(${frame.scale})`;
         layer.style.opacity = frame.opacity.toFixed(4);
         if (!compactRuntime) {
-          layer.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
           layer.style.setProperty('--current-angle', `${state.time * 19 + index * 57}deg`);
+        }
+        if (renderGate && !compactRuntime) {
+          layer.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
           layer.style.setProperty('--portrait-current', `${Math.sin(state.time * .72 + index) * 1.35}deg`);
           layer.style.setProperty('--flow-offset', `${-state.time * 15.5}`);
           layer.style.setProperty('--gate-pulse', frame.pulse.toFixed(4));
         }
+      }
+      if (!renderGate) {
+        setData(gate, 'active', 'false');
+        setData(gate, 'cleared', String(frame.cleared));
+        return;
       }
       if (compactRuntime && renderGate) {
         gate.style.setProperty('--gate-pulse', frame.pulse.toFixed(4));
@@ -534,6 +597,6 @@ export function createWaterJourney({
   }
 
   return {
-    render, pose, transition, memoryFilm, memoryVideo, activateVideo, deactivateVideo,
+    render, pose, transition, memoryFilm, memoryVideo, primeVideo, activateVideo, deactivateVideo,
   };
 }

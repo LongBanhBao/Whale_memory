@@ -93,6 +93,13 @@ let sceneTimeline = null;
 const whaleCanvas = document.querySelector('#whale-canvas');
 const sceneDots = [...document.querySelectorAll('.scene-progress__dot')];
 const progressLine = document.querySelector('#progress-line');
+const stormBackgroundUrl = assetUrl('assets/scene/storm-ocean-v2.webp');
+
+// Keep only the lightweight handoff artwork ready at boot. Building every
+// hidden scene (including WebGL and hundreds of animated nodes) during the
+// intro created long tasks that looked like random animation freezes.
+stormWorld.style.setProperty('--storm-background', `url("${stormBackgroundUrl}")`);
+stormEntryCurrent.style.setProperty('--storm-entry-background', `url("${stormBackgroundUrl}")`);
 
 const ambient = createAmbientCanvas(document.querySelector('#ambient-canvas'), reducedMotion);
 let stormWhale = { setPose() {}, snapPose() {}, destroy() {} };
@@ -111,7 +118,6 @@ function makeImage(image, variant = 'src', decorative = true) {
 }
 
 function buildStorm() {
-  const stormBackgroundUrl = assetUrl('assets/scene/storm-ocean-v2.webp');
   stormBackdrop.src = stormBackgroundUrl;
   stormBackdrop.loading = 'eager';
   stormBackdrop.decoding = 'async';
@@ -169,7 +175,7 @@ function buildStorm() {
     return impact;
   });
 
-  const rainCount = compactRuntime ? 16 : 48;
+  const rainCount = compactRuntime ? 16 : 28;
   for (let index = 0; index < rainCount; index += 1) {
     const streak = document.createElement('i');
     streak.className = 'storm-rain__streak';
@@ -183,7 +189,7 @@ function buildStorm() {
     stormRainNear.append(streak);
   }
 
-  const sprayCount = compactRuntime ? 10 : 42;
+  const sprayCount = compactRuntime ? 10 : 24;
   for (let index = 0; index < sprayCount; index += 1) {
     const spray = document.createElement('i');
     spray.className = 'storm-spray__drop';
@@ -292,27 +298,6 @@ function prepareForScene(index) {
   if (index >= 1) prepareJourney();
   if (index >= 2) prepareStorm();
   if (index >= 3) prepareFinale();
-}
-
-function scheduleWhenIdle(callback, timeout) {
-  if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(callback, { timeout });
-  } else {
-    window.setTimeout(callback, Math.min(timeout, 900));
-  }
-}
-
-function warmDeferredScenes() {
-  // On phones, keep boot light and prepare each following scene during the
-  // generous cinematic lead-in instead of constructing the whole site at once.
-  if (compactRuntime) return;
-  scheduleWhenIdle(() => {
-    prepareJourney();
-    scheduleWhenIdle(() => {
-      prepareStorm();
-      scheduleWhenIdle(prepareFinale, 1800);
-    }, 1800);
-  }, 1200);
 }
 
 let sceneTransition = null;
@@ -599,11 +584,14 @@ function setActiveScene(index) {
   });
   progressLine.style.transform = `scaleX(${index / (sections.length - 1)})`;
   whaleCanvas.classList.toggle('is-hidden', index <= 1 || index === 3);
+  if (index === 3) stormWhale.snapPose({ opacity: 0 });
+  ambient.setActive(!(compactRuntime && (index === 1 || index === 2)));
   sceneDots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex <= index));
   updateReducedNext();
 }
 
 function resetStormTransitionLight() {
+  setData(stormTransitionLight, 'active', 'false');
   stormTransitionLight.style.setProperty('--storm-wipe', '0');
   stormTransitionLight.style.setProperty('--storm-wipe-radius', '0vmax');
   stormTransitionLight.style.removeProperty('opacity');
@@ -632,6 +620,7 @@ function stormEntryPose() {
 }
 
 function resetStormEntryCurrent() {
+  setData(stormEntryCurrent, 'active', 'false');
   stormEntryCurrent.style.setProperty('--storm-entry-radius', '0vmax');
   stormEntryCurrent.style.setProperty('--storm-entry-surge', '0');
   stormEntryCurrent.style.opacity = '0';
@@ -663,9 +652,10 @@ function startStormHandoff() {
 
   reducedNext.disabled = true;
   const transfer = { progress: 0 };
+  setData(stormEntryCurrent, 'active', 'true');
   gsap.set(stormEntryCurrent, {
-    opacity: compactRuntime ? 0 : 1,
-    '--storm-entry-radius': '0vmax',
+    opacity: 0,
+    '--storm-entry-radius': '165vmax',
     '--storm-entry-surge': 0,
   });
   stormEntryTimeline = gsap.timeline({
@@ -698,15 +688,10 @@ function startStormHandoff() {
         );
       },
     }, 0)
-    .to(stormEntryCurrent, compactRuntime ? {
+    .to(stormEntryCurrent, {
       opacity: 1,
       '--storm-entry-surge': 1,
       duration: 1.35,
-      ease: 'sine.inOut',
-    } : {
-      '--storm-entry-radius': '165vmax',
-      '--storm-entry-surge': 1,
-      duration: 1.55,
       ease: 'sine.inOut',
     }, 0);
 }
@@ -756,11 +741,6 @@ function advanceScene() {
       } : undefined,
     });
   }
-  if (compactRuntime && activeScene === 1) {
-    window.setTimeout(() => scheduleWhenIdle(prepareStorm, 1200), 900);
-  } else if (compactRuntime && activeScene === 2) {
-    window.setTimeout(() => scheduleWhenIdle(prepareFinale, 1200), 900);
-  }
   if (leavingScene === 2) releaseStormTransitionLight();
   reducedNext.disabled = false;
   sections[activeScene].focus({ preventScroll: true });
@@ -779,6 +759,7 @@ reducedNext.addEventListener('click', () => {
     advanceScene();
     return;
   }
+  waterJourney.primeVideo();
   reducedNext.disabled = true;
   holdControl.disabled = true;
   holdControl.classList.add('is-complete');
@@ -818,14 +799,6 @@ function renderStorm({ progress }) {
   stormWorld.style.setProperty('--storm-lightning-sheet', frame.storm.lightningSheet.toFixed(4));
   stormWorld.style.setProperty('--storm-swell', frame.storm.swell.toFixed(4));
   stormWorld.style.setProperty('--storm-spray', frame.storm.spray.toFixed(4));
-  if (!compactRuntime) {
-    stormWorld.style.setProperty('--storm-progress', frame.progress.toFixed(4));
-    stormWorld.style.setProperty('--storm-rain-far', frame.storm.rainFar.toFixed(4));
-    stormWorld.style.setProperty('--storm-rain-mid', frame.storm.rainMid.toFixed(4));
-    stormWorld.style.setProperty('--storm-shake-x', `${frame.storm.shakeX.toFixed(3)}px`);
-    stormWorld.style.setProperty('--storm-shake-y', `${frame.storm.shakeY.toFixed(3)}px`);
-    stormWorld.style.setProperty('--storm-flow', `${(-frame.storm.flow).toFixed(3)}px`);
-  }
   stormWorld.style.setProperty('--storm-family', frame.family.toFixed(4));
   stormWorld.style.setProperty('--storm-breakthrough', frame.breakthrough.toFixed(4));
   stormWorld.style.setProperty('--storm-debris', bell(frame.progress, .65, .78, .92).toFixed(4));
@@ -841,22 +814,15 @@ function renderStorm({ progress }) {
   stormActors.obstacles.forEach((obstacle, index) => {
     const obstacleFrame = frame.obstacles[index];
     setData(obstacle, 'state', obstacleFrame.state);
-    if (compactRuntime && obstacleFrame.opacity <= .005) {
+    if (obstacleFrame.opacity <= .005) {
       if (obstacle.style.visibility !== 'hidden') {
         obstacle.style.visibility = 'hidden';
         obstacle.style.setProperty('--obstacle-opacity', '0');
       }
       return;
     }
-    if (compactRuntime && obstacle.style.visibility !== 'visible') obstacle.style.visibility = 'visible';
-    if (compactRuntime) {
-      obstacle.style.transform = `translate3d(${(obstacleFrame.x * viewport.width).toFixed(2)}px, ${(obstacleFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) rotate(${obstacleFrame.rotation.toFixed(3)}deg) scale(${obstacleFrame.scale.toFixed(4)})`;
-    } else {
-      obstacle.style.left = `${(obstacleFrame.x * 100).toFixed(3)}%`;
-      obstacle.style.top = `${(obstacleFrame.y * 100).toFixed(3)}%`;
-      obstacle.style.setProperty('--obstacle-rotation', `${obstacleFrame.rotation.toFixed(3)}deg`);
-      obstacle.style.setProperty('--obstacle-scale', obstacleFrame.scale.toFixed(4));
-    }
+    if (obstacle.style.visibility !== 'visible') obstacle.style.visibility = 'visible';
+    obstacle.style.transform = `translate3d(${(obstacleFrame.x * viewport.width).toFixed(2)}px, ${(obstacleFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) rotate(${obstacleFrame.rotation.toFixed(3)}deg) scale(${obstacleFrame.scale.toFixed(4)})`;
     obstacle.style.setProperty('--obstacle-opacity', obstacleFrame.opacity.toFixed(4));
     obstacle.style.setProperty('--obstacle-impact', obstacleFrame.impact.toFixed(4));
     obstacle.style.setProperty('--obstacle-expel', obstacleFrame.expel.toFixed(4));
@@ -865,7 +831,7 @@ function renderStorm({ progress }) {
   stormActors.companions.forEach((companion, index) => {
     if (compactRuntime && index >= STORM_MOBILE_COMPANION_COUNT) return;
     const companionFrame = frame.companions[index];
-    if (compactRuntime && companionFrame.opacity <= .005) {
+    if (companionFrame.opacity <= .005) {
       if (companion.style.visibility !== 'hidden') {
         companion.style.visibility = 'hidden';
         companion.style.setProperty('--companion-opacity', '0');
@@ -873,15 +839,8 @@ function renderStorm({ progress }) {
       setData(companion, 'cheering', 'false');
       return;
     }
-    if (compactRuntime && companion.style.visibility !== 'visible') companion.style.visibility = 'visible';
-    if (compactRuntime) {
-      companion.style.transform = `translate3d(${(companionFrame.x * viewport.width).toFixed(2)}px, ${(companionFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) rotate(${companionFrame.rotation.toFixed(3)}deg) scale(${companionFrame.scale.toFixed(4)})`;
-    } else {
-      companion.style.left = `${(companionFrame.x * 100).toFixed(3)}%`;
-      companion.style.top = `${(companionFrame.y * 100).toFixed(3)}%`;
-      companion.style.setProperty('--companion-rotation', `${companionFrame.rotation.toFixed(3)}deg`);
-      companion.style.setProperty('--companion-scale', companionFrame.scale.toFixed(4));
-    }
+    if (companion.style.visibility !== 'visible') companion.style.visibility = 'visible';
+    companion.style.transform = `translate3d(${(companionFrame.x * viewport.width).toFixed(2)}px, ${(companionFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) rotate(${companionFrame.rotation.toFixed(3)}deg) scale(${companionFrame.scale.toFixed(4)})`;
     companion.style.setProperty('--companion-opacity', companionFrame.opacity.toFixed(4));
     companion.style.setProperty('--companion-arrival', companionFrame.arrival.toFixed(4));
     setData(companion, 'formation', companionFrame.arrival > .92 ? 'formed' : 'arriving');
@@ -891,20 +850,15 @@ function renderStorm({ progress }) {
 
   stormActors.impacts.forEach((impact, index) => {
     const obstacleFrame = frame.obstacles[index];
-    if (compactRuntime && obstacleFrame.impact <= .005) {
+    if (obstacleFrame.impact <= .005) {
       if (impact.style.visibility !== 'hidden') {
         impact.style.visibility = 'hidden';
         impact.style.setProperty('--impact', '0');
       }
       return;
     }
-    if (compactRuntime && impact.style.visibility !== 'visible') impact.style.visibility = 'visible';
-    if (compactRuntime) {
-      impact.style.transform = `translate3d(${(obstacleFrame.x * viewport.width).toFixed(2)}px, ${(obstacleFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) scale(${(.3 + obstacleFrame.impact * .92).toFixed(4)})`;
-    } else {
-      impact.style.left = `${(obstacleFrame.x * 100).toFixed(3)}%`;
-      impact.style.top = `${(obstacleFrame.y * 100).toFixed(3)}%`;
-    }
+    if (impact.style.visibility !== 'visible') impact.style.visibility = 'visible';
+    impact.style.transform = `translate3d(${(obstacleFrame.x * viewport.width).toFixed(2)}px, ${(obstacleFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) scale(${(.3 + obstacleFrame.impact * .92).toFixed(4)})`;
     impact.style.setProperty('--impact', obstacleFrame.impact.toFixed(4));
   });
 
@@ -923,6 +877,7 @@ function renderStorm({ progress }) {
   stormTransitionLight.style.setProperty('--storm-wipe-radius', `${frame.light.radius.toFixed(3)}vmax`);
   stormTransitionLight.style.setProperty('--storm-wipe-x', `${frame.light.x}%`);
   stormTransitionLight.style.setProperty('--storm-wipe-y', `${frame.light.y}%`);
+  setData(stormTransitionLight, 'active', frame.light.wipe > .002 ? 'true' : 'false');
 
   stormWhale.setPose(frame.whale);
   ambient.setMood('storm', .58 + frame.storm.intensity * .34 - frame.storm.clear * .18);
@@ -951,7 +906,6 @@ function renderFinale({ progress }) {
     }
     sendLight.disabled = !ready;
     sendLight.classList.toggle('is-ready', ready);
-    stormWhale.setPose({ opacity: 0 });
     ambient.setMood('finale', 0.58 + progress * 0.38);
 }
 
@@ -1110,4 +1064,3 @@ sections.forEach((section) => { section.tabIndex = -1; });
 setActiveScene(0);
 document.documentElement.dataset.appReady = 'true';
 window.dispatchEvent(new CustomEvent('bluevoyage:ready'));
-warmDeferredScenes();

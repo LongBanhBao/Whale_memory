@@ -205,7 +205,7 @@ for (const width of [1440, 390]) {
     await expect(page.locator('#whale-canvas')).toHaveClass(/is-hidden/);
     const memoryVideo = page.locator('#journey-memory-video');
     await expect(memoryVideo).toHaveCount(1);
-    await expect(memoryVideo).toHaveAttribute('src', /assets\/video\/P\.mp4$/);
+    await expect(memoryVideo).toHaveAttribute('src', /assets\/video\/P\.optimized\.mp4$/);
     await expect.poll(() => memoryVideo.evaluate(video => (
       video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
       && video.videoWidth === 720 && video.videoHeight === 1280
@@ -216,6 +216,7 @@ for (const width of [1440, 390]) {
       const video = document.querySelector('#journey-memory-video');
       const filmStyle = getComputedStyle(film);
       const videoStyle = getComputedStyle(video);
+      const edgeStyle = getComputedStyle(film, '::after');
       const backdropZ = Number(getComputedStyle(document.querySelector('.journey-backdrop')).zIndex);
       const gateZ = Number(getComputedStyle(document.querySelector('#portal-layer')).zIndex);
       const filmZ = Number(filmStyle.zIndex);
@@ -231,6 +232,7 @@ for (const width of [1440, 390]) {
         pointerEvents: filmStyle.pointerEvents,
         border: filmStyle.borderTopWidth,
         mask: filmStyle.maskImage === 'none' ? filmStyle.webkitMaskImage : filmStyle.maskImage,
+        edgeBlend: edgeStyle.backgroundImage,
         opacity: Number(filmStyle.opacity),
         layers: { backdropZ, filmZ, gateZ },
         coversViewport: bounds.left <= 0 && bounds.top <= 0
@@ -249,7 +251,8 @@ for (const width of [1440, 390]) {
       coversViewport: true,
     });
     expect(filmTreatment.objectPosition).toContain('37%');
-    expect(filmTreatment.mask.match(/linear-gradient/g)).toHaveLength(2);
+    expect(filmTreatment.mask).toBe('none');
+    expect(filmTreatment.edgeBlend.match(/linear-gradient/g)?.length).toBeGreaterThanOrEqual(2);
     expect(filmTreatment.opacity).toBeGreaterThan(.15);
     expect(filmTreatment.layers.backdropZ).toBeLessThan(filmTreatment.layers.filmZ);
     expect(filmTreatment.layers.filmZ).toBeLessThan(filmTreatment.layers.gateZ);
@@ -333,7 +336,8 @@ for (const width of [1440, 390]) {
     expect(await memoryVideo.evaluate(video => video.paused)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath('journey-arrived.png') });
     // The journey timeline may finish, but the animal must keep breathing/swimming.
-    const frame = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => resolve(document.querySelector('#intro-whale-mesh').toDataURL()))));
+    const frame = () => page.locator('#intro-whale-mesh')
+      .evaluate(canvas => canvas.__blueVoyageFrame || 0);
     const firstFrame = await frame();
     await page.waitForTimeout(450);
     expect(await frame()).not.toBe(firstFrame);
@@ -349,6 +353,10 @@ for (const width of [1440, 390]) {
 test('môi trường cảnh 2 giữ trạng thái tĩnh khi giảm chuyển động', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
+  await page.locator('#hold-control').click();
+  await expect(page.locator('body')).not.toHaveClass(/is-intro-locked/);
+  await page.locator('#scene-next').click();
+  await expect(page.locator('#blue-road')).toBeVisible();
   await expect(page.locator('.journey-ambience')).toHaveCount(2);
   const state = await page.evaluate(() => {
     const nodes = [

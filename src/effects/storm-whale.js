@@ -100,7 +100,7 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
   let resizeTimer = 0;
 
   function resize() {
-    ratio = renderPixelRatio(2, 1);
+    ratio = renderPixelRatio(1.4, 1);
     ({ width, height } = runtimeViewport());
     const backingWidth = Math.round(width * ratio);
     const backingHeight = Math.round(height * ratio);
@@ -432,8 +432,8 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
     return { setPose() {}, snapPose() {}, destroy() {} };
   }
 
-  const columns = compactRuntime ? 34 : 58;
-  const rows = compactRuntime ? 21 : 36;
+  const columns = compactRuntime ? 32 : 46;
+  const rows = compactRuntime ? 20 : 28;
   const points = [];
   for (let row = 0; row < rows; row += 1) {
     for (let column = 0; column < columns; column += 1) {
@@ -489,7 +489,7 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
   let resizeTimer = 0;
 
   function resize() {
-    pixelRatio = renderPixelRatio(2, 1);
+    pixelRatio = renderPixelRatio(1.4, 1);
     ({ width, height } = runtimeViewport());
     const backingWidth = Math.round(width * pixelRatio);
     const backingHeight = Math.round(height * pixelRatio);

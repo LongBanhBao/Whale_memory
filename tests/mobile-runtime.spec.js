@@ -49,7 +49,11 @@ test.describe('runtime điện thoại', () => {
     const runtimeErrors = [];
     const failedRequests = [];
     page.on('pageerror', error => runtimeErrors.push(error.message));
-    page.on('requestfailed', request => failedRequests.push(request.url()));
+    page.on('requestfailed', request => {
+      const expectedMediaRelease = new URL(request.url()).pathname.endsWith('/assets/video/P.optimized.mp4')
+        && request.failure()?.errorText === 'net::ERR_ABORTED';
+      if (!expectedMediaRelease) failedRequests.push(request.url());
+    });
 
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('html')).toHaveAttribute('data-app-ready', 'true');

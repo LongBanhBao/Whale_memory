@@ -22,11 +22,11 @@ for (const [name, width, height] of [['desktop', 1440, 900], ['mobile', 390, 844
     await expect(page.locator('#intro-halo')).toHaveCSS('opacity', '0');
     await page.screenshot({ path: `test-results/swim-${name}-arrived.png` });
 
-    // Read immediately after drawing: default WebGL buffers are discarded
-    // after compositing. Motion should continue even after the approach ends.
-    const sample = () => page.locator('#intro-whale-mesh').evaluate((canvas) => new Promise((resolve) => {
-      requestAnimationFrame(() => resolve(canvas.toDataURL()));
-    }));
+    // The compact renderer intentionally draws at 30 FPS. Use its frame
+    // counter rather than toDataURL(), whose WebGL buffer may be discarded on
+    // a throttled frame even while the on-screen canvas keeps animating.
+    const sample = () => page.locator('#intro-whale-mesh')
+      .evaluate((canvas) => canvas.__blueVoyageFrame || 0);
     const first = await sample();
     await page.waitForTimeout(650);
     const second = await sample();

@@ -584,6 +584,12 @@ html[data-runtime-profile='compact'] .storm-transition-light {
   will-change: opacity;
 }
 
+html[data-runtime-profile='compact'] .storm-entry-current:not([data-active='true']),
+html[data-runtime-profile='compact'] .storm-transition-light:not([data-active='true']) {
+  visibility: hidden;
+  will-change: auto;
+}
+
 html[data-runtime-profile='compact'] .finale-world::after {
   mask-image: none;
   -webkit-mask-image: none;

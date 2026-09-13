@@ -96,8 +96,8 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
   gl.useProgram(program);
 
   const points = [];
-  const columns = compactRuntime ? 32 : 56;
-  const rows = compactRuntime ? 15 : 26;
+  const columns = compactRuntime ? 30 : 44;
+  const rows = compactRuntime ? 14 : 21;
   for (let y = 0; y < rows; y += 1) {
     for (let x = 0; x < columns; x += 1) {
       const left = x / columns;
@@ -129,14 +129,20 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
   let ready = false;
   let frame = 0;
   let previousTime = 0;
+  let previousDrawTime = 0;
 
   function draw(time) {
     frame = 0;
     if (!active || !ready || document.hidden) return;
+    if (compactRuntime && previousDrawTime && time - previousDrawTime < 1000 / 30) {
+      frame = requestAnimationFrame(draw);
+      return;
+    }
+    previousDrawTime = time;
     const delta = previousTime ? Math.min((time - previousTime) / 1000, 0.05) : 0;
     previousTime = time;
     if (!reducedMotion) phase += delta * (3.9 - depth * 1.35 + effort * .55);
-    const ratio = renderPixelRatio(1.75, 1);
+    const ratio = renderPixelRatio(1.35, 1);
     const viewportWidth = runtimeViewport().width;
     const width = Math.round(Math.min(viewportWidth < 720 ? viewportWidth * 0.96 : viewportWidth * 0.62, 900) * ratio);
     const height = Math.round(width * 0.59);
@@ -153,6 +159,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
     gl.uniform1f(uniforms.turn, reducedMotion ? 0 : turn);
     gl.uniform1f(uniforms.effort, reducedMotion ? 0 : effort);
     gl.drawArrays(gl.TRIANGLES, 0, points.length / 2);
+    canvas.__blueVoyageFrame = (canvas.__blueVoyageFrame || 0) + 1;
     if (!reducedMotion) frame = requestAnimationFrame(draw);
   }
 
@@ -172,6 +179,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
   if (image.complete && image.naturalWidth) upload();
   document.addEventListener('visibilitychange', () => {
     previousTime = 0;
+    previousDrawTime = 0;
     if (document.hidden) {
       cancelAnimationFrame(frame);
       frame = 0;
@@ -196,6 +204,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
       if (active === value) return;
       active = value;
       previousTime = 0;
+      previousDrawTime = 0;
       if (!active) {
         cancelAnimationFrame(frame);
         frame = 0;
@@ -207,6 +216,7 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
       depth = 0;
       phase = 0;
       previousTime = 0;
+      previousDrawTime = 0;
     },
   };
 }

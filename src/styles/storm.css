@@ -35,10 +35,11 @@
 .storm-camera {
   position: absolute;
   z-index: 1;
-  inset: -1.5%;
+  inset: 0;
   overflow: hidden;
-  transform: translate3d(var(--storm-shake-x), var(--storm-shake-y), 0) scale(1.03);
+  transform: none;
   transform-origin: 50% 50%;
+  contain: layout paint size;
 }
 
 .storm-world .whale-canvas {
@@ -58,19 +59,14 @@
 
 .storm-backdrop {
   z-index: 0;
-  inset: -8%;
-  width: 116%;
-  height: 116%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   object-position: 52% center;
-  transform:
-    translate3d(calc(var(--storm-progress) * -5.2%), calc(var(--storm-progress) * 2.4%), 0)
-    scale(calc(1.08 + var(--storm-swell) * .018));
-  filter:
-    brightness(calc(.57 + var(--storm-clear) * .31))
-    saturate(calc(.7 + var(--storm-clear) * .25))
-    contrast(calc(1.13 - var(--storm-clear) * .06))
-    hue-rotate(calc(8deg - var(--storm-clear) * 8deg));
+  transform: none;
+  filter: brightness(.62) saturate(.76) contrast(1.1);
+  contain: paint;
 }
 
 .storm-backdrop-echo {
@@ -83,6 +79,7 @@
   background-size: cover;
   opacity: calc((1 - var(--storm-clear)) * .19);
   mix-blend-mode: screen;
+  display: none;
 }
 
 .storm-backdrop-echo--far {
@@ -105,10 +102,10 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at var(--storm-whale-x) var(--storm-whale-y), rgba(69, 191, 211, calc(var(--storm-family) * .17)), transparent 24%),
-    radial-gradient(circle at var(--storm-beacon-x) var(--storm-beacon-y), rgba(208, 252, 255, calc(var(--storm-clear) * .32)), transparent calc(9% + var(--storm-clear) * 27%)),
-    linear-gradient(145deg, rgba(5, 10, 27, calc(.29 - var(--storm-clear) * .18)), rgba(21, 28, 52, calc(.34 - var(--storm-clear) * .27)) 52%, rgba(1, 31, 43, calc(.2 - var(--storm-clear) * .15)));
-  box-shadow: inset 0 0 150px rgba(0, 4, 14, calc(.54 - var(--storm-clear) * .4));
+    radial-gradient(circle at 86% 8%, rgba(205, 250, 255, .27), transparent 29%),
+    linear-gradient(145deg, rgba(5, 10, 27, .28), rgba(21, 28, 52, .32) 52%, rgba(1, 31, 43, .19));
+  box-shadow: inset 0 0 110px rgba(0, 4, 14, .48);
+  opacity: calc(.98 - var(--storm-clear) * .62);
 }
 
 .storm-surface-churn {
@@ -119,6 +116,7 @@
   pointer-events: none;
   opacity: calc(.28 + var(--storm-swell) * .38);
   mix-blend-mode: screen;
+  display: none;
 }
 
 .storm-surface-churn i {
@@ -140,11 +138,11 @@
 .storm-cloud-field {
   position: absolute;
   z-index: 5;
-  inset: -16%;
+  inset: 0;
   overflow: hidden;
   pointer-events: none;
   opacity: calc(.3 + var(--storm-intensity) * .48);
-  mix-blend-mode: multiply;
+  mix-blend-mode: normal;
 }
 
 .storm-cloud-field i {
@@ -155,7 +153,7 @@
   background:
     radial-gradient(ellipse at 28% 44%, rgba(10, 14, 35, .9), transparent 57%),
     radial-gradient(ellipse at 72% 52%, rgba(22, 31, 55, .76), transparent 61%);
-  filter: blur(31px);
+  filter: none;
   animation: storm-cloud-surge 10s ease-in-out infinite alternate;
 }
 
@@ -164,16 +162,17 @@
 .storm-cloud-field i:nth-child(3) { bottom: 4%; left: -12%; rotate: 6deg; animation-duration: 15s; animation-delay: -9s; }
 .storm-cloud-field i:nth-child(4) { bottom: -9%; right: -17%; rotate: -4deg; animation-duration: 11.5s; animation-delay: -7s; }
 .storm-cloud-field i:nth-child(5) { top: 36%; left: 24%; opacity: .52; animation-duration: 17s; animation-delay: -11s; }
+.storm-cloud-field i:nth-child(n + 3) { display: none; }
 
 .storm-wave-field {
   position: absolute;
   z-index: 6;
-  inset: -7% -9%;
-  width: 118%;
-  height: 114%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   overflow: visible;
   pointer-events: none;
-  transform: translate3d(var(--storm-flow), 0, 0);
+  transform: none;
   fill: none;
   stroke-linecap: round;
   mix-blend-mode: screen;
@@ -188,14 +187,14 @@
 .storm-wave--surface {
   stroke: rgba(206, 232, 236, .2);
   stroke-width: 34;
-  filter: blur(11px);
+  filter: none;
   animation-duration: 4.4s;
 }
 
 .storm-wave--deep {
   stroke: rgba(44, 101, 132, .35);
   stroke-width: 62;
-  filter: blur(20px);
+  filter: none;
   animation-duration: 5.8s;
 }
 
@@ -203,7 +202,7 @@
   stroke: rgba(100, 170, 190, .25);
   stroke-width: 17;
   stroke-dasharray: 126 38 31 72;
-  filter: blur(5px);
+  filter: none;
   animation-duration: 2.7s;
 }
 
@@ -211,7 +210,7 @@
   stroke: rgba(198, 231, 237, .52);
   stroke-width: 2.4;
   stroke-dasharray: 2 10 58 31;
-  filter: drop-shadow(0 0 7px rgba(139, 210, 220, .45));
+  filter: none;
   animation-duration: 1.65s;
 }
 
@@ -219,9 +218,12 @@
   stroke: rgba(109, 170, 195, .2);
   stroke-width: 9;
   stroke-dasharray: 34 64;
-  filter: blur(2px);
+  filter: none;
   animation-duration: 2.2s;
 }
+.storm-wave--surface,
+.storm-wave--deep,
+.storm-wave--cross { display: none; }
 
 .storm-weather-flash,
 .storm-world::before {
@@ -270,7 +272,7 @@
   opacity: var(--storm-lightning-far);
   stroke: rgba(180, 211, 255, .72);
   stroke-width: 1.25;
-  filter: blur(.4px) drop-shadow(0 0 9px rgba(136, 178, 255, .82)) drop-shadow(0 0 27px rgba(122, 154, 242, .6));
+  filter: none;
 }
 
 .storm-lightning--near {
@@ -278,17 +280,17 @@
   opacity: var(--storm-lightning-near);
   stroke: rgba(239, 250, 255, .95);
   stroke-width: 2;
-  filter: drop-shadow(0 0 7px #e3f4ff) drop-shadow(0 0 32px rgba(133, 179, 255, .9));
+  filter: none;
 }
 
 .storm-rain {
   position: absolute;
   z-index: 11;
-  inset: -20%;
+  inset: -6%;
   overflow: hidden;
   pointer-events: none;
   transform: rotate(17deg);
-  mask-image: linear-gradient(to bottom, transparent, #000 10% 89%, transparent);
+  mask-image: none;
 }
 
 .storm-rain__plane {
@@ -302,6 +304,7 @@
   background-size: 112px 86px;
   filter: blur(1.4px);
   animation: storm-rain-plane-far 1.6s linear infinite;
+  display: none;
 }
 
 .storm-rain__plane--mid {
@@ -309,6 +312,7 @@
   background-image: repeating-linear-gradient(118deg, transparent 0 51px, rgba(179, 215, 231, .2) 52px 53px, transparent 54px 105px);
   background-size: 147px 118px;
   animation: storm-rain-plane-mid 1.05s linear infinite;
+  display: none;
 }
 
 .storm-rain__plane--near {
@@ -322,9 +326,10 @@
   width: var(--rain-width, 1px);
   height: var(--rain-length);
   background: linear-gradient(to bottom, transparent, rgba(202, 228, 237, var(--rain-alpha)), transparent);
-  box-shadow: 0 0 4px rgba(152, 206, 225, .26);
+  box-shadow: none;
   animation: storm-rain-sweep var(--rain-speed) linear var(--rain-delay) infinite;
 }
+.storm-rain__streak:nth-child(n + 29) { display: none; }
 
 .storm-spray {
   position: absolute;
@@ -333,7 +338,7 @@
   overflow: hidden;
   pointer-events: none;
   opacity: var(--storm-spray);
-  mask-image: linear-gradient(145deg, transparent 4%, #000 28% 78%, transparent 96%);
+  mask-image: none;
 }
 
 .storm-spray__drop {
@@ -344,9 +349,10 @@
   aspect-ratio: 1;
   border: 1px solid rgba(190, 229, 238, .62);
   border-radius: 50%;
-  box-shadow: 0 0 7px rgba(146, 220, 232, .42);
+  box-shadow: none;
   animation: storm-spray-tumble var(--spray-speed) ease-in var(--spray-delay) infinite;
 }
+.storm-spray__drop:nth-child(n + 25) { display: none; }
 
 .storm-obstacle-field {
   position: absolute;
@@ -378,9 +384,7 @@
   background: none;
   border: 0;
   box-shadow: none;
-  filter:
-    brightness(calc(.8 + var(--obstacle-impact, 0) * .58))
-    drop-shadow(0 0 calc(9px + var(--obstacle-impact, 0) * 25px) rgba(136, 168, 193, calc(.22 + var(--obstacle-impact, 0) * .48)));
+  filter: none;
   text-align: center;
   isolation: isolate;
   perspective: 680px;
@@ -398,7 +402,7 @@
   inset: 14% -7%;
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(113, 148, 176, calc(.1 + var(--obstacle-impact, 0) * .2)), transparent 68%);
-  filter: blur(15px);
+  filter: none;
 }
 
 .storm-obstacle::after {
@@ -500,11 +504,7 @@
   height: 100%;
   max-width: none;
   object-fit: contain;
-  filter:
-    brightness(calc(1.02 + var(--storm-clear) * .27))
-    saturate(.72)
-    hue-rotate(-5deg)
-    drop-shadow(0 0 10px rgba(104, 222, 231, .55));
+  filter: brightness(1.08) saturate(.76) hue-rotate(-5deg);
   animation: companion-swim 1.65s ease-in-out var(--companion-delay, 0s) infinite alternate;
 }
 
@@ -514,7 +514,7 @@
 }
 
 .companion-whale--rear > img {
-  filter: brightness(.88) saturate(.58) blur(.35px) drop-shadow(0 0 8px rgba(88, 193, 211, .38));
+  filter: brightness(.9) saturate(.62);
 }
 
 .companion-whale--front { z-index: 22; }
@@ -586,7 +586,7 @@
   transform: translate(-50%, -50%) rotate(-27deg) scale(calc(.7 + var(--storm-family) * .3));
   opacity: calc(var(--storm-family) * (.35 + var(--storm-breakthrough) * .4));
   pointer-events: none;
-  filter: drop-shadow(0 0 14px rgba(91, 222, 235, .34));
+  filter: none;
 }
 
 .family-current::before,
@@ -603,7 +603,7 @@
   inset: 18% 2%;
   border-top-width: 17px;
   border-color: rgba(71, 195, 216, .09);
-  filter: blur(10px);
+  filter: none;
 }
 
 .family-current i:nth-child(1) { inset: 20% 3%; opacity: .72; }
@@ -748,7 +748,8 @@
   z-index: 28;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse at 54% 47%, transparent 31%, rgba(0, 4, 12, calc(.55 - var(--storm-clear) * .43)) 112%);
+  background: radial-gradient(ellipse at 54% 47%, transparent 31%, rgba(0, 4, 12, .55) 112%);
+  opacity: calc(1 - var(--storm-clear) * .78);
 }
 
 .storm-entry-current,
@@ -764,14 +765,20 @@
   z-index: 75;
   overflow: hidden;
   opacity: 0;
-  clip-path: circle(var(--storm-entry-radius) at 88% 8%);
+  clip-path: circle(var(--storm-wipe-radius) at var(--storm-wipe-x) var(--storm-wipe-y));
   background-image:
     linear-gradient(145deg, rgba(5, 20, 34, .04), rgba(20, 66, 78, .11)),
     var(--storm-entry-background);
   background-position: center;
   background-size: cover;
   filter: brightness(.62) saturate(.76) contrast(1.1);
-  will-change: clip-path, opacity;
+  visibility: hidden;
+  will-change: auto;
+}
+
+.storm-entry-current[data-active='true'] {
+  visibility: visible;
+  will-change: opacity;
 }
 
 .storm-entry-current::before,
@@ -799,12 +806,18 @@
   --storm-wipe-x: 86%;
   --storm-wipe-y: 8%;
   z-index: 130;
-  clip-path: circle(var(--storm-wipe-radius) at var(--storm-wipe-x) var(--storm-wipe-y));
+  clip-path: none;
   opacity: var(--storm-wipe);
   background:
     radial-gradient(circle at var(--storm-wipe-x) var(--storm-wipe-y), #fffef4 0 5%, #efffff 24%, #bceff3 54%, #eefeff 82%),
     #efffff;
-  filter: brightness(calc(1 + var(--storm-wipe) * .18));
+  filter: none;
+  visibility: hidden;
+  will-change: auto;
+}
+
+.storm-transition-light[data-active='true'] {
+  visibility: visible;
   will-change: clip-path, opacity;
 }
 

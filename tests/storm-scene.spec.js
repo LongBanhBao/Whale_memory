@@ -70,8 +70,8 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
   await expect(page.locator('.storm-wave')).toHaveCount(5);
   await expect(page.locator('.storm-lightning')).toHaveCount(2);
   await expect(page.locator('.storm-rain__plane')).toHaveCount(3);
-  await expect(page.locator('.storm-rain__streak')).toHaveCount(48);
-  await expect(page.locator('.storm-spray__drop')).toHaveCount(42);
+  await expect(page.locator('.storm-rain__streak')).toHaveCount(28);
+  await expect(page.locator('.storm-spray__drop')).toHaveCount(24);
   await expect(page.locator('.memory-shard, .memory-particle, .ascent-line, .suspended-drop')).toHaveCount(0);
   await expect(page.locator('#storm-backdrop')).toHaveAttribute('src', /storm-ocean-v2\.webp/);
   expect(requestedAssets.some(url => /blue-whale-sprite/i.test(url))).toBe(false);

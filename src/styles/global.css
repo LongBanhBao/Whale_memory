@@ -121,15 +121,16 @@ img {
 .film-grain {
   position: fixed;
   z-index: 80;
-  inset: -35%;
+  inset: 0;
   pointer-events: none;
-  opacity: 0.045;
+  opacity: 0.022;
   background-image:
     repeating-radial-gradient(circle at 18% 27%, transparent 0 1px, #fff 1px 1.4px, transparent 1.6px 4px),
     repeating-radial-gradient(circle at 77% 62%, transparent 0 1px, #62d8ff 1.2px 1.5px, transparent 1.8px 4px);
   background-size: 9px 11px, 13px 15px;
-  animation: grain-shift 680ms steps(2) infinite;
-  mix-blend-mode: soft-light;
+  animation: none;
+  mix-blend-mode: normal;
+  contain: strict;
 }
 
 .ambient-header {

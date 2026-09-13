@@ -8,29 +8,24 @@
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   pointer-events: none;
 }
-.journey-backdrop { z-index: 0; will-change: transform; filter: brightness(.72) saturate(.88); }
+.journey-backdrop { z-index: 0; will-change: auto; filter: brightness(.72) saturate(.88); }
 .journey-transition-backdrop { z-index: 29; opacity: 0; filter: brightness(.72) saturate(.88); }
 .journey-memory-film {
   position: absolute;
   z-index: 1;
-  inset: -2%;
+  inset: 0;
   overflow: hidden;
   border: 0;
   opacity: calc(var(--journey-film-opacity, 0) * .42);
   pointer-events: none;
-  contain: layout paint;
+  contain: strict;
   will-change: opacity;
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, #000 13%, #000 87%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 11%, #000 84%, transparent 100%);
-  mask-image:
-    linear-gradient(to right, transparent 0%, #000 13%, #000 87%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 11%, #000 84%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
+.journey-memory-film[data-playback='idle'],
+.journey-memory-film[data-playback='paused'],
+.journey-memory-film[data-playback='released'] { visibility: hidden; }
 .journey-memory-film[data-playback='fading'] {
   transition: opacity 700ms ease-out;
 }
@@ -40,7 +35,9 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 50% 38%, transparent 22%, rgba(3, 31, 50, .12) 58%, rgba(1, 14, 31, .52) 100%),
+    linear-gradient(90deg, #07364f 0%, rgba(7, 54, 79, .45) 8%, transparent 18% 82%, rgba(7, 54, 79, .45) 92%, #07364f 100%),
+    linear-gradient(180deg, #07364f 0%, rgba(7, 54, 79, .28) 10%, transparent 20% 80%, rgba(3, 29, 52, .48) 92%, #031d34 100%),
+    radial-gradient(ellipse at 50% 38%, transparent 22%, rgba(3, 31, 50, .1) 58%, rgba(1, 14, 31, .46) 100%),
     linear-gradient(180deg, rgba(5, 49, 70, .28), rgba(3, 42, 64, .38) 54%, rgba(1, 18, 38, .58));
 }
 .journey-memory-video {
@@ -53,8 +50,6 @@
   border: 0;
   object-fit: cover;
   object-position: 50% 37%;
-  transform: scale(1.025);
-  transform-origin: center;
 }
 .journey-world .portal-layer { z-index: 8; }
 .journey-world .foreground-layer { z-index: 35; }
@@ -71,7 +66,7 @@
 .water-gate__ring {
   position: absolute; z-index: 1; inset: 0;
   transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
-  filter: drop-shadow(0 0 18px rgb(65 196 230 / .18));
+  filter: none;
 }
 .water-gate__depth {
   position: absolute; inset: 19%; border-radius: 50%;
@@ -83,15 +78,16 @@
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
   transform: rotate(var(--current-angle, 0deg)) scale(calc(.96 + var(--gate-pulse, 0) * .035));
   opacity: calc(.72 + var(--gate-pulse, 0) * .16);
-  filter: saturate(.78) brightness(.71) contrast(1.12) hue-rotate(-3deg);
+  filter: none;
 }
 .water-gate__ring::before, .water-gate__ring::after {
   content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle, transparent 37%, #8ee9f322 42%, transparent 48%, #72ddea2e 58%, transparent 72%);
-  filter: blur(4px); opacity: calc(.32 + var(--gate-pulse, 0) * .2);
+  filter: none; opacity: calc(.25 + var(--gate-pulse, 0) * .16);
 }
 .water-gate__ring::after {
-  inset: 3%; opacity: .38; filter: blur(10px);
+  display: none;
+  inset: 3%; opacity: .38; filter: none;
   background: conic-gradient(from var(--current-angle), transparent, #b9f7ff36, transparent 18%, #6cbfe22b, transparent 57%, #ddffff52, transparent);
   mask-image: radial-gradient(circle, transparent 38%, #000 49%, transparent 73%);
 }
@@ -125,15 +121,15 @@
   position: absolute; z-index: 4; inset: 0; pointer-events: none;
   transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
   transform-origin: center;
-  -webkit-mask: var(--vortex-mask) center / contain no-repeat;
-  mask: var(--vortex-mask) center / contain no-repeat;
-  opacity: .52; mix-blend-mode: screen;
+  -webkit-mask: none;
+  mask: none;
+  opacity: .42; mix-blend-mode: screen;
 }
 .water-gate__memory-wash--rear { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
 .water-gate__memory-wash--near { clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); }
-.memory-current--wash { filter: blur(.2px); }
-.memory-current--wash .memory-current__body { stroke-width: 11; opacity: .12; filter: blur(3px); }
-.memory-current--wash .memory-current__glow { stroke-width: 2.2; opacity: .28; filter: blur(1px); }
+.memory-current--wash { filter: none; }
+.memory-current--wash .memory-current__body { stroke-width: 11; opacity: .1; filter: none; }
+.memory-current--wash .memory-current__glow { stroke-width: 2.2; opacity: .28; filter: none; }
 .memory-current--wash .memory-current__foam { stroke: #d6fbff; }
 .memory-current--wash .memory-current__highlights { opacity: .7; }
 .memory-current--wash .memory-current__sparkle { opacity: calc(var(--glint-light, .6) * .72); }
@@ -144,7 +140,7 @@
   transform: rotate(var(--gate-tilt)) scaleX(var(--gate-compression));
   opacity: calc(var(--memory-visibility, 0) * .18);
   mix-blend-mode: screen;
-  filter: saturate(.65) brightness(.88);
+  filter: none;
 }
 .water-gate--memories-rear::after { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
 .water-gate--memories-near::after { clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); }
@@ -163,10 +159,10 @@
   opacity: calc(var(--memory-visibility, 0) * var(--recall, 0));
 }
 .memory-current__body {
-  stroke: #0d779f; stroke-width: 18; opacity: .34; filter: blur(5px);
+  stroke: #0d779f; stroke-width: 18; opacity: .24; filter: none;
 }
 .memory-current__glow {
-  stroke: var(--gate-accent, #60dfff); stroke-width: 3; opacity: .34; filter: blur(2px);
+  stroke: var(--gate-accent, #60dfff); stroke-width: 3; opacity: .42; filter: none;
 }
 .memory-current__foam {
   stroke: #b5edf3; stroke-dashoffset: calc(var(--flow-offset, 0) + var(--strand) * 7);
@@ -174,11 +170,11 @@
 .memory-current__highlights {
   stroke: #efffff; stroke-width: 2; stroke-dasharray: 2 37 7 61;
   stroke-dashoffset: var(--flow-offset, 0);
-  filter: drop-shadow(0 0 2px #96edff); opacity: .9;
+  filter: none; opacity: .9;
 }
 .memory-current__sparkle {
   stroke: #edffff; stroke-width: 1.1;
-  filter: drop-shadow(0 0 2px #71e2ff); opacity: var(--glint-light, .6);
+  filter: none; opacity: var(--glint-light, .6);
 }
 .memory-current__sparkle--alternate {
   opacity: calc(1 - var(--glint-light, .6));
@@ -188,9 +184,7 @@
   opacity: calc(var(--memory-visibility, 0) * var(--recall, 0)); isolation: isolate;
   transform: translate(-50%, -50%) translateY(var(--memory-float, 0px))
     scale(calc(.82 + var(--recall, 0) * .18)) scale(var(--memory-breathe, 1));
-  filter:
-    drop-shadow(0 2px 2px rgb(220 255 255 / .14))
-    drop-shadow(0 0 7px color-mix(in srgb, var(--gate-accent) 32%, transparent));
+  filter: none;
 }
 .memory-portrait {
   position: absolute; z-index: 1; inset: -2%; overflow: visible; isolation: isolate;
@@ -220,6 +214,7 @@
   pointer-events: none;
 }
 .memory-portrait::before {
+  display: none;
   background: var(--memory-image) center var(--memory-focus, 32%) / var(--memory-fit, contain) no-repeat;
   mix-blend-mode: screen;
   opacity: .1;
@@ -238,26 +233,19 @@
   background-position: center, var(--memory-glint, 50%) center;
   mix-blend-mode: screen;
   opacity: .36;
-  filter: blur(.35px);
+  filter: none;
 }
 .memory-portrait img {
   position: relative; z-index: 1; display: block; width: 100%; height: 100%;
   object-fit: var(--memory-fit, cover); object-position: center var(--memory-focus, 32%);
   opacity: .92; mix-blend-mode: normal;
-  filter: saturate(.82) contrast(1.03) brightness(1.03) sepia(.05) hue-rotate(-4deg)
-    drop-shadow(0 0 2px rgb(221 255 255 / .32));
+  filter: saturate(.88) contrast(1.02) brightness(1.02);
 }
 .journey-world .intro-whale__wake { opacity: var(--wake-strength, .35); transition: opacity 180ms linear; }
 @media (max-width: 760px) {
   .journey-memory-film {
-    inset: -1%;
+    inset: 0;
     opacity: calc(var(--journey-film-opacity, 0) * .34);
-    -webkit-mask-image:
-      linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%),
-      linear-gradient(to bottom, transparent 0%, #000 8%, #000 88%, transparent 100%);
-    mask-image:
-      linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%),
-      linear-gradient(to bottom, transparent 0%, #000 8%, #000 88%, transparent 100%);
   }
   .journey-world .water-gate { width: min(78vw, 53vh); }
   .gate-memory { width: 28%; }

@@ -2,7 +2,7 @@
   background:
     radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--scene-accent) 15%, transparent), transparent 34%),
     linear-gradient(180deg, #07324d 0%, #041d34 45%, #020b1b 100%);
-  filter: saturate(calc(1 - var(--color-drain, 0) * 0.7));
+  filter: none;
   transition: background-color 400ms ease;
 }
 
@@ -19,7 +19,7 @@
     linear-gradient(78deg, transparent 47%, rgba(142, 236, 255, 0.08) 53%, transparent 59%),
     linear-gradient(113deg, transparent 62%, rgba(104, 207, 255, 0.06) 67%, transparent 73%);
   clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
-  filter: blur(5px);
+  filter: none;
   opacity: calc(0.3 + var(--journey-light, 0.5) * 0.65);
   transform-origin: top;
   animation: ray-drift 9s ease-in-out infinite alternate;
@@ -30,7 +30,7 @@
   z-index: 2;
   border: 1px solid rgba(81, 202, 242, 0.12);
   border-radius: 50%;
-  filter: blur(2px);
+  filter: none;
 }
 
 .depth-haze--one {
@@ -92,7 +92,7 @@
   aspect-ratio: 1.8;
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(87, 205, 222, 0.075), rgba(58, 145, 186, 0.025) 43%, transparent 72%);
-  filter: blur(22px);
+  filter: none;
   opacity: 0.76;
   animation: journey-veil 17s ease-in-out infinite alternate;
 }
@@ -109,6 +109,7 @@
   rotate: 19deg;
   animation-delay: -9s;
   animation-direction: alternate-reverse;
+  display: none;
 }
 
 .journey-ambience--near {
@@ -144,7 +145,7 @@
   stroke: url('#journey-current-gradient');
   stroke-width: 34;
   opacity: 0.11;
-  filter: blur(9px);
+  filter: none;
 }
 
 .journey-current__glint,
@@ -154,7 +155,7 @@
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 3 8 15 31;
   animation: journey-current-flow 18s linear var(--current-delay, 0s) infinite;
-  filter: drop-shadow(0 0 3px rgba(167, 246, 249, 0.5));
+  filter: none;
   opacity: 0.48;
 }
 
@@ -164,7 +165,7 @@
   stroke-dasharray: 0.7 17 0.7 29;
   animation-duration: 25s;
   animation-direction: reverse;
-  filter: drop-shadow(0 0 3px rgba(255, 215, 168, 0.32));
+  filter: none;
   opacity: 0.34;
 }
 
@@ -190,17 +191,17 @@
 }
 
 .journey-bubbles--far .journey-bubble {
-  filter: blur(0.15px);
+  filter: none;
 }
 
 .journey-bubbles--near .journey-bubble {
   border-color: rgba(207, 251, 252, 0.42);
-  filter: blur(0.35px);
+  filter: none;
   box-shadow: inset -1px -1px 4px rgba(17, 88, 132, 0.18), 0 0 9px rgba(119, 229, 238, 0.13);
 }
 
 .journey-bubble--soft {
-  filter: blur(1.15px) !important;
+  filter: none !important;
 }
 
 .journey-motif {
@@ -215,7 +216,7 @@
   stroke-width: 1.15;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: blur(0.2px) drop-shadow(0 0 8px rgba(80, 190, 214, 0.16));
+  filter: none;
   opacity: 0.12;
   animation: journey-motif-drift var(--motif-duration) ease-in-out var(--motif-delay) infinite;
 }
@@ -227,7 +228,7 @@
 
 .journey-motif--shell {
   stroke: rgba(238, 220, 192, 0.35);
-  filter: blur(0.25px) drop-shadow(0 0 7px rgba(245, 207, 164, 0.1));
+  filter: none;
 }
 
 @keyframes ray-drift {

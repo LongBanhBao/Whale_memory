@@ -18,14 +18,19 @@ test('tải đủ bốn cảnh và toàn bộ asset của phần mở đầu', a
   await expect(page.locator('#skip-intro')).toHaveCount(0);
   await expect(page.locator('.falling-memory')).toHaveCount(5);
   await expect(page.locator('.water-ripple')).toHaveCount(5);
-  await expect(page.locator('#portal-layer > .portal')).toHaveCount(3);
-  await expect(page.locator('.memory-tile')).toHaveCount(48);
+  // Expensive later scenes stay unconstructed until their handoff so they
+  // cannot interrupt the opening animation with hidden DOM/WebGL work.
+  await expect(page.locator('#portal-layer > .portal')).toHaveCount(0);
+  await expect(page.locator('.memory-tile')).toHaveCount(0);
+  await expect(page.locator('html')).not.toHaveAttribute('data-storm-ready', 'true');
   await expect.poll(() => page.locator('#intro-backdrop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
   await expect.poll(() => page.locator('#hold-water-drop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
   await expect.poll(() => page.locator('#intro-whale-still').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
 
   await goToProgress(page, '#ocean-remembers', 0.9);
   await page.waitForTimeout(350);
+  await expect(page.locator('#portal-layer > .portal')).toHaveCount(3);
+  await expect(page.locator('.memory-tile')).toHaveCount(48);
   await expect(page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' })).toBeAttached();
   expect(failedResponses).toEqual([]);
   expect(runtimeErrors).toEqual([]);
