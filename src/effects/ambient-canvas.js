@@ -1,4 +1,4 @@
-import { isCompactRuntime, renderPixelRatio } from './runtime-profile.js';
+import { isCompactRuntime, renderPixelRatio, runtimeViewport } from './runtime-profile.js';
 
 const palettes = {
   intro: ['90, 220, 255', '64, 128, 196'],
@@ -14,7 +14,7 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
     return { setMood() {}, destroy() {} };
   }
   const compactRuntime = isCompactRuntime();
-  const particleCount = reducedMotion ? 22 : compactRuntime ? 34 : 88;
+  const particleCount = reducedMotion ? 22 : compactRuntime ? 26 : 88;
   const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 30 : 0;
   const particles = [];
   let width = 0;
@@ -39,11 +39,12 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
   }
 
   function resize() {
-    ratio = renderPixelRatio(2, 1.2);
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = Math.round(width * ratio);
-    canvas.height = Math.round(height * ratio);
+    ratio = renderPixelRatio(2, 1);
+    ({ width, height } = runtimeViewport());
+    const backingWidth = Math.round(width * ratio);
+    const backingHeight = Math.round(height * ratio);
+    if (canvas.width !== backingWidth) canvas.width = backingWidth;
+    if (canvas.height !== backingHeight) canvas.height = backingHeight;
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
     canvas.dataset.pixelRatio = ratio.toFixed(2);
@@ -112,6 +113,7 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
   for (let i = 0; i < particleCount; i += 1) particles.push(randomParticle(true));
   resize();
   window.addEventListener('resize', scheduleResize, { passive: true });
+  window.addEventListener('bluevoyage:viewportchange', scheduleResize);
   document.addEventListener('visibilitychange', onVisibilityChange);
   animationFrame = requestAnimationFrame(draw);
 
@@ -124,6 +126,7 @@ export function createAmbientCanvas(canvas, reducedMotion = false) {
       cancelAnimationFrame(animationFrame);
       window.clearTimeout(resizeTimer);
       window.removeEventListener('resize', scheduleResize);
+      window.removeEventListener('bluevoyage:viewportchange', scheduleResize);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     },
   };

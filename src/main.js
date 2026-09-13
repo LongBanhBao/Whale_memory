@@ -13,14 +13,18 @@ import {
 } from './effects/storm-motion.js';
 import { createIntroWhale } from './effects/intro-whale.js';
 import { createAmbientCanvas } from './effects/ambient-canvas.js';
-import { isCompactRuntime, syncRuntimeProfile } from './effects/runtime-profile.js';
+import { isCompactRuntime, runtimeViewport, syncRuntimeProfile } from './effects/runtime-profile.js';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stormMobileQuery = window.matchMedia('(max-width: 760px)');
 const compactRuntime = isCompactRuntime();
 syncRuntimeProfile();
 window.addEventListener('resize', syncRuntimeProfile, { passive: true });
-if (compactRuntime && !reducedMotion) gsap.ticker.fps(45);
+window.addEventListener('orientationchange', () => {
+  window.setTimeout(() => {
+    syncRuntimeProfile(true);
+    window.dispatchEvent(new CustomEvent('bluevoyage:viewportchange'));
+  }, 180);
+}, { passive: true });
 const assetUrl = (path) => `${window.__BLUE_VOYAGE_ASSET_ROOT__ ?? import.meta.env.BASE_URL}${path}`;
 const imageById = new Map(images.map((image) => [image.id, image]));
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -33,6 +37,9 @@ const bell = (value, start, peak, end) => (
   smoothstep((value - start) / (peak - start))
   * (1 - smoothstep((value - peak) / (end - peak)))
 );
+const setData = (node, key, value) => {
+  if (node.dataset[key] !== value) node.dataset[key] = value;
+};
 
 const introSection = document.querySelector('#memory-drops');
 const introWorld = document.querySelector('.intro-world');
@@ -162,7 +169,8 @@ function buildStorm() {
     return impact;
   });
 
-  for (let index = 0; index < 48; index += 1) {
+  const rainCount = compactRuntime ? 16 : 48;
+  for (let index = 0; index < rainCount; index += 1) {
     const streak = document.createElement('i');
     streak.className = 'storm-rain__streak';
     streak.style.setProperty('--rain-x', `${-5 + ((index * 37) % 112)}%`);
@@ -175,7 +183,8 @@ function buildStorm() {
     stormRainNear.append(streak);
   }
 
-  for (let index = 0; index < 42; index += 1) {
+  const sprayCount = compactRuntime ? 10 : 42;
+  for (let index = 0; index < sprayCount; index += 1) {
     const spray = document.createElement('i');
     spray.className = 'storm-spray__drop';
     spray.style.setProperty('--spray-x', `${2 + ((index * 41) % 97)}%`);
@@ -187,7 +196,8 @@ function buildStorm() {
     stormSpray.append(spray);
   }
 
-  for (let index = 0; index < 24; index += 1) {
+  const debrisCount = compactRuntime ? 8 : 24;
+  for (let index = 0; index < debrisCount; index += 1) {
     const debris = document.createElement('i');
     debris.className = 'storm-debris__piece';
     debris.style.setProperty('--debris-x', `${48 + ((index * 19) % 38)}%`);
@@ -202,7 +212,8 @@ function buildStorm() {
 }
 
 function buildMemoryWhale() {
-  for (let index = 0; index < 48; index += 1) {
+  const tileCount = compactRuntime ? 24 : 48;
+  for (let index = 0; index < tileCount; index += 1) {
     const image = images[index % images.length];
     const tile = document.createElement('div');
     tile.className = 'memory-tile';
@@ -376,7 +387,7 @@ function triggerMemoryBloom(level) {
 }
 
 function renderHoldProgress(progress) {
-  const viewportHeight = window.innerHeight;
+  const { height: viewportHeight } = runtimeViewport();
   const fallDistance = viewportHeight * 0.55;
   let sceneLight = 0;
 
@@ -469,8 +480,9 @@ function startReturnSequence() {
     return;
   }
 
-  const fallDistance = window.innerHeight * 0.55;
-  const haloDistance = window.innerHeight * 0.28;
+  const { height: viewportHeight } = runtimeViewport();
+  const fallDistance = viewportHeight * 0.55;
+  const haloDistance = viewportHeight * 0.28;
   const whaleState = { progress: 0 };
   const firstReturnAt = 0.68;
   const returnSpacing = 0.46;
@@ -608,7 +620,7 @@ function releaseStormTransitionLight() {
 }
 
 function stormEntryPose() {
-  const { whale: pose } = stormMotion(0, { mobile: stormMobileQuery.matches });
+  const { whale: pose } = stormMotion(0, { mobile: compactRuntime });
   return {
     ...pose,
     opacity: .98,
@@ -647,7 +659,7 @@ function startStormHandoff() {
   reducedNext.disabled = true;
   const transfer = { progress: 0 };
   gsap.set(stormEntryCurrent, {
-    opacity: 1,
+    opacity: compactRuntime ? 0 : 1,
     '--storm-entry-radius': '0vmax',
     '--storm-entry-surge': 0,
   });
@@ -681,7 +693,12 @@ function startStormHandoff() {
         );
       },
     }, 0)
-    .to(stormEntryCurrent, {
+    .to(stormEntryCurrent, compactRuntime ? {
+      opacity: 1,
+      '--storm-entry-surge': 1,
+      duration: 1.35,
+      ease: 'sine.inOut',
+    } : {
       '--storm-entry-radius': '165vmax',
       '--storm-entry-surge': 1,
       duration: 1.55,
@@ -784,14 +801,11 @@ function renderJourney(state) {
 
 function renderStorm({ progress }) {
   prepareStorm();
-  const frame = stormMotion(progress, { mobile: stormMobileQuery.matches });
-  stormWorld.dataset.stormPhase = frame.phase;
-  stormWorld.style.setProperty('--storm-progress', frame.progress.toFixed(4));
+  const frame = stormMotion(progress, { mobile: compactRuntime });
+  const viewport = runtimeViewport();
+  setData(stormWorld, 'stormPhase', frame.phase);
   stormWorld.style.setProperty('--storm-intensity', frame.storm.intensity.toFixed(4));
   stormWorld.style.setProperty('--storm-clear', frame.storm.clear.toFixed(4));
-  stormWorld.style.setProperty('--storm-rain', frame.storm.rain.toFixed(4));
-  stormWorld.style.setProperty('--storm-rain-far', frame.storm.rainFar.toFixed(4));
-  stormWorld.style.setProperty('--storm-rain-mid', frame.storm.rainMid.toFixed(4));
   stormWorld.style.setProperty('--storm-rain-near', frame.storm.rainNear.toFixed(4));
   stormWorld.style.setProperty('--storm-lightning', frame.storm.lightning.toFixed(4));
   stormWorld.style.setProperty('--storm-lightning-far', frame.storm.lightningFar.toFixed(4));
@@ -799,10 +813,14 @@ function renderStorm({ progress }) {
   stormWorld.style.setProperty('--storm-lightning-sheet', frame.storm.lightningSheet.toFixed(4));
   stormWorld.style.setProperty('--storm-swell', frame.storm.swell.toFixed(4));
   stormWorld.style.setProperty('--storm-spray', frame.storm.spray.toFixed(4));
-  stormWorld.style.setProperty('--storm-shake-x', `${frame.storm.shakeX.toFixed(3)}px`);
-  stormWorld.style.setProperty('--storm-shake-y', `${frame.storm.shakeY.toFixed(3)}px`);
-  stormWorld.style.setProperty('--storm-flow', `${(-frame.storm.flow).toFixed(3)}px`);
-  stormWorld.style.setProperty('--storm-impact', frame.impact.toFixed(4));
+  if (!compactRuntime) {
+    stormWorld.style.setProperty('--storm-progress', frame.progress.toFixed(4));
+    stormWorld.style.setProperty('--storm-rain-far', frame.storm.rainFar.toFixed(4));
+    stormWorld.style.setProperty('--storm-rain-mid', frame.storm.rainMid.toFixed(4));
+    stormWorld.style.setProperty('--storm-shake-x', `${frame.storm.shakeX.toFixed(3)}px`);
+    stormWorld.style.setProperty('--storm-shake-y', `${frame.storm.shakeY.toFixed(3)}px`);
+    stormWorld.style.setProperty('--storm-flow', `${(-frame.storm.flow).toFixed(3)}px`);
+  }
   stormWorld.style.setProperty('--storm-family', frame.family.toFixed(4));
   stormWorld.style.setProperty('--storm-breakthrough', frame.breakthrough.toFixed(4));
   stormWorld.style.setProperty('--storm-debris', bell(frame.progress, .65, .78, .92).toFixed(4));
@@ -811,45 +829,77 @@ function renderStorm({ progress }) {
   stormWorld.style.setProperty('--storm-copy-two', frame.copy.family.toFixed(4));
   stormWorld.style.setProperty('--storm-whale-x', `${(frame.whale.x * 100).toFixed(3)}%`);
   stormWorld.style.setProperty('--storm-whale-y', `${(frame.whale.y * 100).toFixed(3)}%`);
-  stormWorld.style.setProperty('--storm-whale-scale', frame.whale.scale.toFixed(4));
-  stormWorld.style.setProperty('--storm-whale-rotation', `${frame.whale.rotation.toFixed(3)}deg`);
-  stormWorld.style.setProperty('--storm-whale-sadness', frame.whale.sadness.toFixed(4));
-  stormWorld.style.setProperty('--storm-whale-hope', frame.whale.hope.toFixed(4));
-  stormWorld.style.setProperty('--storm-whale-effort', frame.whale.effort.toFixed(4));
   stormWorld.style.setProperty('--storm-beacon', frame.light.beacon.toFixed(4));
   stormWorld.style.setProperty('--storm-beacon-x', `${frame.light.x}%`);
   stormWorld.style.setProperty('--storm-beacon-y', `${frame.light.y}%`);
 
   stormActors.obstacles.forEach((obstacle, index) => {
     const obstacleFrame = frame.obstacles[index];
-    obstacle.style.left = `${(obstacleFrame.x * 100).toFixed(3)}%`;
-    obstacle.style.top = `${(obstacleFrame.y * 100).toFixed(3)}%`;
-    obstacle.style.setProperty('--obstacle-rotation', `${obstacleFrame.rotation.toFixed(3)}deg`);
-    obstacle.style.setProperty('--obstacle-scale', obstacleFrame.scale.toFixed(4));
+    setData(obstacle, 'state', obstacleFrame.state);
+    if (compactRuntime && obstacleFrame.opacity <= .005) {
+      if (obstacle.style.visibility !== 'hidden') {
+        obstacle.style.visibility = 'hidden';
+        obstacle.style.setProperty('--obstacle-opacity', '0');
+      }
+      return;
+    }
+    if (compactRuntime && obstacle.style.visibility !== 'visible') obstacle.style.visibility = 'visible';
+    if (compactRuntime) {
+      obstacle.style.transform = `translate3d(${(obstacleFrame.x * viewport.width).toFixed(2)}px, ${(obstacleFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) rotate(${obstacleFrame.rotation.toFixed(3)}deg) scale(${obstacleFrame.scale.toFixed(4)})`;
+    } else {
+      obstacle.style.left = `${(obstacleFrame.x * 100).toFixed(3)}%`;
+      obstacle.style.top = `${(obstacleFrame.y * 100).toFixed(3)}%`;
+      obstacle.style.setProperty('--obstacle-rotation', `${obstacleFrame.rotation.toFixed(3)}deg`);
+      obstacle.style.setProperty('--obstacle-scale', obstacleFrame.scale.toFixed(4));
+    }
     obstacle.style.setProperty('--obstacle-opacity', obstacleFrame.opacity.toFixed(4));
     obstacle.style.setProperty('--obstacle-impact', obstacleFrame.impact.toFixed(4));
     obstacle.style.setProperty('--obstacle-expel', obstacleFrame.expel.toFixed(4));
-    obstacle.dataset.state = obstacleFrame.state;
   });
 
   stormActors.companions.forEach((companion, index) => {
-    if (stormMobileQuery.matches && index >= STORM_MOBILE_COMPANION_COUNT) return;
+    if (compactRuntime && index >= STORM_MOBILE_COMPANION_COUNT) return;
     const companionFrame = frame.companions[index];
-    companion.style.left = `${(companionFrame.x * 100).toFixed(3)}%`;
-    companion.style.top = `${(companionFrame.y * 100).toFixed(3)}%`;
-    companion.style.setProperty('--companion-rotation', `${companionFrame.rotation.toFixed(3)}deg`);
-    companion.style.setProperty('--companion-scale', companionFrame.scale.toFixed(4));
+    if (compactRuntime && companionFrame.opacity <= .005) {
+      if (companion.style.visibility !== 'hidden') {
+        companion.style.visibility = 'hidden';
+        companion.style.setProperty('--companion-opacity', '0');
+      }
+      setData(companion, 'cheering', 'false');
+      return;
+    }
+    if (compactRuntime && companion.style.visibility !== 'visible') companion.style.visibility = 'visible';
+    if (compactRuntime) {
+      companion.style.transform = `translate3d(${(companionFrame.x * viewport.width).toFixed(2)}px, ${(companionFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) rotate(${companionFrame.rotation.toFixed(3)}deg) scale(${companionFrame.scale.toFixed(4)})`;
+    } else {
+      companion.style.left = `${(companionFrame.x * 100).toFixed(3)}%`;
+      companion.style.top = `${(companionFrame.y * 100).toFixed(3)}%`;
+      companion.style.setProperty('--companion-rotation', `${companionFrame.rotation.toFixed(3)}deg`);
+      companion.style.setProperty('--companion-scale', companionFrame.scale.toFixed(4));
+    }
     companion.style.setProperty('--companion-opacity', companionFrame.opacity.toFixed(4));
     companion.style.setProperty('--companion-arrival', companionFrame.arrival.toFixed(4));
-    companion.dataset.formation = companionFrame.arrival > .92 ? 'formed' : 'arriving';
-    companion.dataset.cheering = companionFrame.arrival > .08 && frame.phase !== 'light-wipe'
-      ? 'true' : 'false';
+    setData(companion, 'formation', companionFrame.arrival > .92 ? 'formed' : 'arriving');
+    setData(companion, 'cheering', companionFrame.arrival > .08 && frame.phase !== 'light-wipe'
+      ? 'true' : 'false');
   });
 
   stormActors.impacts.forEach((impact, index) => {
     const obstacleFrame = frame.obstacles[index];
-    impact.style.left = `${(obstacleFrame.x * 100).toFixed(3)}%`;
-    impact.style.top = `${(obstacleFrame.y * 100).toFixed(3)}%`;
+    if (compactRuntime && obstacleFrame.impact <= .005) {
+      if (impact.style.visibility !== 'hidden') {
+        impact.style.visibility = 'hidden';
+        impact.style.setProperty('--impact', '0');
+      }
+      return;
+    }
+    if (compactRuntime && impact.style.visibility !== 'visible') impact.style.visibility = 'visible';
+    if (compactRuntime) {
+      impact.style.transform = `translate3d(${(obstacleFrame.x * viewport.width).toFixed(2)}px, ${(obstacleFrame.y * viewport.height).toFixed(2)}px, 0) translate(-50%, -50%) scale(${(.3 + obstacleFrame.impact * .92).toFixed(4)})`;
+    } else {
+      impact.style.left = `${(obstacleFrame.x * 100).toFixed(3)}%`;
+      impact.style.top = `${(obstacleFrame.y * 100).toFixed(3)}%`;
+    }
     impact.style.setProperty('--impact', obstacleFrame.impact.toFixed(4));
   });
 
@@ -859,11 +909,11 @@ function renderStorm({ progress }) {
     const hidden = visibility < .08 ? 'true' : 'false';
     if (line.getAttribute('aria-hidden') !== hidden) line.setAttribute('aria-hidden', hidden);
   });
-  whaleCanvas.dataset.expression = frame.whale.sadness > .62
-    ? 'sad' : frame.whale.hope > .55 ? 'hopeful' : 'strained';
-  stormCamera.dataset.weather = frame.storm.clear > .72 ? 'clearing' : 'storming';
-  familyCurrent.dataset.active = frame.family > .1 ? 'true' : 'false';
-  stormDestination.dataset.active = frame.light.beacon > .1 ? 'true' : 'false';
+  setData(whaleCanvas, 'expression', frame.whale.sadness > .62
+    ? 'sad' : frame.whale.hope > .55 ? 'hopeful' : 'strained');
+  setData(stormCamera, 'weather', frame.storm.clear > .72 ? 'clearing' : 'storming');
+  setData(familyCurrent, 'active', frame.family > .1 ? 'true' : 'false');
+  setData(stormDestination, 'active', frame.light.beacon > .1 ? 'true' : 'false');
   stormTransitionLight.style.setProperty('--storm-wipe', frame.light.wipe.toFixed(4));
   stormTransitionLight.style.setProperty('--storm-wipe-radius', `${frame.light.radius.toFixed(3)}vmax`);
   stormTransitionLight.style.setProperty('--storm-wipe-x', `${frame.light.x}%`);
@@ -884,14 +934,16 @@ function renderFinale({ progress }) {
     const reveal = smoothstep((progress - 0.53) / 0.14);
     const cameraPullback = smoothstep((progress - 0.58) / 0.2);
     const buttonReveal = smoothstep((progress - 0.78) / 0.12);
-    const targetScale = clamp(0.82 + (760 - window.innerWidth) / 2600, 0.82, 0.98);
+    const targetScale = clamp(0.82 + (760 - runtimeViewport().width) / 2600, 0.82, 0.98);
     const ready = buttonReveal > 0.96 && !lightSent;
 
     finaleWorld.style.setProperty('--memory-opacity', `${reveal}`);
     finaleWorld.style.setProperty('--memory-scale', `${lerp(1.48, targetScale, cameraPullback)}`);
     finaleWorld.style.setProperty('--copy-reveal', lightSent ? '1' : '0');
     finaleWorld.style.setProperty('--button-reveal', `${buttonReveal}`);
-    memoryGrid.style.translate = `${Math.sin(progress * Math.PI) * -1.2}% ${Math.sin(progress * Math.PI * 0.7) * 1.1}%`;
+    if (!compactRuntime) {
+      memoryGrid.style.translate = `${Math.sin(progress * Math.PI) * -1.2}% ${Math.sin(progress * Math.PI * 0.7) * 1.1}%`;
+    }
     sendLight.disabled = !ready;
     sendLight.classList.toggle('is-ready', ready);
     stormWhale.setPose({ opacity: 0 });

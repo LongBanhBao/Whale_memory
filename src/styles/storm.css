@@ -363,6 +363,8 @@
 
 .storm-obstacle {
   position: absolute;
+  top: 0;
+  left: 0;
   width: max-content;
   max-width: 54vw;
   min-height: 0;
@@ -480,6 +482,8 @@
 
 .companion-whale {
   position: absolute;
+  top: 0;
+  left: 0;
   z-index: 22;
   width: clamp(58px, 6.6vw, 102px);
   aspect-ratio: 1.9;
@@ -617,6 +621,8 @@
 
 .storm-impact {
   position: absolute;
+  top: 0;
+  left: 0;
   width: clamp(105px, 14vw, 196px);
   aspect-ratio: 1;
   transform: translate(-50%, -50%) scale(calc(.3 + var(--impact, 0) * .92));

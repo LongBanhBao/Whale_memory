@@ -1,4 +1,4 @@
-import { isCompactRuntime, renderPixelRatio } from './runtime-profile.js';
+import { isCompactRuntime, renderPixelRatio, runtimeViewport } from './runtime-profile.js';
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const lerp = (from, to, amount) => from + (to - from) * amount;
@@ -83,7 +83,7 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
     return { setPose() {}, snapPose() {}, destroy() {} };
   }
   const compactRuntime = isCompactRuntime();
-  const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 45 : 0;
+  const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 30 : 0;
   const image = new Image();
   const target = { ...POSE_DEFAULTS };
   const current = { ...target };
@@ -100,11 +100,12 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
   let resizeTimer = 0;
 
   function resize() {
-    ratio = renderPixelRatio(2, 1.2);
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = Math.round(width * ratio);
-    canvas.height = Math.round(height * ratio);
+    ratio = renderPixelRatio(2, 1);
+    ({ width, height } = runtimeViewport());
+    const backingWidth = Math.round(width * ratio);
+    const backingHeight = Math.round(height * ratio);
+    if (canvas.width !== backingWidth) canvas.width = backingWidth;
+    if (canvas.height !== backingHeight) canvas.height = backingHeight;
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.dataset.pixelRatio = ratio.toFixed(2);
@@ -227,6 +228,7 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
 
   resize();
   window.addEventListener('resize', scheduleResize, { passive: true });
+  window.addEventListener('bluevoyage:viewportchange', scheduleResize);
   document.addEventListener('visibilitychange', onVisibilityChange);
   image.addEventListener('load', onLoad, { once: true });
   image.addEventListener('error', onError, { once: true });
@@ -241,6 +243,7 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
       cancelAnimationFrame(frameHandle);
       window.clearTimeout(resizeTimer);
       window.removeEventListener('resize', scheduleResize);
+      window.removeEventListener('bluevoyage:viewportchange', scheduleResize);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       image.removeEventListener('load', onLoad);
       image.removeEventListener('error', onError);
@@ -252,7 +255,7 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
 
 export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = false) {
   const compactRuntime = isCompactRuntime();
-  const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 45 : 0;
+  const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 30 : 0;
   const gl = canvas.getContext('webgl', {
     alpha: true,
     antialias: !compactRuntime,
@@ -429,8 +432,8 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
     return { setPose() {}, snapPose() {}, destroy() {} };
   }
 
-  const columns = 58;
-  const rows = 36;
+  const columns = compactRuntime ? 34 : 58;
+  const rows = compactRuntime ? 21 : 36;
   const points = [];
   for (let row = 0; row < rows; row += 1) {
     for (let column = 0; column < columns; column += 1) {
@@ -486,15 +489,17 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
   let resizeTimer = 0;
 
   function resize() {
-    pixelRatio = renderPixelRatio(2, 1.2);
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = Math.round(width * pixelRatio);
-    canvas.height = Math.round(height * pixelRatio);
+    pixelRatio = renderPixelRatio(2, 1);
+    ({ width, height } = runtimeViewport());
+    const backingWidth = Math.round(width * pixelRatio);
+    const backingHeight = Math.round(height * pixelRatio);
+    const sizeChanged = canvas.width !== backingWidth || canvas.height !== backingHeight;
+    if (canvas.width !== backingWidth) canvas.width = backingWidth;
+    if (canvas.height !== backingHeight) canvas.height = backingHeight;
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.dataset.pixelRatio = pixelRatio.toFixed(2);
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (sizeChanged) gl.viewport(0, 0, canvas.width, canvas.height);
     schedule();
   }
 
@@ -603,6 +608,7 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
 
   resize();
   window.addEventListener('resize', scheduleResize, { passive: true });
+  window.addEventListener('bluevoyage:viewportchange', scheduleResize);
   document.addEventListener('visibilitychange', onVisibilityChange);
   canvas.addEventListener('webglcontextlost', onContextLost);
   image.addEventListener('load', upload, { once: true });
@@ -619,6 +625,7 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
       cancelAnimationFrame(frameHandle);
       window.clearTimeout(resizeTimer);
       window.removeEventListener('resize', scheduleResize);
+      window.removeEventListener('bluevoyage:viewportchange', scheduleResize);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       canvas.removeEventListener('webglcontextlost', onContextLost);
       image.removeEventListener('load', upload);

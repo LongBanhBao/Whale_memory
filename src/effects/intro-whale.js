@@ -1,4 +1,4 @@
-import { isCompactRuntime, renderPixelRatio } from './runtime-profile.js';
+import { isCompactRuntime, renderPixelRatio, runtimeViewport } from './runtime-profile.js';
 
 // Continuous swimming on a deformable mesh, independent of scene 2's sprite loop.
 // UV coordinates refer to the original frame; its transparent top margin is
@@ -96,8 +96,8 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
   gl.useProgram(program);
 
   const points = [];
-  const columns = 56;
-  const rows = 26;
+  const columns = compactRuntime ? 32 : 56;
+  const rows = compactRuntime ? 15 : 26;
   for (let y = 0; y < rows; y += 1) {
     for (let x = 0; x < columns; x += 1) {
       const left = x / columns;
@@ -136,8 +136,9 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
     const delta = previousTime ? Math.min((time - previousTime) / 1000, 0.05) : 0;
     previousTime = time;
     if (!reducedMotion) phase += delta * (3.9 - depth * 1.35 + effort * .55);
-    const ratio = renderPixelRatio(1.75, 1.25);
-    const width = Math.round(Math.min(innerWidth < 720 ? innerWidth * 0.96 : innerWidth * 0.62, 900) * ratio);
+    const ratio = renderPixelRatio(1.75, 1);
+    const viewportWidth = runtimeViewport().width;
+    const width = Math.round(Math.min(viewportWidth < 720 ? viewportWidth * 0.96 : viewportWidth * 0.62, 900) * ratio);
     const height = Math.round(width * 0.59);
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width = width;

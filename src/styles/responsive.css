@@ -251,7 +251,8 @@
    direction while reducing the full-screen blur, blend and particle work that
    causes frame drops on high-DPR touch devices. */
 html[data-runtime-profile='compact'] .film-grain {
-  opacity: 0.022;
+  display: none;
+  opacity: 0;
   animation: none;
   mix-blend-mode: normal;
 }
@@ -326,8 +327,367 @@ html[data-runtime-profile='compact'] .cosmic-current--one {
 
 html[data-runtime-profile='compact'] .storm-rain__streak:nth-child(n + 25),
 html[data-runtime-profile='compact'] .storm-spray__drop:nth-child(n + 19),
-html[data-runtime-profile='compact'] .storm-debris__piece:nth-child(n + 17) {
+html[data-runtime-profile='compact'] .storm-debris__piece:nth-child(n + 17),
+html[data-runtime-profile='compact'] .companion-whale:nth-child(n + 17) {
   display: none;
+}
+
+/* Keep phone-sized raster surfaces inside one stable compositor tile. The
+   water, rain and actors still move; the large background bitmaps do not. */
+html[data-runtime-profile='compact'] .film-grain {
+  inset: 0;
+  contain: paint;
+}
+
+html[data-runtime-profile='compact'] .intro-backdrop,
+html[data-runtime-profile='compact'] .journey-backdrop,
+html[data-runtime-profile='compact'] .storm-backdrop {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: none !important;
+  will-change: auto;
+  contain: paint;
+}
+
+html[data-runtime-profile='compact'] .intro-backdrop {
+  filter: brightness(.84) saturate(.88) contrast(1.03);
+}
+
+html[data-runtime-profile='compact'] .intro-color-grade {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(76, 218, 255, .08), transparent 38%),
+    linear-gradient(180deg, rgba(1, 4, 13, .04), rgba(1, 7, 19, .22) 64%, rgba(0, 2, 8, .48));
+  opacity: calc(.78 + var(--intro-light) * .22);
+}
+
+html[data-runtime-profile='compact'] .intro-halo {
+  width: min(118vw, 980px);
+  height: var(--app-height, 100svh);
+  filter: none;
+  mix-blend-mode: screen;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+html[data-runtime-profile='compact'] .intro-halo-core,
+html[data-runtime-profile='compact'] .memory-light__bloom,
+html[data-runtime-profile='compact'] .memory-light__afterglow {
+  filter: none;
+}
+
+html[data-runtime-profile='compact'] .memory-light__bloom {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+html[data-runtime-profile='compact'] .intro-whale-swimmer {
+  filter: drop-shadow(0 0 12px rgba(196, 241, 255, .18));
+  will-change: transform, opacity;
+}
+
+html[data-runtime-profile='compact'] .intro-whale__wake,
+html[data-runtime-profile='compact'] .memory-drop,
+html[data-runtime-profile='compact'] .falling-memory.is-returning .memory-drop {
+  filter: none;
+}
+
+html[data-runtime-profile='compact'] .memory-drop__glass,
+html[data-runtime-profile='compact'] .hold-control__drop img {
+  mix-blend-mode: normal;
+}
+
+html[data-runtime-profile='compact'] .journey-backdrop {
+  filter: brightness(.72) saturate(.86) contrast(1.02);
+}
+
+html[data-runtime-profile='compact'] .journey-currents {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  mix-blend-mode: normal;
+}
+
+html[data-runtime-profile='compact'] .journey-ambience--far::before,
+html[data-runtime-profile='compact'] .journey-ambience--far::after,
+html[data-runtime-profile='compact'] .water-gate__ring::after,
+html[data-runtime-profile='compact'] .water-gate__memory-wash {
+  display: none;
+}
+
+html[data-runtime-profile='compact'] .journey-current__body,
+html[data-runtime-profile='compact'] .journey-current__glint,
+html[data-runtime-profile='compact'] .memory-current__body,
+html[data-runtime-profile='compact'] .memory-current__glow,
+html[data-runtime-profile='compact'] .memory-current__highlights,
+html[data-runtime-profile='compact'] .memory-current__sparkle,
+html[data-runtime-profile='compact'] .water-gate__ring,
+html[data-runtime-profile='compact'] .gate-memory {
+  filter: none;
+}
+
+html[data-runtime-profile='compact'] .memory-current__body {
+  stroke-width: 11;
+  opacity: .24;
+}
+
+html[data-runtime-profile='compact'] .memory-current__glow {
+  stroke-width: 2.4;
+  opacity: .4;
+}
+
+html[data-runtime-profile='compact'] .memory-portrait::before {
+  display: none;
+}
+
+html[data-runtime-profile='compact'] .memory-portrait::after {
+  background: linear-gradient(112deg, transparent 8%, rgba(229, 255, 255, .2) 46%, rgba(109, 213, 233, .12) 62%, transparent 90%);
+  background-position: center;
+  filter: none;
+  opacity: .3;
+}
+
+html[data-runtime-profile='compact'] .memory-portrait img {
+  filter: saturate(.84) contrast(1.03) brightness(1.03) sepia(.04);
+}
+
+html[data-runtime-profile='compact'] .storm-camera {
+  inset: 0;
+  transform: none;
+  contain: layout paint size;
+}
+
+html[data-runtime-profile='compact'] .storm-backdrop {
+  object-position: 64% center;
+  filter: brightness(.6) saturate(.72) contrast(1.1);
+}
+
+html[data-runtime-profile='compact'] .storm-backdrop-echo,
+html[data-runtime-profile='compact'] .storm-surface-churn,
+html[data-runtime-profile='compact'] .storm-rain__plane--far,
+html[data-runtime-profile='compact'] .storm-rain__plane--mid {
+  display: none;
+}
+
+html[data-runtime-profile='compact'] .storm-color-grade {
+  background:
+    radial-gradient(circle at 86% 8%, rgba(205, 250, 255, .24), transparent 26%),
+    linear-gradient(145deg, rgba(5, 10, 27, .26), rgba(21, 28, 52, .3) 52%, rgba(1, 31, 43, .18));
+  box-shadow: inset 0 0 78px rgba(0, 4, 14, .44);
+  opacity: calc(.96 - var(--storm-clear) * .56);
+}
+
+html[data-runtime-profile='compact'] .storm-cloud-field {
+  inset: 0;
+  mix-blend-mode: normal;
+  opacity: calc(.38 + var(--storm-intensity) * .22);
+}
+
+html[data-runtime-profile='compact'] .storm-cloud-field i {
+  filter: none;
+  animation: none;
+  opacity: .42;
+}
+
+html[data-runtime-profile='compact'] .storm-cloud-field i:nth-child(n + 3) {
+  display: none;
+}
+
+html[data-runtime-profile='compact'] .storm-wave-field {
+  inset: -3%;
+  width: 106%;
+  height: 106%;
+  transform: none;
+  opacity: calc(.22 + var(--storm-swell) * .35);
+}
+
+html[data-runtime-profile='compact'] .storm-wave--surface,
+html[data-runtime-profile='compact'] .storm-wave--middle,
+html[data-runtime-profile='compact'] .storm-wave--foam {
+  filter: none;
+}
+
+html[data-runtime-profile='compact'] .storm-wave--surface {
+  display: none;
+}
+
+html[data-runtime-profile='compact'] .storm-wave--middle {
+  stroke-width: 9;
+}
+
+html[data-runtime-profile='compact'] .storm-lightning--far,
+html[data-runtime-profile='compact'] .storm-lightning--near {
+  filter: none;
+}
+
+html[data-runtime-profile='compact'] .storm-rain,
+html[data-runtime-profile='compact'] .storm-spray {
+  inset: -4%;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+html[data-runtime-profile='compact'] .storm-rain__streak,
+html[data-runtime-profile='compact'] .storm-spray__drop {
+  box-shadow: none;
+}
+
+html[data-runtime-profile='compact'] .storm-obstacle,
+html[data-runtime-profile='compact'] .storm-obstacle::before,
+html[data-runtime-profile='compact'] .family-current,
+html[data-runtime-profile='compact'] .family-current::before {
+  filter: none;
+}
+
+html[data-runtime-profile='compact'] .storm-obstacle strong {
+  text-shadow: 1px 2px 0 rgba(58, 76, 94, .86), 2px 4px 0 rgba(31, 47, 63, .72), 0 7px 8px rgba(0, 10, 22, .55);
+}
+
+html[data-runtime-profile='compact'] .storm-obstacle__fragment,
+html[data-runtime-profile='compact'] .storm-debris__piece {
+  box-shadow: none;
+}
+
+html[data-runtime-profile='compact'] .companion-whale > img {
+  filter: brightness(1.06) saturate(.72);
+}
+
+html[data-runtime-profile='compact'] .companion-whale--rear > img {
+  filter: brightness(.9) saturate(.6);
+}
+
+html[data-runtime-profile='compact'] .storm-impact {
+  box-shadow: 0 0 16px rgba(133, 178, 206, .3), inset 0 0 14px rgba(112, 191, 211, .16);
+}
+
+html[data-runtime-profile='compact'] .storm-vignette {
+  background: radial-gradient(ellipse at 54% 47%, transparent 34%, rgba(0, 4, 12, .52) 112%);
+  opacity: calc(1 - var(--storm-clear) * .72);
+}
+
+html[data-runtime-profile='compact'] .storm-entry-current {
+  clip-path: none;
+  filter: brightness(.64) saturate(.74) contrast(1.08);
+  will-change: opacity;
+}
+
+html[data-runtime-profile='compact'] .storm-entry-current::before,
+html[data-runtime-profile='compact'] .storm-entry-current i {
+  filter: none;
+}
+
+html[data-runtime-profile='compact'] .storm-transition-light {
+  clip-path: none;
+  background: radial-gradient(circle at 86% 8%, #fffef4, #efffff 35%, #c9f3f4 72%, #efffff);
+  filter: none;
+  will-change: opacity;
+}
+
+html[data-runtime-profile='compact'] .finale-world::after {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+html[data-runtime-profile='compact'] .cosmic-current {
+  display: none;
+}
+
+html[data-runtime-profile='compact'] .memory-whale {
+  filter: drop-shadow(0 0 16px rgba(76, 215, 255, .18));
+  will-change: transform, opacity;
+}
+
+html[data-runtime-profile='compact'] .memory-grid {
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  filter: none;
+}
+
+html[data-runtime-profile='compact'] .memory-tile::after {
+  mix-blend-mode: normal;
+  opacity: .26;
+}
+
+html[data-runtime-profile='compact'] .memory-tile img {
+  filter: brightness(.84) saturate(.84) contrast(1.04);
+  transition: none;
+}
+
+html[data-runtime-profile='compact'] .memory-whale.is-lit,
+html[data-runtime-profile='compact'] .finale-world.is-complete .memory-whale {
+  filter: drop-shadow(0 0 22px rgba(151, 241, 255, .54));
+}
+
+@media (max-height: 620px) and (orientation: landscape) {
+  :root {
+    --safe-top: max(12px, env(safe-area-inset-top));
+    --safe-right: max(14px, env(safe-area-inset-right));
+    --safe-bottom: max(12px, env(safe-area-inset-bottom));
+    --safe-left: max(14px, env(safe-area-inset-left));
+  }
+
+  html[data-runtime-profile='compact'] .intro-copy {
+    top: 50%;
+    left: 20%;
+    width: 34vw;
+    transform: translate(-50%, -50%);
+    text-align: left;
+  }
+
+  html[data-runtime-profile='compact'] .intro-copy h1 {
+    font-size: clamp(36px, 7vw, 58px);
+    text-indent: 0;
+  }
+
+  html[data-runtime-profile='compact'] .intro-halo,
+  html[data-runtime-profile='compact'] .intro-halo-core,
+  html[data-runtime-profile='compact'] .intro-memory-light,
+  html[data-runtime-profile='compact'] .intro-world .falling-memory,
+  html[data-runtime-profile='compact'] .intro-world .water-ripple,
+  html[data-runtime-profile='compact'] .hold-control {
+    left: 67%;
+  }
+
+  html[data-runtime-profile='compact'] .hold-control {
+    top: 49%;
+    transform: translate(-50%, -50%) scale(.72);
+  }
+
+  html[data-runtime-profile='compact'] .intro-world .falling-memory {
+    top: 17%;
+  }
+
+  html[data-runtime-profile='compact'] .intro-world .water-ripple {
+    top: 82%;
+    width: 48vw;
+  }
+
+  html[data-runtime-profile='compact'] .intro-world .intro-whale-swimmer {
+    left: calc(var(--whale-x) + 12%);
+    width: min(55vw, 500px);
+  }
+
+  html[data-runtime-profile='compact'] .storm-copy {
+    right: 26%;
+    left: 7%;
+  }
+
+  html[data-runtime-profile='compact'] .storm-destination {
+    width: min(30vh, 24vw);
+  }
+
+  html[data-runtime-profile='compact'] .companion-whale {
+    width: clamp(42px, 7.2vw, 58px);
+  }
+
+  html[data-runtime-profile='compact'] .reduced-next {
+    right: var(--safe-right);
+    bottom: var(--safe-bottom);
+    left: auto;
+    min-height: 42px;
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

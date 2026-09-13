@@ -1,8 +1,12 @@
 // Three gates share one continuous camera track. Memories are split across the
 // far and near halves of each rim so their depth agrees with the swimming mesh.
 import { journeyMotion } from './journey-motion.js';
+import { isCompactRuntime } from './runtime-profile.js';
 export { JOURNEY_DURATION } from './journey-motion.js';
 const clamp = (v) => Math.max(0, Math.min(1, v));
+const setData = (node, key, value) => {
+  if (node.dataset[key] !== value) node.dataset[key] = value;
+};
 const memorySlots = [
   { angle: -116, radius: 30.5, lean: -3, flowOrigin: '122% 122%' },
   { angle: -28, radius: 30, lean: 2, flowOrigin: '-22% 122%' },
@@ -157,32 +161,36 @@ function createJourneyAmbience(world) {
 // Four overlapping current segments bind the portraits into one continuous
 // chapter ring. Their short arcs echo the bitmap vortex without forming the
 // detached petal shapes of the previous composition.
-function createMemoryCurrent(slot) {
+function createMemoryCurrent(slot, compactRuntime = false) {
   const ns = 'http://www.w3.org/2000/svg';
   const flow = document.createElementNS(ns, 'svg');
   flow.setAttribute('viewBox', '0 0 400 400');
   flow.classList.add('memory-current');
   const centerAngle = memorySlots[slot].angle * Math.PI / 180;
+  const strandCount = compactRuntime ? 1 : 19;
+  const centerStrand = Math.floor(strandCount / 2);
+  const strandSpacing = compactRuntime ? 8 : 1.65;
+  const sparkleCount = compactRuntime ? 0 : 7;
   const arcPoint = (radius, angle) => [
     200 + Math.cos(angle) * radius,
     200 + Math.sin(angle) * radius,
   ];
-  for (let strand = 0; strand < 19; strand += 1) {
-    const spread = strand - 9;
-    const radius = 119 + spread * 1.65;
+  for (let strand = 0; strand < strandCount; strand += 1) {
+    const spread = strand - centerStrand;
+    const radius = 119 + spread * strandSpacing;
     const start = arcPoint(radius, centerAngle - .68);
     const end = arcPoint(radius, centerAngle + .82);
     const path = document.createElementNS(ns, 'path');
     path.setAttribute('d', `M ${start[0].toFixed(2)} ${start[1].toFixed(2)} A ${radius} ${radius} 0 0 1 ${end[0].toFixed(2)} ${end[1].toFixed(2)}`);
-    path.setAttribute('class', strand === 9 ? 'memory-current__body' : 'memory-current__foam');
+    path.setAttribute('class', strand === centerStrand ? 'memory-current__body' : 'memory-current__foam');
     path.style.setProperty('--strand', strand);
-    if (strand !== 9) {
+    if (strand !== centerStrand) {
       path.setAttribute('stroke-width', strand % 4 === 0 ? '1.65' : '.75');
       path.setAttribute('opacity', `${.3 + (strand % 4) * .16}`);
       path.setAttribute('stroke-dasharray', `${9 + strand * 2} ${3 + strand % 5} ${2 + strand % 3} ${6 + strand % 7}`);
     }
     flow.append(path);
-    if (strand === 9) {
+    if (strand === centerStrand) {
       const glow = path.cloneNode();
       glow.setAttribute('class', 'memory-current__glow');
       flow.append(glow);
@@ -191,8 +199,8 @@ function createMemoryCurrent(slot) {
       flow.append(highlights);
     }
   }
-  for (let n = 0; n < 7; n += 1) {
-    const angle = centerAngle - .55 + n / 6 * 1.18;
+  for (let n = 0; n < sparkleCount; n += 1) {
+    const angle = centerAngle - .55 + n / Math.max(1, sparkleCount - 1) * 1.18;
     const radius = 124 + Math.sin(n * 2.4) * 5;
     const sparkle = document.createElementNS(ns, 'path');
     const [x, y] = arcPoint(radius, angle);
@@ -205,6 +213,10 @@ function createMemoryCurrent(slot) {
 }
 
 export function createWaterJourney({ world, back, front, groups, imageById, makeImage, assetUrl, swimmer, mesh }) {
+  const compactRuntime = isCompactRuntime();
+  const vortexStrandCount = compactRuntime ? 4 : 28;
+  const vortexStepCount = compactRuntime ? 18 : 48;
+  const vortexBubbleCount = compactRuntime ? 4 : 40;
   const backdrop = document.createElement('img');
   backdrop.className = 'journey-backdrop';
   backdrop.src = assetUrl('assets/scene/journey-background.webp');
@@ -212,6 +224,11 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   backdrop.decoding = 'async';
   world.prepend(backdrop);
   createJourneyAmbience(world);
+  if (compactRuntime) {
+    world.style.setProperty('--journey-light', '.8');
+    world.style.setProperty('--journey-ambient-shift', '0vw');
+    world.style.setProperty('--journey-ambient-opacity', '.7');
+  }
   const transition = backdrop.cloneNode();
   transition.className = 'journey-transition-backdrop';
   const vortexUrl = assetUrl('assets/scene/memory-vortex-v2.webp');
@@ -234,13 +251,13 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     const current = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     current.setAttribute('viewBox', '0 0 400 400');
     current.classList.add('water-current');
-    for (let n = 0; n < 28; n += 1) {
+    for (let n = 0; n < vortexStrandCount; n += 1) {
       const path = document.createElementNS(current.namespaceURI, 'path');
       const points = [];
       const start = n * 2.39996;
       const length = 1.2 + (n % 5) * .34;
-      for (let step = 0; step <= 48; step += 1) {
-        const t = step / 48;
+      for (let step = 0; step <= vortexStepCount; step += 1) {
+        const t = step / vortexStepCount;
         const angle = start + t * length;
         const radius = 153 + (n % 7) * 3.2 - t * 12 + Math.sin(angle * 5 + n) * 1.8;
         points.push(`${step ? 'L' : 'M'}${(200 + Math.cos(angle) * radius).toFixed(2)},${(200 + Math.sin(angle) * radius).toFixed(2)}`);
@@ -250,7 +267,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       path.setAttribute('opacity', `${.2 + (n % 4) * .13}`);
       current.append(path);
     }
-    for (let n = 0; n < 40; n += 1) {
+    for (let n = 0; n < vortexBubbleCount; n += 1) {
       const bubble = document.createElementNS(current.namespaceURI, 'circle');
       const angle = n * 2.39996;
       const radius = 148 + (n % 9) * 3.6;
@@ -278,7 +295,7 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       layer.style.setProperty('--memory-warm', warmth);
       layer.style.setProperty('--vortex-mask', `url("${vortexUrl}")`);
     }
-    const currents = ids.map((_, slot) => createMemoryCurrent(slot));
+    const currents = ids.map((_, slot) => createMemoryCurrent(slot, compactRuntime));
     // The water strands remain behind the animal; the photographs themselves
     // are divided between the far and near rim so their depth matches the gate.
     const branches = document.createElement('div');
@@ -326,7 +343,11 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
       const wash = document.createElement('div');
       wash.className = `water-gate__memory-wash water-gate__memory-wash--${layerIndex ? 'near' : 'rear'}`;
       const flows = currents.map(current => {
-        const flow = current.cloneNode(true);
+        const flow = compactRuntime
+          ? document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+          : current.cloneNode(true);
+        if (compactRuntime) flow.setAttribute('viewBox', '0 0 400 400');
+        flow.classList.add('memory-current');
         flow.classList.add('memory-current--wash');
         wash.append(flow);
         return flow;
@@ -337,6 +358,14 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
     const lip = document.createElement('div');
     lip.className = 'water-gate water-gate--near';
     lip.append(ring.cloneNode(true));
+    if (compactRuntime) {
+      for (const layer of [gate, lip, memoryGate, nearMemoryGate]) {
+        layer.style.visibility = 'hidden';
+        layer.style.setProperty('--current-angle', `${index * 57}deg`);
+        layer.style.setProperty('--portrait-current', '0deg');
+        layer.style.setProperty('--flow-offset', '0');
+      }
+    }
     back.append(gate, memoryGate);
     front.append(lip, nearMemoryGate);
     return { gate, lip, memoryGate, nearMemoryGate, memories, currents, washSets };
@@ -361,42 +390,73 @@ export function createWaterJourney({ world, back, front, groups, imageById, make
   function render({ progress }) {
     const p = clamp(progress);
     const state = journeyMotion(p);
+    // Keep the public scene clock live on every runtime. Besides powering the
+    // progress contract, this is a single cheap style write and lets controls
+    // observe that the mobile journey is actually advancing.
     world.style.setProperty('--journey-progress', p.toFixed(4));
-    world.style.setProperty('--journey-light', '.8');
-    world.style.setProperty('--journey-ambient-shift', `${(-p * 2.8).toFixed(3)}vw`);
-    world.style.setProperty('--journey-ambient-opacity', `${(.68 + Math.max(...state.gates.map(gate => gate.pulse)) * .08).toFixed(3)}`);
-    world.dataset.passed = String(state.passed);
-    world.dataset.swimPhase = state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise';
-    backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
+    if (!compactRuntime) {
+      world.style.setProperty('--journey-light', '.8');
+      world.style.setProperty('--journey-ambient-shift', `${(-p * 2.8).toFixed(3)}vw`);
+      world.style.setProperty('--journey-ambient-opacity', `${(.68 + Math.max(...state.gates.map(gate => gate.pulse)) * .08).toFixed(3)}`);
+    }
+    setData(world, 'passed', String(state.passed));
+    setData(world, 'swimPhase', state.returning > 0 ? 'return' : state.lift > .85 ? 'crossing' : state.lift > .05 ? 'bending' : 'cruise');
+    if (!compactRuntime) {
+      backdrop.style.transform = `scale(${1.04 + p * .08}) translateX(${-p * 2}%)`;
+    }
     gates.forEach(({ gate, lip, memoryGate, nearMemoryGate, memories, currents, washSets }, index) => {
       const frame = state.gates[index];
+      const renderGate = !compactRuntime || (frame.opacity > .005 && frame.x > -.34 && frame.x < 1.34);
       for (const layer of [gate, lip, memoryGate, nearMemoryGate]) {
+        if (compactRuntime) {
+          const visibility = renderGate ? 'visible' : 'hidden';
+          if (layer.style.visibility !== visibility) layer.style.visibility = visibility;
+        }
+        if (!renderGate) continue;
         layer.style.left = `${frame.x * 100}%`;
         layer.style.top = `${frame.y * 100}%`;
         layer.style.transform = `translate(-50%, -50%) scale(${frame.scale})`;
         layer.style.opacity = frame.opacity.toFixed(4);
-        layer.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
-        layer.style.setProperty('--current-angle', `${state.time * 19 + index * 57}deg`);
-        layer.style.setProperty('--portrait-current', `${Math.sin(state.time * .72 + index) * 1.35}deg`);
-        layer.style.setProperty('--flow-offset', `${-state.time * 15.5}`);
-        layer.style.setProperty('--gate-pulse', frame.pulse.toFixed(4));
+        if (!compactRuntime) {
+          layer.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
+          layer.style.setProperty('--current-angle', `${state.time * 19 + index * 57}deg`);
+          layer.style.setProperty('--portrait-current', `${Math.sin(state.time * .72 + index) * 1.35}deg`);
+          layer.style.setProperty('--flow-offset', `${-state.time * 15.5}`);
+          layer.style.setProperty('--gate-pulse', frame.pulse.toFixed(4));
+        }
       }
-      memories.forEach((memory, slot) => {
+      if (compactRuntime && renderGate) {
+        gate.style.setProperty('--gate-pulse', frame.pulse.toFixed(4));
+        gate.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
+        lip.style.setProperty('--gate-pulse', frame.pulse.toFixed(4));
+        memoryGate.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
+        nearMemoryGate.style.setProperty('--memory-visibility', frame.memories.toFixed(4));
+      }
+      if (renderGate) memories.forEach((memory, slot) => {
         memory.style.setProperty('--recall', frame.recall[slot].toFixed(4));
-        memory.style.setProperty('--memory-glint', `${50 + Math.sin(state.time * 1.9 + slot * 1.45 + index) * 42}%`);
-        memory.style.setProperty('--memory-float', `${(Math.sin(state.time * .9 + slot * 1.7 + index) * 2.2).toFixed(2)}px`);
-        memory.style.setProperty('--memory-breathe', `${(1 + Math.sin(state.time * .72 + slot * 1.3) * .018).toFixed(4)}`);
+        if (!compactRuntime) {
+          memory.style.setProperty('--memory-glint', `${50 + Math.sin(state.time * 1.9 + slot * 1.45 + index) * 42}%`);
+          memory.style.setProperty('--memory-float', `${(Math.sin(state.time * .9 + slot * 1.7 + index) * 2.2).toFixed(2)}px`);
+          memory.style.setProperty('--memory-breathe', `${(1 + Math.sin(state.time * .72 + slot * 1.3) * .018).toFixed(4)}`);
+        }
       });
-      currents.forEach((current, slot) => {
-        current.style.setProperty('--recall', frame.recall[slot].toFixed(4));
-        current.style.setProperty('--glint-light', `${.55 + Math.sin(state.time * 2.6 + slot * 1.7 + index) * .35}`);
-        washSets.forEach(set => {
-          set[slot].style.setProperty('--recall', frame.recall[slot].toFixed(4));
-          set[slot].style.setProperty('--glint-light', `${.55 + Math.sin(state.time * 2.6 + slot * 1.7 + index) * .35}`);
+      if (compactRuntime && renderGate) {
+        currents.forEach((current, slot) => {
+          current.style.setProperty('--recall', frame.recall[slot].toFixed(4));
         });
-      });
-      gate.dataset.active = frame.memories > .1 ? 'true' : 'false';
-      gate.dataset.cleared = String(frame.cleared);
+      }
+      if (!compactRuntime) {
+        currents.forEach((current, slot) => {
+          current.style.setProperty('--recall', frame.recall[slot].toFixed(4));
+          current.style.setProperty('--glint-light', `${.55 + Math.sin(state.time * 2.6 + slot * 1.7 + index) * .35}`);
+          washSets.forEach(set => {
+            set[slot].style.setProperty('--recall', frame.recall[slot].toFixed(4));
+            set[slot].style.setProperty('--glint-light', `${.55 + Math.sin(state.time * 2.6 + slot * 1.7 + index) * .35}`);
+          });
+        });
+      }
+      setData(gate, 'active', frame.memories > .1 ? 'true' : 'false');
+      setData(gate, 'cleared', String(frame.cleared));
     });
     pose(state.x, state.y, state.scale, state.rotation, state.bend, state.effort, state.bank, state.wake);
   }
