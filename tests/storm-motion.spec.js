@@ -81,7 +81,7 @@ test('cá voi giữ đà liên tục trong pha Family cùng bứt phá', () => {
 test('vật cản trôi ngược chiều, chặn đường rồi bị cả đàn đánh bật khỏi khung', () => {
   expect(STORM_OBSTACLES).toHaveLength(6);
   expect(STORM_OBSTACLES.map(obstacle => obstacle.label)).toEqual([
-    'TOXIC', 'ÁP LỰC', 'BẾU', 'MỆT MỎI', 'SO SÁNH', 'TỰ NGHI NGỜ',
+    'TOXIC', 'ÁP LỰC', 'BẾU', 'MỆT MỎI', 'ẤM ỨC', 'TỦI THÂN',
   ]);
   STORM_OBSTACLES.forEach((definition, index) => {
     const approaching = stormMotion(Math.max(0, definition.impact - .07)).obstacles[index];

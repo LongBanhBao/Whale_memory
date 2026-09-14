@@ -13,26 +13,33 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
   // no opaque black veil between scenes 2 and 3.
   await expect(page.locator('#storm-entry-veil')).toHaveCount(0);
   const entryCurrent = page.locator('#storm-entry-current');
-  await expect(entryCurrent).toHaveCSS('background-image', /storm-ocean-v2\.webp/);
   const restingEntryVisual = await entryCurrent.evaluate((node) => {
     const style = getComputedStyle(node);
+    const stormLayer = getComputedStyle(node, '::after');
     return {
       backgroundColor: style.backgroundColor,
       backgroundImage: style.backgroundImage,
+      stormLayerImage: stormLayer.backgroundImage,
+      stormLayerClip: stormLayer.clipPath,
+      stormLayerMask: stormLayer.maskImage || stormLayer.webkitMaskImage,
     };
   });
   expect(restingEntryVisual.backgroundColor).toBe('rgba(0, 0, 0, 0)');
-  expect(restingEntryVisual.backgroundImage).toContain('storm-ocean-v2.webp');
+  expect(restingEntryVisual.backgroundImage).toBe('none');
+  expect(restingEntryVisual.stormLayerImage).toContain('storm-ocean-v2.webp');
+  expect(restingEntryVisual.stormLayerClip).toBe('none');
+  expect(restingEntryVisual.stormLayerMask).toContain('linear-gradient');
 
   await goToProgress(page, '#blue-road', .02);
   await page.locator('#scene-next').click();
   await expect.poll(() => entryCurrent.evaluate(node => (
     parseFloat(getComputedStyle(node).opacity)
   )), { timeout: 3_000 }).toBeGreaterThan(.45);
+  await expect(page.locator('#blue-road')).toBeVisible();
   await expect.poll(() => entryCurrent.evaluate(node => (
     parseFloat(node.style.getPropertyValue('--storm-entry-radius'))
   )), { timeout: 3_000 }).toBeGreaterThan(60);
-  expect(await entryCurrent.evaluate(node => getComputedStyle(node).backgroundImage))
+  expect(await entryCurrent.evaluate(node => getComputedStyle(node, '::after').backgroundImage))
     .toContain('storm-ocean-v2.webp');
   await expect(page.locator('#blue-road')).toBeHidden({ timeout: 10_000 });
 
@@ -49,7 +56,7 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
   await expect(page.locator('.storm-obstacle')).toHaveCount(6);
   await expect(page.locator('.companion-whale')).toHaveCount(24);
   await expect(page.locator('.storm-obstacle > strong')).toHaveText([
-    'TOXIC', 'ÁP LỰC', 'BẾU', 'MỆT MỎI', 'SO SÁNH', 'TỰ NGHI NGỜ',
+    'TOXIC', 'ÁP LỰC', 'BẾU', 'MỆT MỎI', 'ẤM ỨC', 'TỦI THÂN',
   ]);
   await expect(page.locator('.storm-obstacle > span, .storm-obstacle__signal')).toHaveCount(0);
   await expect(page.locator('.companion-whale[data-route="from-left"]')).toHaveCount(24);

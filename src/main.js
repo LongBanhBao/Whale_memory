@@ -630,6 +630,8 @@ function resetStormEntryCurrent() {
   setData(stormEntryCurrent, 'active', 'false');
   stormEntryCurrent.style.setProperty('--storm-entry-radius', '0vmax');
   stormEntryCurrent.style.setProperty('--storm-entry-surge', '0');
+  stormEntryCurrent.style.setProperty('--storm-entry-front', '118%');
+  stormEntryCurrent.style.setProperty('--storm-entry-foam', '0');
   stormEntryCurrent.style.opacity = '0';
 }
 
@@ -661,9 +663,11 @@ function startStormHandoff() {
   const transfer = { progress: 0 };
   setData(stormEntryCurrent, 'active', 'true');
   gsap.set(stormEntryCurrent, {
-    opacity: 0,
+    opacity: compactRuntime ? 0 : 1,
     '--storm-entry-radius': '0vmax',
     '--storm-entry-surge': 0,
+    '--storm-entry-front': '118%',
+    '--storm-entry-foam': 0,
   });
   stormEntryTimeline = gsap.timeline({
     onComplete: () => {
@@ -672,14 +676,14 @@ function startStormHandoff() {
       gsap.timeline({ onComplete: resetStormEntryCurrent })
         .to(stormEntryCurrent, {
         opacity: 0,
-        duration: 1.08,
+        duration: 1.16,
         ease: 'sine.inOut',
-      }, .08);
+      }, .06);
     },
   })
     .to(transfer, {
       progress: 1,
-      duration: 2.45,
+      duration: 2.85,
       ease: 'power2.inOut',
       onUpdate: () => {
         const amount = smoothstep(transfer.progress);
@@ -699,9 +703,20 @@ function startStormHandoff() {
       opacity: 1,
       '--storm-entry-radius': '165vmax',
       '--storm-entry-surge': 1,
-      duration: 2.25,
+      '--storm-entry-front': '-22%',
+      duration: 2.72,
       ease: 'sine.inOut',
-    }, .12);
+    }, .08)
+    .to(stormEntryCurrent, {
+      '--storm-entry-foam': 1,
+      duration: 1.08,
+      ease: 'sine.inOut',
+    }, .18)
+    .to(stormEntryCurrent, {
+      '--storm-entry-foam': 0,
+      duration: 1.2,
+      ease: 'sine.out',
+    }, 1.35);
 }
 
 holdControl.addEventListener('pointerdown', beginHolding);

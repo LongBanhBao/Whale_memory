@@ -568,13 +568,19 @@ html[data-runtime-profile='compact'] .storm-vignette {
 
 html[data-runtime-profile='compact'] .storm-entry-current {
   clip-path: none;
+  background-image:
+    linear-gradient(145deg, rgba(2, 9, 22, .18), rgba(3, 24, 38, .24)),
+    var(--storm-entry-background);
+  background-position: 68% center;
+  background-size: cover;
   filter: brightness(.64) saturate(.74) contrast(1.08);
   will-change: opacity;
 }
 
 html[data-runtime-profile='compact'] .storm-entry-current::before,
+html[data-runtime-profile='compact'] .storm-entry-current::after,
 html[data-runtime-profile='compact'] .storm-entry-current i {
-  filter: none;
+  display: none;
 }
 
 html[data-runtime-profile='compact'] .storm-transition-light {

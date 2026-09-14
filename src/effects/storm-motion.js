@@ -16,8 +16,8 @@ export const STORM_OBSTACLES = Object.freeze([
   { label: 'ÁP LỰC', detail: 'phải luôn hoàn hảo', impact: .3, expel: .762 },
   { label: 'BẾU', detail: 'lời chê bai ngoại hình', impact: .445, expel: .79 },
   { label: 'MỆT MỎI', detail: 'những ngày không thể nghỉ', impact: .505, expel: .818 },
-  { label: 'SO SÁNH', detail: 'những con số lạnh lùng', impact: .545, expel: .845 },
-  { label: 'TỰ NGHI NGỜ', detail: 'mình có đủ tốt không?', impact: .575, expel: .872 },
+  { label: 'ẤM ỨC', detail: 'những điều không thể nói thành lời', impact: .545, expel: .845 },
+  { label: 'TỦI THÂN', detail: 'cảm giác phải chịu đựng một mình', impact: .575, expel: .872 },
 ]);
 
 export const STORM_COMPANION_COUNT = 24;
