@@ -37,6 +37,15 @@ await Promise.all(sceneAssets.map(({ source, output, width, quality }) => (
     .toFile(path.join(sceneOutput, output))
 )));
 
+// Chân dung kết cảnh được giữ nguyên nội dung và chỉ tối ưu cho web. Lớp nền
+// trắng được hòa vào đại dương bằng feather/color grade trong CSS để không làm
+// mất các chi tiết áo trắng của ảnh nguồn.
+await sharp(path.join(photoSource, 'f.png'), { limitInputPixels: false })
+  .rotate()
+  .resize({ width: 1214, withoutEnlargement: true })
+  .webp({ quality: 88, effort: 6, smartSubsample: true })
+  .toFile(path.join(sceneOutput, 'finale-pastel.webp'));
+
 // Cắt riêng giọt lớn trong Water.png để làm lớp kính cho các giọt ký ức.
 // Phần nền đen được loại bằng mix-blend-mode: screen trên giao diện.
 await sharp(path.join(sceneSource, 'Water.png'), { limitInputPixels: false })
@@ -300,4 +309,5 @@ await writeFile(
 
 console.log(`Đã xử lý ${imageManifest.length} ảnh Pastel và ${frameBuffers.length} frame cá voi.`);
 console.log(`Đã tối ưu ${sceneAssets.length} ảnh nền cho cảnh mở đầu.`);
+console.log('Đã tối ưu chân dung kết cảnh f.png.');
 console.log(`Sprite cá voi: ${frameWidth} × ${frameHeight} px/frame, ${columns} × ${rows}.`);

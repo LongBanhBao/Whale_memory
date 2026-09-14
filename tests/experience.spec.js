@@ -99,15 +99,18 @@ test('năm giọt làm cảnh sáng dần rồi bay ngược vào vầng sáng',
   ))).toBeGreaterThan(53);
 });
 
-test('ánh sáng cuối hành trình nhập vào cá voi ký ức', async ({ page }) => {
+test('ánh sáng cuối hành trình hoàn tất vòng quét ký ức', async ({ page }) => {
   test.setTimeout(45_000);
   await page.goto('/');
   await goToProgress(page, '#ocean-remembers', 0.9);
   const button = page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' });
   await expect(button).toBeEnabled();
   await button.click();
-  await expect(page.locator('#memory-whale')).toHaveClass(/is-lit/, { timeout: 3_000 });
-  await expect(page.locator('#outro-actions')).toBeVisible();
+  await expect(page.locator('#memory-whale')).toHaveClass(/is-lit/, { timeout: 12_000 });
+  await expect(page.locator('#finale-reveal')).toHaveAttribute('data-finale-phase', 'complete');
+  await expect.poll(() => page.locator('#outro-actions button').evaluateAll(
+    nodes => nodes.every(node => !node.disabled),
+  ), { timeout: 4_000 }).toBe(true);
 });
 
 test('không thể kích hoạt nút kết khi chưa đến đoạn cuối', async ({ page }) => {
@@ -128,7 +131,7 @@ test('đoạn kết mở thư viện và có thể bắt đầu lại', async ({
   const sendButton = page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' });
   await expect(sendButton).toBeEnabled();
   await sendButton.click();
-  await expect(page.getByRole('button', { name: 'XEM TOÀN BỘ KÝ ỨC' })).toBeEnabled({ timeout: 3_000 });
+  await expect(page.getByRole('button', { name: 'XEM TOÀN BỘ KÝ ỨC' })).toBeEnabled({ timeout: 12_000 });
   await page.getByRole('button', { name: 'XEM TOÀN BỘ KÝ ỨC' }).click();
   await expect(page.locator('#gallery-dialog')).toBeVisible();
   await expect(page.locator('#gallery-grid img')).toHaveCount(19);

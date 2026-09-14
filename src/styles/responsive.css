@@ -90,8 +90,13 @@
   }
 
   .memory-whale {
-    top: 39%;
-    width: clamp(350px, 77vw, 1050px);
+    top: 48%;
+    width: min(76vmin, 330px);
+  }
+
+  .finale-portrait {
+    top: 48%;
+    width: min(64vmin, 280px);
   }
 
   .memory-grid {
@@ -127,12 +132,6 @@
     min-height: 50px;
     transform: translate(-50%, calc((1 - var(--button-reveal, 0)) * 18px));
     white-space: nowrap;
-  }
-
-  .final-trail {
-    top: 40%;
-    left: 39%;
-    width: 57vw;
   }
 
   .outro-actions {
@@ -201,8 +200,13 @@
   }
 
   .memory-whale {
-    top: 42%;
-    width: min(56vw, 80vh);
+    top: 47%;
+    width: min(50vw, 70vmin);
+  }
+
+  .finale-portrait {
+    top: 47%;
+    width: min(35vw, 58vmin);
   }
 
   .finale-copy {
@@ -610,6 +614,10 @@ html[data-runtime-profile='compact'] .memory-whale {
   will-change: transform, opacity;
 }
 
+html[data-runtime-profile='compact'] .finale-portrait {
+  filter: drop-shadow(0 0 18px rgba(89, 217, 255, .18));
+}
+
 html[data-runtime-profile='compact'] .memory-grid {
   grid-template-columns: repeat(6, 1fr);
   grid-template-rows: repeat(4, 1fr);
@@ -729,6 +737,7 @@ html[data-runtime-profile='compact'] .finale-world.is-complete .memory-whale {
   }
 
   .memory-whale,
+  .finale-portrait,
   .portal,
   .companion-whale {
     transition: none !important;

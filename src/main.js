@@ -74,6 +74,12 @@ const stormEntryCurrent = document.querySelector('#storm-entry-current');
 const stormTransitionLight = document.querySelector('#storm-transition-light');
 const finaleWorld = document.querySelector('.finale-world');
 const tributeLines = [...document.querySelectorAll('.tribute-sequence p')];
+const finaleReveal = document.querySelector('#finale-reveal');
+const finaleWhaleReveal = document.querySelector('#finale-whale-reveal');
+const finalePortraitReveal = document.querySelector('#finale-portrait-reveal');
+const finalePortraitImage = document.querySelector('#finale-portrait-image');
+const finaleScan = document.querySelector('#finale-scan');
+const finaleScanArm = document.querySelector('#finale-scan-arm');
 const memoryWhale = document.querySelector('#memory-whale');
 const memoryGrid = document.querySelector('#memory-grid');
 const sendLight = document.querySelector('#send-light');
@@ -298,6 +304,10 @@ function prepareFinale() {
   finalePrepared = true;
   buildMemoryWhale();
   buildGallery();
+  finalePortraitImage.src = assetUrl('assets/scene/finale-pastel.webp');
+  finalePortraitImage.loading = 'eager';
+  finalePortraitImage.decoding = 'async';
+  finalePortraitImage.fetchPriority = 'high';
   document.documentElement.dataset.finaleReady = 'true';
 }
 
@@ -316,8 +326,9 @@ const DROP_IMPACTS = DROP_FALL_STARTS.map((start) => start + DROP_FALL_DURATION)
 const HOLD_DURATION = reducedMotion ? 700 : 6500;
 const HOLD_RING_LENGTH = 2 * Math.PI * 67;
 let activeScene = 0;
-let lightSent = false;
 let finalTimeline = null;
+let finaleSequenceTimeline = null;
+let finaleSequenceStarted = false;
 let stormEntryTimeline = null;
 let stormTransitionTimeline = null;
 let holding = false;
@@ -918,90 +929,190 @@ function renderStorm({ progress }) {
 }
 
 function renderFinale({ progress }) {
-    prepareFinale();
-    [0.1, 0.24, 0.38, 0.52].forEach((center, index) => {
-      const opacity = bell(progress, center - 0.085, center, center + 0.1);
-      finaleWorld.style.setProperty(`--tribute-${index + 1}`, opacity.toFixed(4));
-      tributeLines[index].setAttribute('aria-hidden', opacity < 0.08 ? 'true' : 'false');
-    });
+  prepareFinale();
+  [0.1, 0.24, 0.38, 0.52].forEach((center, index) => {
+    const opacity = bell(progress, center - 0.085, center, center + 0.1);
+    finaleWorld.style.setProperty(`--tribute-${index + 1}`, opacity.toFixed(4));
+    tributeLines[index].setAttribute('aria-hidden', opacity < 0.08 ? 'true' : 'false');
+  });
 
-    const reveal = smoothstep((progress - 0.53) / 0.14);
-    const cameraPullback = smoothstep((progress - 0.58) / 0.2);
-    const buttonReveal = smoothstep((progress - 0.78) / 0.12);
-    const targetScale = clamp(0.82 + (760 - runtimeViewport().width) / 2600, 0.82, 0.98);
-    const ready = buttonReveal > 0.96 && !lightSent;
+  const cameraPullback = smoothstep((progress - 0.58) / 0.2);
+  const buttonReveal = smoothstep((progress - 0.78) / 0.12);
+  const targetScale = clamp(0.82 + (760 - runtimeViewport().width) / 2600, 0.82, 0.98);
+  const ready = buttonReveal > 0.96 && !finaleSequenceStarted;
 
-    finaleWorld.style.setProperty('--memory-opacity', `${reveal}`);
-    finaleWorld.style.setProperty('--memory-scale', `${lerp(1.48, targetScale, cameraPullback)}`);
-    finaleWorld.style.setProperty('--copy-reveal', lightSent ? '1' : '0');
-    finaleWorld.style.setProperty('--button-reveal', `${buttonReveal}`);
-    if (!compactRuntime) {
-      memoryGrid.style.translate = `${Math.sin(progress * Math.PI) * -1.2}% ${Math.sin(progress * Math.PI * 0.7) * 1.1}%`;
-    }
-    sendLight.disabled = !ready;
-    sendLight.classList.toggle('is-ready', ready);
-    ambient.setMood('finale', 0.58 + progress * 0.38);
+  // The artwork is fully composed before the interaction, but both layers stay
+  // behind angular masks. The scan, rather than the automatic scene timeline,
+  // is solely responsible for revealing the whale and Pastel's portrait.
+  finaleWorld.style.setProperty('--memory-opacity', '1');
+  finaleWorld.style.setProperty('--memory-scale', `${lerp(1.08, targetScale, cameraPullback)}`);
+  if (!finaleWorld.classList.contains('is-complete')) {
+    finaleWorld.style.setProperty('--copy-reveal', '0');
+  }
+  finaleWorld.style.setProperty('--button-reveal', `${buttonReveal}`);
+  if (!compactRuntime) {
+    memoryGrid.style.translate = `${Math.sin(progress * Math.PI) * -1.2}% ${Math.sin(progress * Math.PI * 0.7) * 1.1}%`;
+  }
+  sendLight.disabled = !ready;
+  sendLight.classList.toggle('is-ready', ready);
+  ambient.setMood('finale', 0.58 + progress * 0.38);
+}
+
+function setFinalePhase(phase) {
+  finaleReveal.dataset.finalePhase = phase;
+  finaleWorld.dataset.finalePhase = phase;
+}
+
+function finaleScanRadius() {
+  const { width, height } = runtimeViewport();
+  return Math.min(compactRuntime ? 360 : 430, Math.max(150, Math.min(width, height) * .43));
+}
+
+function renderFinaleScan(state) {
+  const whaleReveal = clamp(state.whale);
+  const portraitReveal = clamp(state.portrait);
+  const radius = Math.max(0, state.radius);
+  const opacity = clamp(state.opacity);
+
+  finaleReveal.style.setProperty('--finale-scan-radius', `${radius.toFixed(2)}px`);
+  finaleWhaleReveal.style.setProperty('--whale-sweep', `${whaleReveal.toFixed(5)}turn`);
+  finaleWhaleReveal.style.setProperty('--whale-reveal-opacity', whaleReveal > .0001 ? '1' : '0');
+  finalePortraitReveal.style.setProperty('--portrait-cut', `${(1 - portraitReveal).toFixed(5)}turn`);
+  finalePortraitReveal.style.setProperty('--portrait-reveal-opacity', portraitReveal > .0001 ? '1' : '0');
+  finaleScan.style.setProperty('--scan-opacity', opacity.toFixed(4));
+  finaleScanArm.style.width = `${radius.toFixed(2)}px`;
+  finaleScanArm.style.setProperty('--scan-angle', `${state.angle.toFixed(3)}deg`);
+  finaleReveal.dataset.whaleReveal = whaleReveal.toFixed(4);
+  finaleReveal.dataset.portraitReveal = portraitReveal.toFixed(4);
+  finaleReveal.dataset.scanRadius = radius.toFixed(2);
+}
+
+function resetFinaleReveal() {
+  setFinalePhase('idle');
+  finaleReveal.classList.remove('has-whale-reveal', 'has-portrait-reveal');
+  finaleWhaleReveal.setAttribute('aria-hidden', 'true');
+  renderFinaleScan({ radius: 0, angle: 0, whale: 0, portrait: 0, opacity: 0 });
 }
 
 function revealOutro() {
-  lightSent = true;
+  const artworkSeparation = compactRuntime ? '11vw' : '18vw';
+  const portraitSeparation = compactRuntime ? '-11vw' : '-18vw';
   memoryWhale.classList.add('is-lit');
+  finaleWhaleReveal.setAttribute('aria-hidden', 'false');
   finaleWorld.classList.add('is-complete');
-  finaleWorld.style.setProperty('--copy-reveal', '1');
   finalMessage.textContent = 'Hành trình vẫn đang tiếp tục.';
-  outroButtons.forEach((button) => { button.disabled = false; });
 
   if (reducedMotion) {
+    finaleWorld.style.setProperty('--copy-reveal', '1');
     finaleWorld.style.setProperty('--outro', '1');
-    finaleWorld.style.setProperty('--memory-x', '16vw');
+    finaleWorld.style.setProperty('--memory-x', artworkSeparation);
     finaleWorld.style.setProperty('--memory-y', '-4vh');
+    finaleWorld.style.setProperty('--portrait-x', portraitSeparation);
+    outroButtons.forEach((button) => { button.disabled = false; });
     return;
   }
 
-  finalTimeline = gsap.timeline()
-    .to(finaleWorld, { '--outro': 1, duration: 1.25, ease: 'power2.out' })
-    .to(finaleWorld, { '--memory-x': '18vw', '--memory-y': '-5vh', duration: 2.6, ease: 'power1.inOut' }, 0.3)
-    .fromTo('.finale-copy', { filter: 'brightness(1.8)' }, { filter: 'brightness(1)', duration: 1.5 }, 0.42);
+  finalTimeline = gsap.timeline({
+    onComplete: () => {
+      outroButtons.forEach((button) => { button.disabled = false; });
+    },
+  })
+    .to(finaleWorld, { '--copy-reveal': 1, duration: 1, ease: 'power2.out' })
+    .to(finaleWorld, { '--outro': 1, duration: 1.15, ease: 'power2.out' }, .28)
+    .to(finaleWorld, {
+      '--memory-x': artworkSeparation, '--memory-y': '-5vh', '--portrait-x': portraitSeparation,
+      duration: 2.35, ease: 'power1.inOut',
+    }, 0)
+    .fromTo('.finale-copy', { filter: 'brightness(1.8)' }, { filter: 'brightness(1)', duration: 1.5 }, .18);
 }
 
 function sendLightToWhale(event) {
-  if (sendLight.disabled || lightSent) return;
+  if (sendLight.disabled || finaleSequenceStarted) return;
+  finaleSequenceStarted = true;
   sendLight.disabled = true;
   sendLight.classList.remove('is-ready');
+  finaleWorld.classList.add('is-sequencing');
   const buttonRect = sendLight.getBoundingClientRect();
-  const whaleRect = memoryWhale.getBoundingClientRect();
+  const viewport = runtimeViewport();
   const startX = Number.isFinite(event.clientX) && event.clientX > 0
     ? event.clientX : buttonRect.left + buttonRect.width / 2;
   const startY = Number.isFinite(event.clientY) && event.clientY > 0
     ? event.clientY : buttonRect.top + buttonRect.height / 2;
-  const targetX = whaleRect.left + whaleRect.width * 0.67;
-  const targetY = whaleRect.top + whaleRect.height * 0.53;
+  const centerX = viewport.width / 2;
+  const centerY = viewport.height / 2;
+  const radius = finaleScanRadius();
   const light = document.createElement('span');
   light.className = 'traveling-light';
   light.style.left = `${startX}px`;
   light.style.top = `${startY}px`;
   lightLayer.append(light);
+  const scanState = { radius: 0, angle: 0, whale: 0, portrait: 0, opacity: 0 };
+  renderFinaleScan(scanState);
+  setFinalePhase('arriving');
 
   if (reducedMotion) {
     light.remove();
+    Object.assign(scanState, { radius, angle: 0, whale: 1, portrait: 1, opacity: 0 });
+    renderFinaleScan(scanState);
+    finaleReveal.classList.add('has-whale-reveal', 'has-portrait-reveal');
+    setFinalePhase('complete');
     revealOutro();
     return;
   }
 
-  gsap.timeline({ onComplete: () => { light.remove(); revealOutro(); } })
+  finaleSequenceTimeline = gsap.timeline()
     .to(light, {
-      x: (targetX - startX) * 0.46 - 70,
-      y: (targetY - startY) * 0.43 - 95,
-      scale: 1.45,
-      duration: 0.56,
-      ease: 'power2.out',
+      x: centerX - startX,
+      y: centerY - startY,
+      scale: 1.35,
+      duration: .9,
+      ease: 'power2.inOut',
     })
-    .to(light, {
-      x: targetX - startX,
-      y: targetY - startY,
-      scale: 0.35,
-      duration: 0.76,
-      ease: 'power3.in',
+    .call(() => {
+      light.remove();
+      scanState.opacity = 1;
+      renderFinaleScan(scanState);
+      setFinalePhase('extending');
+    })
+    .to(scanState, {
+      radius,
+      duration: .82,
+      ease: 'power3.out',
+      onUpdate: () => renderFinaleScan(scanState),
+    })
+    .call(() => setFinalePhase('sweep-forward'))
+    .to(scanState, {
+      angle: 360,
+      whale: 1,
+      duration: 2.35,
+      ease: 'none',
+      onUpdate: () => renderFinaleScan(scanState),
+    })
+    .call(() => {
+      finaleReveal.classList.add('has-whale-reveal');
+      setFinalePhase('sweep-reverse');
+    })
+    .to(scanState, {
+      angle: 0,
+      portrait: 1,
+      duration: 2.15,
+      ease: 'none',
+      onUpdate: () => renderFinaleScan(scanState),
+    })
+    .call(() => {
+      finaleReveal.classList.add('has-portrait-reveal');
+      setFinalePhase('fading');
+    })
+    .to(scanState, {
+      opacity: 0,
+      duration: .72,
+      ease: 'sine.out',
+      onUpdate: () => renderFinaleScan(scanState),
+    })
+    .call(() => {
+      setFinalePhase('complete');
+      finaleSequenceTimeline = null;
+      revealOutro();
     });
 }
 
@@ -1036,6 +1147,7 @@ function resetJourney() {
   reducedNext.disabled = false;
   introWhale.setActive(false);
   introWhale.reset();
+  finaleSequenceTimeline?.kill();
   finalTimeline?.kill();
   postTimeline?.kill();
   introDrops.forEach(({ wrapper, ripple }) => {
@@ -1046,14 +1158,18 @@ function resetJourney() {
   });
   for (const dialog of [letterDialog, galleryDialog]) if (dialog.open) dialog.close();
   lightLayer.replaceChildren();
-  lightSent = false;
+  finaleSequenceStarted = false;
+  finaleSequenceTimeline = null;
+  finalTimeline = null;
   stormEntryTimeline = null;
   stormTransitionTimeline = null;
-  finaleWorld.classList.remove('is-complete');
+  finaleWorld.classList.remove('is-complete', 'is-sequencing');
   memoryWhale.classList.remove('is-lit');
+  resetFinaleReveal();
   finaleWorld.style.setProperty('--outro', '0');
   finaleWorld.style.setProperty('--memory-x', '0px');
   finaleWorld.style.setProperty('--memory-y', '0px');
+  finaleWorld.style.setProperty('--portrait-x', '0px');
   finaleWorld.style.setProperty('--copy-reveal', '0');
   sendLight.disabled = true;
   sendLight.classList.remove('is-ready');
@@ -1095,6 +1211,7 @@ document.querySelector('.wordmark').addEventListener('click', (event) => {
   resetJourney();
 });
 sections.forEach((section) => { section.tabIndex = -1; });
+resetFinaleReveal();
 setActiveScene(0);
 document.documentElement.dataset.appReady = 'true';
 window.dispatchEvent(new CustomEvent('bluevoyage:ready'));

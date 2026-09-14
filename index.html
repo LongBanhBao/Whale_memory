@@ -178,10 +178,23 @@
             <p>Dù hành trình đưa bạn đến đâu, đại dương này vẫn sẽ nhớ.</p>
           </div>
 
-          <div id="memory-whale" class="memory-whale" role="img" aria-label="Cá voi được tạo nên từ những khoảnh khắc của Pastel">
-            <div id="memory-grid" class="memory-grid"></div>
-            <span class="memory-whale__shine" aria-hidden="true"></span>
-            <span class="memory-whale__heart" aria-hidden="true"></span>
+          <div id="finale-reveal" class="finale-reveal" data-finale-phase="idle">
+            <div id="finale-whale-reveal" class="finale-whale-reveal" aria-hidden="true">
+              <div id="memory-whale" class="memory-whale" role="img" aria-label="Cá voi được tạo nên từ những khoảnh khắc của Pastel">
+                <div id="memory-grid" class="memory-grid"></div>
+                <span class="memory-whale__shine" aria-hidden="true"></span>
+                <span class="memory-whale__heart" aria-hidden="true"></span>
+              </div>
+            </div>
+            <div id="finale-portrait-reveal" class="finale-portrait-reveal" aria-hidden="true">
+              <figure class="finale-portrait">
+                <img id="finale-portrait-image" alt="" />
+              </figure>
+            </div>
+            <div id="finale-scan" class="finale-scan" aria-hidden="true">
+              <span class="finale-scan__core"></span>
+              <span id="finale-scan-arm" class="finale-scan__arm"><i></i></span>
+            </div>
           </div>
 
           <div class="finale-copy">
@@ -194,7 +207,6 @@
             <span class="light-button__orb" aria-hidden="true"></span>
             <span>GỬI MỘT ÁNH SÁNG</span>
           </button>
-          <div class="final-trail" aria-hidden="true"><i></i><span>PASTEL</span></div>
           <nav id="outro-actions" class="outro-actions" aria-label="Lựa chọn sau hành trình">
             <button id="replay-journey" type="button">XEM LẠI HÀNH TRÌNH</button>
             <button id="open-letter" type="button">MỞ THƯ TRI ÂN</button>

@@ -78,13 +78,164 @@
 .tribute-sequence p:nth-child(3) { opacity: var(--tribute-3, 0); }
 .tribute-sequence p:nth-child(4) { opacity: var(--tribute-4, 0); }
 
+.finale-reveal {
+  --finale-scan-radius: 0px;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.finale-whale-reveal,
+.finale-portrait-reveal {
+  position: absolute;
+  inset: 0;
+  clip-path: circle(var(--finale-scan-radius) at 50% 50%);
+  pointer-events: none;
+  will-change: clip-path, opacity, mask-image;
+}
+
+.finale-whale-reveal {
+  --whale-sweep: 0turn;
+  --whale-reveal-opacity: 0;
+  z-index: 14;
+  opacity: var(--whale-reveal-opacity);
+  mask-image: conic-gradient(from 90deg at 50% 50%, #000 0turn var(--whale-sweep), transparent var(--whale-sweep) 1turn);
+  -webkit-mask-image: conic-gradient(from 90deg at 50% 50%, #000 0turn var(--whale-sweep), transparent var(--whale-sweep) 1turn);
+}
+
+.finale-portrait-reveal {
+  --portrait-cut: 1turn;
+  --portrait-reveal-opacity: 0;
+  z-index: 12;
+  opacity: var(--portrait-reveal-opacity);
+  mask-image: conic-gradient(from 90deg at 50% 50%, transparent 0turn var(--portrait-cut), #000 var(--portrait-cut) 1turn);
+  -webkit-mask-image: conic-gradient(from 90deg at 50% 50%, transparent 0turn var(--portrait-cut), #000 var(--portrait-cut) 1turn);
+}
+
+.finale-reveal[data-finale-phase='complete'] .finale-whale-reveal,
+.finale-reveal[data-finale-phase='complete'] .finale-portrait-reveal {
+  clip-path: none;
+  opacity: 1;
+  mask-image: none;
+  -webkit-mask-image: none;
+  will-change: auto;
+}
+
+.finale-portrait {
+  position: absolute;
+  top: 49%;
+  left: 50%;
+  width: clamp(230px, 60vmin, 540px);
+  aspect-ratio: 1214 / 1295;
+  margin: 0;
+  overflow: hidden;
+  transform: translate(calc(-50% + var(--portrait-x, 0px)), -50%) scale(.96);
+  border: 1px solid rgba(176, 235, 255, .16);
+  border-radius: 48% 52% 45% 55% / 38% 42% 58% 62%;
+  background: rgba(205, 239, 247, .72);
+  box-shadow: 0 0 34px rgba(103, 221, 255, .18), 0 0 100px rgba(81, 139, 218, .2);
+  filter: drop-shadow(0 0 28px rgba(89, 217, 255, .24));
+  mask-image: radial-gradient(ellipse 58% 55% at 54% 47%, #000 52%, rgba(0, 0, 0, .92) 66%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 58% 55% at 54% 47%, #000 52%, rgba(0, 0, 0, .92) 66%, transparent 100%);
+  will-change: transform;
+}
+
+.finale-portrait::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(150deg, rgba(69, 199, 233, .18), transparent 44%, rgba(114, 94, 190, .23)),
+    radial-gradient(circle at 54% 42%, transparent 18%, rgba(3, 20, 42, .18) 84%);
+  content: '';
+  mix-blend-mode: color;
+  pointer-events: none;
+}
+
+.finale-portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 52% center;
+  opacity: .9;
+  filter: saturate(.78) contrast(1.04) brightness(.86);
+}
+
+.finale-scan {
+  --scan-opacity: 0;
+  position: absolute;
+  z-index: 36;
+  inset: 0;
+  opacity: var(--scan-opacity);
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.finale-scan__core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px #fff, 0 0 24px #65eaff, 0 0 58px rgba(139, 157, 255, .9);
+}
+
+.finale-scan__arm {
+  --scan-angle: 0deg;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  transform: translateY(-50%) rotate(var(--scan-angle));
+  transform-origin: 0 50%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(225, 252, 255, .5), #fff 72%, rgba(118, 232, 255, .96));
+  box-shadow: 0 0 7px #fff, 0 0 18px rgba(79, 222, 255, .9), 0 0 42px rgba(116, 132, 255, .55);
+  will-change: width, transform;
+}
+
+.finale-scan__arm::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 28%;
+  height: 9px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, rgba(214, 250, 255, .72));
+  filter: blur(4px);
+  content: '';
+}
+
+.finale-scan__arm i {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  transform: translate(50%, -50%);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 9px #fff, 0 0 25px #70eaff, 0 0 55px #879dff;
+}
+
+.finale-reveal[data-finale-phase='idle'] .finale-scan,
+.finale-reveal[data-finale-phase='arriving'] .finale-scan,
+.finale-reveal[data-finale-phase='complete'] .finale-scan {
+  visibility: hidden;
+}
+
 .memory-whale {
   --whale-mask: none;
   position: absolute;
   z-index: 14;
-  top: 44%;
+  top: 49%;
   left: 50%;
-  width: clamp(350px, 77vw, 1050px);
+  width: clamp(280px, 72vmin, 780px);
   aspect-ratio: var(--whale-ratio, 1.18);
   transform: translate(calc(-50% + var(--memory-x, 0px)), calc(-50% + var(--memory-y, 0px))) scale(var(--memory-scale, 1.45));
   opacity: var(--memory-opacity, 0);
@@ -253,6 +404,7 @@
   cursor: default;
 }
 
+.finale-world.is-sequencing .light-button,
 .finale-world.is-complete .light-button {
   transform: translateY(18px);
   opacity: 0;
@@ -293,37 +445,6 @@
   transform: translateY(-50%);
   background: linear-gradient(90deg, transparent, rgba(154, 239, 255, 0.8));
   content: '';
-}
-
-.final-trail {
-  position: absolute;
-  z-index: 31;
-  top: 45%;
-  left: 43%;
-  width: min(45vw, 620px);
-  pointer-events: none;
-  opacity: var(--outro, 0);
-}
-
-.final-trail i {
-  display: block;
-  width: 100%;
-  height: 1px;
-  transform: scaleX(var(--outro, 0));
-  transform-origin: left;
-  background: linear-gradient(90deg, rgba(129, 237, 255, 0.88), rgba(218, 173, 255, 0.46), transparent);
-  box-shadow: 0 0 12px rgba(102, 229, 255, 0.65);
-}
-
-.final-trail span {
-  position: absolute;
-  top: -24px;
-  right: 5%;
-  color: rgba(229, 250, 255, 0.5);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 11px;
-  letter-spacing: 0.42em;
-  opacity: var(--outro, 0);
 }
 
 .outro-actions {

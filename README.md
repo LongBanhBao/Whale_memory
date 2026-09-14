@@ -30,6 +30,7 @@ nhánh `main`. Nhờ vậy cả hai chế độ đều tải đủ CSS, JavaScri
 - Ảnh nguồn: `../Picture/p1.png` đến `../Picture/p19.png`.
 - Cá voi nguồn: `../whale/frames/png/`.
 - Ảnh dựng cảnh đầu: `../LK/Water.png`, `../LK/BR.png` và `../LK/VS.png`.
+- Chân dung kết cảnh: `../Picture/f.png`, được tối ưu thành `public/assets/scene/finale-pastel.webp`.
 - Nền biển động cảnh 3: `public/assets/scene/storm-ocean-v2.webp`, ảnh dựng bằng AI và được tối ưu thành WebP 1672 × 941. Bố cục giữ lối bơi chéo từ góc trái dưới tới vùng sáng phải trên.
 - `npm run assets` tạo WebP, AVIF, thumbnail, placeholder, ảnh nền cảnh đầu và sprite cá voi 2× đã crop/khử viền alpha.
 - Ảnh nguồn không bị ghi đè.
@@ -46,6 +47,7 @@ Khi video được bổ sung, đặt bản nguồn trong thư mục `../Video`. 
 - Cảnh 2 có ba dải nước nhiều lớp, các cụm bong bóng ở hai rìa và họa tiết sứa, rong, vỏ ốc trôi chậm để tạo chiều sâu mà không che cá voi hay chân dung ký ức.
 - Cảnh 3 dành 24 giây cho ba nhịp tiến lên–va chạm–bị đẩy lùi giữa biển động, một khoảng lặng mệt mỏi và khoảnh khắc Family xuất hiện. Cá voi lớn dùng lưới WebGL làm biến dạng ảnh tĩnh thay cho sprite: nhịp uốn truyền dọc thân, vây và đuôi tự chuyển động; dáng bơi, mí mắt và giọt nước mắt thể hiện sự buồn bã trước khi ánh cyan của hy vọng trở lại. Sáu vật cản là các chữ nổi `TOXIC`, `ÁP LỰC`, `BẾU`, `MỆT MỎI`, `SO SÁNH` và `TỰ NGHI NGỜ`; 18 cá voi con bơi vào từ mép trái theo ba làn sóng, hô “Hu raaaaa” luân phiên, tạo đội hình rồi cùng đánh bật chúng. Bản mobile hiển thị 12 cá voi con để giữ bố cục thoáng. Flash chuyển cảnh bắt đầu ngay khi cá voi lớn chạm vùng sáng.
 - Nhấn “Gửi một ánh sáng” ở cảnh cuối.
+- Ánh sáng bay vào tâm màn hình, kéo thành một bán kính rồi quét thuận để hiện cá voi ký ức và quét ngược để hiện chân dung Pastel. Chữ kết chỉ xuất hiện sau khi tia quét đã tan hoàn toàn.
 - Sau đoạn kết có thể xem lại hành trình, mở thư tri ân hoặc xem toàn bộ thư viện ảnh.
 - Chế độ giảm chuyển động dùng cùng nút “tiếp” và hiển thị trực tiếp trạng thái tĩnh của mỗi cảnh.
 

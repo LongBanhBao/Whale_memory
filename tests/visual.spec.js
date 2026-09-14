@@ -40,7 +40,10 @@ test('chụp các cảnh chính để kiểm tra trực quan', async ({ page }) 
   await goToProgress(page, '#ocean-remembers', 0.92);
   await page.screenshot({ path: 'test-results/finale-desktop.png' });
   await page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' }).click();
-  await page.waitForTimeout(1_800);
+  await expect(page.locator('#finale-reveal')).toHaveAttribute('data-finale-phase', 'complete', { timeout: 10_000 });
+  await expect.poll(() => page.locator('#outro-actions button').evaluateAll(
+    nodes => nodes.every(node => !node.disabled),
+  ), { timeout: 4_000 }).toBe(true);
   await page.screenshot({ path: 'test-results/finale-outro-desktop.png' });
 });
 
@@ -62,7 +65,10 @@ test('chụp cảnh đầu trên mobile', async ({ browser }) => {
   await goToProgress(page, '#ocean-remembers', 0.92);
   await page.screenshot({ path: 'test-results/finale-mobile.png' });
   await page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' }).click();
-  await page.waitForTimeout(1_800);
+  await expect(page.locator('#finale-reveal')).toHaveAttribute('data-finale-phase', 'complete', { timeout: 10_000 });
+  await expect.poll(() => page.locator('#outro-actions button').evaluateAll(
+    nodes => nodes.every(node => !node.disabled),
+  ), { timeout: 4_000 }).toBe(true);
   await page.screenshot({ path: 'test-results/finale-outro-mobile.png' });
   await context.close();
 });
