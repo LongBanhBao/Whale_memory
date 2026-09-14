@@ -26,10 +26,12 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
 
   await goToProgress(page, '#blue-road', .02);
   await page.locator('#scene-next').click();
-  await expect(entryCurrent).toHaveCSS('opacity', '1');
+  await expect.poll(() => entryCurrent.evaluate(node => (
+    parseFloat(getComputedStyle(node).opacity)
+  )), { timeout: 3_000 }).toBeGreaterThan(.45);
   await expect.poll(() => entryCurrent.evaluate(node => (
     parseFloat(node.style.getPropertyValue('--storm-entry-radius'))
-  )), { timeout: 2_000 }).toBeGreaterThan(1);
+  )), { timeout: 3_000 }).toBeGreaterThan(60);
   expect(await entryCurrent.evaluate(node => getComputedStyle(node).backgroundImage))
     .toContain('storm-ocean-v2.webp');
   await expect(page.locator('#blue-road')).toBeHidden({ timeout: 10_000 });
@@ -71,6 +73,10 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
   await expect(page.locator('.storm-cloud-field i')).toHaveCount(5);
   await expect(page.locator('.storm-wave')).toHaveCount(5);
   await expect(page.locator('.storm-lightning')).toHaveCount(2);
+  await expect(page.locator('.storm-lightning__aura')).toHaveCount(2);
+  await expect(page.locator('.storm-lightning__body')).toHaveCount(2);
+  await expect(page.locator('.storm-lightning__core')).toHaveCount(2);
+  await expect(page.locator('.storm-lightning path')).toHaveCount(15);
   await expect(page.locator('.storm-rain__plane')).toHaveCount(3);
   await expect(page.locator('.storm-rain__streak')).toHaveCount(28);
   await expect(page.locator('.storm-spray__drop')).toHaveCount(24);

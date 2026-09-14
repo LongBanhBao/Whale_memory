@@ -111,17 +111,37 @@
             </svg>
             <div class="storm-weather-flash" aria-hidden="true"></div>
             <svg class="storm-lightning storm-lightning--far" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-              <path d="M250 -25 L224 74 L194 128 L218 181 L172 263" />
-              <path d="M224 74 L296 132 L278 205" />
-              <path d="M194 128 L126 184 L108 245" />
-              <path d="M1045 -30 L1011 72 L1044 126 L993 206" />
-              <path d="M1011 72 L945 136 L934 205" />
+              <defs>
+                <g id="storm-bolt-far-geometry">
+                  <path d="M246 -38 L235 26 L211 67 L219 100 L187 136 L196 169 L163 210 L170 239 L137 286" />
+                  <path d="M213 65 L176 92 L153 126 L119 151 L96 201" />
+                  <path d="M219 100 L257 128 L273 164 L309 190 L302 233" />
+                  <path d="M187 136 L150 159 L139 190 L104 218" />
+                  <path d="M1044 -35 L1023 29 L1035 65 L1001 101 L1012 138 L973 176 L980 209 L942 261" />
+                  <path d="M1002 99 L956 125 L933 163 L895 187 L882 230" />
+                  <path d="M1012 138 L1050 165 L1061 200 L1092 226" />
+                </g>
+              </defs>
+              <use class="storm-lightning__aura" href="#storm-bolt-far-geometry" />
+              <use class="storm-lightning__body" href="#storm-bolt-far-geometry" />
+              <use class="storm-lightning__core" href="#storm-bolt-far-geometry" />
             </svg>
             <svg class="storm-lightning storm-lightning--near" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-              <path d="M727 -35 L689 89 L721 151 L662 225 L681 286 L603 378" />
-              <path d="M689 89 L620 145 L585 228" />
-              <path d="M721 151 L790 218 L772 306" />
-              <path d="M1265 -22 L1208 91 L1235 146 L1168 234" />
+              <defs>
+                <g id="storm-bolt-near-geometry">
+                  <path d="M730 -48 L716 18 L682 73 L696 114 L653 164 L666 207 L617 260 L630 306 L568 390 L579 431 L527 501" />
+                  <path d="M683 72 L641 101 L620 142 L574 169 L550 222" />
+                  <path d="M653 163 L608 190 L586 229 L541 257 L521 301" />
+                  <path d="M666 207 L711 237 L726 278 L769 312 L757 368" />
+                  <path d="M617 260 L580 284 L560 321 L524 343" />
+                  <path d="M1267 -36 L1240 34 L1252 72 L1211 116 L1226 158 L1178 209 L1187 248 L1139 315" />
+                  <path d="M1211 115 L1163 143 L1138 184 L1091 211 L1072 261" />
+                  <path d="M1226 158 L1273 188 L1287 230 L1328 263" />
+                </g>
+              </defs>
+              <use class="storm-lightning__aura" href="#storm-bolt-near-geometry" />
+              <use class="storm-lightning__body" href="#storm-bolt-near-geometry" />
+              <use class="storm-lightning__core" href="#storm-bolt-near-geometry" />
             </svg>
             <div id="storm-rain" class="storm-rain" aria-hidden="true">
               <div class="storm-rain__plane storm-rain__plane--far"></div>

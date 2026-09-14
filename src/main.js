@@ -662,25 +662,25 @@ function startStormHandoff() {
   setData(stormEntryCurrent, 'active', 'true');
   gsap.set(stormEntryCurrent, {
     opacity: 0,
-    '--storm-entry-radius': '165vmax',
+    '--storm-entry-radius': '0vmax',
     '--storm-entry-surge': 0,
   });
   stormEntryTimeline = gsap.timeline({
     onComplete: () => {
       stormWhale.snapPose(target);
       advanceScene();
-      gsap.to(stormEntryCurrent, {
+      gsap.timeline({ onComplete: resetStormEntryCurrent })
+        .to(stormEntryCurrent, {
         opacity: 0,
-        duration: .72,
-        ease: 'sine.out',
-        onComplete: resetStormEntryCurrent,
-      });
+        duration: 1.08,
+        ease: 'sine.inOut',
+      }, .08);
     },
   })
     .to(transfer, {
       progress: 1,
-      duration: 1.6,
-      ease: 'sine.inOut',
+      duration: 2.45,
+      ease: 'power2.inOut',
       onUpdate: () => {
         const amount = smoothstep(transfer.progress);
         waterJourney.pose(
@@ -697,10 +697,11 @@ function startStormHandoff() {
     }, 0)
     .to(stormEntryCurrent, {
       opacity: 1,
+      '--storm-entry-radius': '165vmax',
       '--storm-entry-surge': 1,
-      duration: 1.35,
+      duration: 2.25,
       ease: 'sine.inOut',
-    }, 0);
+    }, .12);
 }
 
 holdControl.addEventListener('pointerdown', beginHolding);
