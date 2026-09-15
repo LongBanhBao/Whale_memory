@@ -409,7 +409,7 @@ html[data-runtime-profile='compact'] .falling-memory.is-returning .memory-drop {
 }
 
 html[data-runtime-profile='compact'] .memory-drop__glass,
-html[data-runtime-profile='compact'] .hold-control__drop img {
+html[data-runtime-profile='compact'] .hold-control__drop-art {
   mix-blend-mode: normal;
 }
 

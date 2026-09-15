@@ -254,8 +254,8 @@ for (const id of dropIds) {
 introBackdrop.src = assetUrl('assets/scene/blue-room.webp');
 introHalo.src = assetUrl('assets/scene/halo.webp');
 introWhaleStill.src = assetUrl(whale.still);
-holdWaterDrop.src = assetUrl('assets/scene/water-drop.webp');
-for (const artwork of [introBackdrop, introHalo, introWhaleStill, holdWaterDrop]) {
+holdWaterDrop.style.setProperty('--hold-drop-image', `url("${assetUrl('assets/scene/water-drop.webp')}")`);
+for (const artwork of [introBackdrop, introHalo, introWhaleStill]) {
   artwork.loading = 'eager';
   artwork.fetchPriority = 'high';
   artwork.decoding = 'async';
@@ -1029,14 +1029,17 @@ function revealOutro() {
       waterJourney.pose(.66, stackArtwork ? .76 : .66, .48, 8, 0, .48, 0, .18);
       return;
     }
-    const idle = { y: .47 };
+    const idle = { phase: 0 };
     finaleWhaleMotionTimeline = gsap.to(idle, {
-      y: .53,
-      duration: 2.8,
-      ease: 'sine.inOut',
+      phase: Math.PI * 2,
+      duration: 5.6,
+      ease: 'none',
       repeat: -1,
-      yoyo: true,
-      onUpdate: () => waterJourney.pose(.73, idle.y, .76, -5, 0, .42, 0, .2),
+      onUpdate: () => {
+        const wave = Math.sin(idle.phase);
+        const glide = Math.cos(idle.phase);
+        waterJourney.pose(.73 + glide * .012, .5 + wave * .035, .76, -5 + wave * 1.8, wave * .1, .5, wave * 1.4, .22);
+      },
     });
   };
 
@@ -1047,6 +1050,7 @@ function revealOutro() {
     finaleWorld.style.setProperty('--portrait-y', portraitVertical);
     waterJourney.pose(compactRuntime ? .66 : .73, stackArtwork ? .76 : .5, compactRuntime ? .48 : .76, compactRuntime ? 8 : -5, 0, 0, 0, .1);
     outroButtons.forEach((button) => { button.disabled = false; });
+    if (!compactRuntime) settleWhale();
     return;
   }
 

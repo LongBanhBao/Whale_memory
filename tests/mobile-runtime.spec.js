@@ -63,6 +63,7 @@ test.describe('runtime điện thoại', () => {
     const nativeHoldGestures = await page.locator('#hold-control').evaluate(node => {
       const style = getComputedStyle(node);
       return {
+        hasNativeImage: Boolean(node.querySelector('img')),
         userSelect: style.userSelect,
         contextMenuAllowed: node.dispatchEvent(new Event('contextmenu', {
           bubbles: true,
@@ -75,6 +76,7 @@ test.describe('runtime điện thoại', () => {
       };
     });
     expect(nativeHoldGestures).toEqual({
+      hasNativeImage: false,
       userSelect: 'none',
       contextMenuAllowed: false,
       selectionAllowed: false,

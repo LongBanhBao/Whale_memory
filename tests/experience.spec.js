@@ -24,7 +24,9 @@ test('tải đủ bốn cảnh và toàn bộ asset của phần mở đầu', a
   await expect(page.locator('.memory-tile')).toHaveCount(0);
   await expect(page.locator('html')).not.toHaveAttribute('data-storm-ready', 'true');
   await expect.poll(() => page.locator('#intro-backdrop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
-  await expect.poll(() => page.locator('#hold-water-drop').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
+  await expect.poll(() => page.locator('#hold-water-drop').evaluate((drop) => (
+    getComputedStyle(drop).backgroundImage
+  ))).toContain('water-drop.webp');
   await expect.poll(() => page.locator('#intro-whale-still').evaluate((image) => image.naturalWidth)).toBeGreaterThan(0);
 
   await goToProgress(page, '#ocean-remembers', 0.9);

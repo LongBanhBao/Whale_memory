@@ -9,7 +9,7 @@
       content="The Blue Voyage — một hành trình ký ức dành cho Pastel."
     />
     <title>The Blue Voyage — Pastel</title>
-    <link rel="stylesheet" href="./app/main.css?v=20260915-finale-title" />
+    <link rel="stylesheet" href="./app/main.css?v=20260915-hold-whale-motion" />
   </head>
   <body class="is-intro-locked">
     <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
@@ -72,7 +72,7 @@
               <circle id="hold-progress" class="hold-control__progress" cx="75" cy="72" r="67"></circle>
             </svg>
             <span class="hold-control__drop" aria-hidden="true">
-              <img id="hold-water-drop" alt="" />
+              <span id="hold-water-drop" class="hold-control__drop-art"></span>
             </span>
             <span id="hold-label" class="hold-control__label">NHẤN VÀ GIỮ</span>
           </button>
@@ -245,7 +245,7 @@
 
     <script type="module">
       const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const staticVersion = '20260915-finale-title';
+      const staticVersion = '20260915-hold-whale-motion';
       const deploymentAssetRoot = 'https://cdn.jsdelivr.net/gh/LongBanhBao/Whale_memory@3013e5539a21326c2e72fff52a5daa6ddb8e1510/public/';
       const recoverBoot = (message = 'Không thể tải hành trình. Chạm để thử lại.') => {
         document.documentElement.dataset.appReady = 'failed';

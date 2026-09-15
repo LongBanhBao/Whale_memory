@@ -151,6 +151,11 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect.poll(() => settledWhale.evaluate(node => (
     parseFloat(node.style.getPropertyValue('--whale-y'))
   ))).not.toBe(idleY);
+  const idleX = await settledWhale.evaluate(node => parseFloat(node.style.getPropertyValue('--whale-x')));
+  await page.waitForTimeout(700);
+  await expect.poll(() => settledWhale.evaluate(node => (
+    parseFloat(node.style.getPropertyValue('--whale-x'))
+  ))).not.toBe(idleX);
   await page.screenshot({ path: testInfo.outputPath('finale-complete.png') });
 
   expect(await page.evaluate(() => window.__finalePhaseHistory)).toEqual([
