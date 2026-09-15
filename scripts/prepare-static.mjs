@@ -8,6 +8,16 @@ const publicRoot = path.join(projectRoot, 'public');
 const rootApp = path.join(projectRoot, 'app');
 const sourceIndex = path.join(projectRoot, 'index.html');
 const developmentCheck = "const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);";
+const assetRootDeclaration = "const deploymentAssetRoot = './public/';";
+const githubRepository = process.env.GITHUB_REPOSITORY ?? '';
+const githubSha = process.env.GITHUB_SHA ?? '';
+const hasPinnedGithubRevision = (
+  /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(githubRepository)
+  && /^[0-9a-f]{40}$/i.test(githubSha)
+);
+const deploymentAssetRoot = hasPinnedGithubRevision
+  ? `https://cdn.jsdelivr.net/gh/${githubRepository}@${githubSha}/public/`
+  : './public/';
 
 await Promise.all([
   mkdir(path.join(distRoot, 'public'), { recursive: true }),
@@ -18,7 +28,15 @@ const sourceHtml = await readFile(sourceIndex, 'utf8');
 if (!sourceHtml.includes(developmentCheck)) {
   throw new Error('Không tìm thấy dấu chuyển chế độ development trong index.html.');
 }
-const staticHtml = sourceHtml.replace(developmentCheck, 'const isDevelopment = false;');
+if (!sourceHtml.includes(assetRootDeclaration)) {
+  throw new Error('Không tìm thấy khai báo asset root trong index.html.');
+}
+const staticHtml = sourceHtml
+  .replace(developmentCheck, 'const isDevelopment = false;')
+  .replace(
+    assetRootDeclaration,
+    `const deploymentAssetRoot = ${JSON.stringify(deploymentAssetRoot)};`,
+  );
 
 // GitHub Pages của repository từng được cấu hình xuất bản trực tiếp từ main.
 // Giữ một bundle production ổn định ở root, đồng thời tạo cùng cấu trúc trong
@@ -39,3 +57,4 @@ await Promise.all([
 ]);
 
 console.log('Đã chuẩn bị bản tĩnh cho cả GitHub Pages workflow và main/root.');
+console.log(`Asset production: ${deploymentAssetRoot}`);
