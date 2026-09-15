@@ -460,6 +460,7 @@ html[data-runtime-profile='compact'] .storm-camera {
   inset: 0;
   transform: none;
   contain: layout paint size;
+  background-position: 64% center;
 }
 
 html[data-runtime-profile='compact'] .storm-backdrop {

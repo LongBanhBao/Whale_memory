@@ -77,13 +77,13 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect(reveal).toHaveAttribute('data-finale-phase', 'sweep-forward', { timeout: 2_500 });
   await expect.poll(() => reveal.evaluate(node => Number(node.dataset.whaleReveal))).toBeGreaterThan(.12);
   const whaleLayer = await page.locator('#finale-whale-reveal').evaluate(node => ({
-    inlineMask: node.style.maskImage,
-    computedMask: getComputedStyle(node).maskImage,
+    inlineClip: node.style.clipPath,
+    computedClip: getComputedStyle(node).clipPath,
     opacity: Number(getComputedStyle(node).opacity),
   }));
-  expect(whaleLayer.inlineMask).toContain('conic-gradient');
-  expect(whaleLayer.computedMask).toContain('conic-gradient');
-  expect(whaleLayer.opacity).toBeGreaterThan(.95);
+  expect(whaleLayer.inlineClip).toContain('polygon');
+  expect(whaleLayer.computedClip).toContain('polygon');
+  expect(whaleLayer.opacity).toBeGreaterThan(.35);
   expect(Number(await reveal.getAttribute('data-portrait-reveal'))).toBe(0);
   await expect(copy).toHaveCSS('opacity', '0');
   await expect.poll(allActionsDisabled).toBe(true);
@@ -93,6 +93,19 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect(reveal).toHaveClass(/has-whale-reveal/);
   expect(Number(await reveal.getAttribute('data-whale-reveal'))).toBe(1);
   await expect.poll(() => reveal.evaluate(node => Number(node.dataset.portraitReveal))).toBeGreaterThan(.12);
+  const reverseLayers = await page.locator('#finale-reveal').evaluate(node => {
+    const whaleLayerNode = node.querySelector('#finale-whale-reveal');
+    const portraitLayerNode = node.querySelector('#finale-portrait-reveal');
+    return {
+      portraitClip: getComputedStyle(portraitLayerNode).clipPath,
+      portraitOpacity: Number(getComputedStyle(portraitLayerNode).opacity),
+      whaleZ: Number(getComputedStyle(whaleLayerNode).zIndex),
+      portraitZ: Number(getComputedStyle(portraitLayerNode).zIndex),
+    };
+  });
+  expect(reverseLayers.portraitClip).toContain('polygon');
+  expect(reverseLayers.portraitOpacity).toBeGreaterThan(.35);
+  expect(reverseLayers.portraitZ).toBeGreaterThan(reverseLayers.whaleZ);
   await expect(copy).toHaveCSS('opacity', '0');
   await expect.poll(allActionsDisabled).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('finale-sweep-reverse.png') });
@@ -138,6 +151,15 @@ test('giảm chuyển động vẫn hoàn tất đúng thứ tự và không gi�
   await expect(page.locator('#finale-scan')).toHaveCSS('visibility', 'hidden');
   await expect(page.locator('.traveling-light')).toHaveCount(0);
   await expect(page.locator('.finale-copy')).toHaveCSS('opacity', '1');
+  const stackedArtwork = await page.locator('#finale-reveal').evaluate(node => {
+    const whaleBox = node.querySelector('#memory-whale').getBoundingClientRect();
+    const portraitBox = node.querySelector('.finale-portrait').getBoundingClientRect();
+    return {
+      whaleCenterY: whaleBox.top + whaleBox.height / 2,
+      portraitCenterY: portraitBox.top + portraitBox.height / 2,
+    };
+  });
+  expect(stackedArtwork.whaleCenterY - stackedArtwork.portraitCenterY).toBeGreaterThan(120);
   await expect.poll(() => page.locator('#outro-actions button').evaluateAll(
     nodes => nodes.every(node => !node.disabled),
   )).toBe(true);

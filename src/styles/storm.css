@@ -40,6 +40,11 @@
   transform: none;
   transform-origin: 50% 50%;
   contain: layout paint size;
+  background-color: #06131e;
+  background-image: var(--storm-background);
+  background-position: 52% center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .storm-world .whale-canvas {

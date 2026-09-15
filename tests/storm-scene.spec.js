@@ -8,6 +8,13 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
   page.on('pageerror', error => runtimeErrors.push(error.message));
   page.on('request', request => requestedAssets.push(request.url()));
   await page.goto('/');
+  await expect.poll(() => page.locator('#storm-backdrop').evaluate(image => (
+    image.complete ? image.naturalWidth : 0
+  ))).toBeGreaterThan(0);
+  await expect(page.locator('#storm-backdrop')).toHaveAttribute('src', /storm-ocean-v2\.webp/);
+  await expect.poll(() => page.locator('#storm-camera').evaluate(node => (
+    getComputedStyle(node).backgroundImage
+  ))).toContain('storm-ocean-v2.webp');
 
   // The scene handoff reveals the textured storm ocean itself. There must be
   // no opaque black veil between scenes 2 and 3.

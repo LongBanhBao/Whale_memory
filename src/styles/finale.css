@@ -89,36 +89,51 @@
 .finale-portrait-reveal {
   position: absolute;
   inset: 0;
-  clip-path: circle(var(--finale-scan-radius) at 50% 50%);
+  clip-path: circle(0 at 50% 50%);
   pointer-events: none;
-  will-change: clip-path, opacity, mask-image;
+  will-change: clip-path, opacity;
 }
 
 .finale-whale-reveal {
-  --whale-sweep: 0turn;
   --whale-reveal-opacity: 0;
-  z-index: 14;
+  z-index: 12;
   opacity: var(--whale-reveal-opacity);
-  mask-image: conic-gradient(from 90deg at 50% 50%, #000 0turn var(--whale-sweep), transparent var(--whale-sweep) 1turn);
-  -webkit-mask-image: conic-gradient(from 90deg at 50% 50%, #000 0turn var(--whale-sweep), transparent var(--whale-sweep) 1turn);
 }
 
 .finale-portrait-reveal {
-  --portrait-cut: 1turn;
   --portrait-reveal-opacity: 0;
-  z-index: 12;
+  z-index: 14;
   opacity: var(--portrait-reveal-opacity);
-  mask-image: conic-gradient(from 90deg at 50% 50%, transparent 0turn var(--portrait-cut), #000 var(--portrait-cut) 1turn);
-  -webkit-mask-image: conic-gradient(from 90deg at 50% 50%, transparent 0turn var(--portrait-cut), #000 var(--portrait-cut) 1turn);
 }
 
 .finale-reveal[data-finale-phase='complete'] .finale-whale-reveal,
 .finale-reveal[data-finale-phase='complete'] .finale-portrait-reveal {
   clip-path: none;
   opacity: 1;
-  mask-image: none !important;
-  -webkit-mask-image: none !important;
   will-change: auto;
+}
+
+.finale-reveal[data-finale-phase='sweep-forward'] .memory-whale,
+.finale-reveal[data-finale-phase='sweep-reverse'] .memory-whale,
+.finale-reveal[data-finale-phase='fading'] .memory-whale {
+  filter: drop-shadow(0 0 28px rgba(133, 238, 255, .7)) drop-shadow(0 0 68px rgba(100, 167, 255, .38));
+}
+
+.finale-reveal[data-finale-phase='sweep-forward'] .memory-tile img,
+.finale-reveal[data-finale-phase='sweep-reverse'] .memory-tile img,
+.finale-reveal[data-finale-phase='fading'] .memory-tile img {
+  filter: saturate(1.04) brightness(1.08) contrast(1.03);
+}
+
+.finale-reveal[data-finale-phase='sweep-reverse'] .finale-portrait,
+.finale-reveal[data-finale-phase='fading'] .finale-portrait {
+  filter: drop-shadow(0 0 30px rgba(132, 232, 255, .46)) drop-shadow(0 0 72px rgba(93, 122, 218, .24));
+}
+
+.finale-reveal[data-finale-phase='sweep-reverse'] .finale-portrait img,
+.finale-reveal[data-finale-phase='fading'] .finale-portrait img {
+  opacity: 1;
+  filter: saturate(.96) contrast(1.03) brightness(1.02);
 }
 
 .finale-portrait {
@@ -129,7 +144,7 @@
   aspect-ratio: 1215 / 1295;
   margin: 0;
   overflow: visible;
-  transform: translate(calc(-50% + var(--portrait-x, 0px)), -50%) scale(.96);
+  transform: translate(calc(-50% + var(--portrait-x, 0px)), calc(-50% + var(--portrait-y, 0px))) scale(.96);
   border: 0;
   background: transparent;
   box-shadow: none;

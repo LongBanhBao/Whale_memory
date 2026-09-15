@@ -25,7 +25,12 @@ window.addEventListener('orientationchange', () => {
     window.dispatchEvent(new CustomEvent('bluevoyage:viewportchange'));
   }, 180);
 }, { passive: true });
-const assetUrl = (path) => `${window.__BLUE_VOYAGE_ASSET_ROOT__ ?? import.meta.env.BASE_URL}${path}`;
+const assetUrl = (path) => {
+  const root = window.__BLUE_VOYAGE_ASSET_ROOT__ ?? import.meta.env.BASE_URL;
+  const version = window.__BLUE_VOYAGE_ASSET_VERSION__;
+  const changedSceneAsset = /assets\/scene\/(storm-ocean-v2|finale-pastel)\.webp$/.test(path);
+  return `${root}${path}${version && changedSceneAsset ? `?v=${encodeURIComponent(version)}` : ''}`;
+};
 const imageById = new Map(images.map((image) => [image.id, image]));
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const lerp = (from, to, amount) => from + (to - from) * amount;
@@ -962,16 +967,38 @@ function setFinalePhase(phase) {
   finaleReveal.dataset.finalePhase = phase;
   finaleWorld.dataset.finalePhase = phase;
   if (phase === 'complete') {
-    finaleWhaleReveal.style.removeProperty('mask-image');
-    finaleWhaleReveal.style.removeProperty('-webkit-mask-image');
-    finalePortraitReveal.style.removeProperty('mask-image');
-    finalePortraitReveal.style.removeProperty('-webkit-mask-image');
+    finaleWhaleReveal.style.removeProperty('clip-path');
+    finalePortraitReveal.style.removeProperty('clip-path');
   }
 }
 
 function finaleScanRadius() {
   const { width, height } = runtimeViewport();
-  return Math.min(compactRuntime ? 360 : 430, Math.max(150, Math.min(width, height) * .43));
+  return Math.min(compactRuntime ? 360 : 430, Math.max(170, Math.min(width, height) * .48));
+}
+
+function finaleSectorClip(progress, direction, radius) {
+  const amount = clamp(progress);
+  const { width, height } = runtimeViewport();
+  const centerX = width / 2;
+  const centerY = height / 2;
+  if (amount <= .0001 || radius <= .01) {
+    return `circle(0px at ${centerX.toFixed(2)}px ${centerY.toFixed(2)}px)`;
+  }
+  if (amount >= .9999) {
+    return `circle(${radius.toFixed(2)}px at ${centerX.toFixed(2)}px ${centerY.toFixed(2)}px)`;
+  }
+
+  // A polygonal sector does not depend on animated CSS masks, which fail to
+  // repaint on some mobile/WebKit compositors. Six-degree samples keep the arc
+  // visually smooth while remaining cheap enough to update every animation frame.
+  const segments = Math.max(2, Math.ceil(amount * 60));
+  const points = [`${centerX.toFixed(2)}px ${centerY.toFixed(2)}px`];
+  for (let index = 0; index <= segments; index += 1) {
+    const angle = direction * amount * Math.PI * 2 * (index / segments);
+    points.push(`${(centerX + Math.cos(angle) * radius).toFixed(2)}px ${(centerY + Math.sin(angle) * radius).toFixed(2)}px`);
+  }
+  return `polygon(${points.join(', ')})`;
 }
 
 function renderFinaleScan(state) {
@@ -981,18 +1008,12 @@ function renderFinaleScan(state) {
   const opacity = clamp(state.opacity);
 
   finaleReveal.style.setProperty('--finale-scan-radius', `${radius.toFixed(2)}px`);
-  const whaleSweep = `${whaleReveal.toFixed(5)}turn`;
-  const whaleMask = `conic-gradient(from 90deg at 50% 50%, #000 0turn ${whaleSweep}, transparent ${whaleSweep} 1turn)`;
-  finaleWhaleReveal.style.setProperty('--whale-sweep', whaleSweep);
-  finaleWhaleReveal.style.maskImage = whaleMask;
-  finaleWhaleReveal.style.webkitMaskImage = whaleMask;
-  finaleWhaleReveal.style.setProperty('--whale-reveal-opacity', whaleReveal > .0001 ? '1' : '0');
-  const portraitCut = `${(1 - portraitReveal).toFixed(5)}turn`;
-  const portraitMask = `conic-gradient(from 90deg at 50% 50%, transparent 0turn ${portraitCut}, #000 ${portraitCut} 1turn)`;
-  finalePortraitReveal.style.setProperty('--portrait-cut', portraitCut);
-  finalePortraitReveal.style.maskImage = portraitMask;
-  finalePortraitReveal.style.webkitMaskImage = portraitMask;
-  finalePortraitReveal.style.setProperty('--portrait-reveal-opacity', portraitReveal > .0001 ? '1' : '0');
+  finaleWhaleReveal.style.clipPath = finaleSectorClip(whaleReveal, 1, radius);
+  finaleWhaleReveal.style.setProperty('--whale-reveal-opacity', whaleReveal > .0001
+    ? `${Math.min(1, .35 + whaleReveal * .65)}` : '0');
+  finalePortraitReveal.style.clipPath = finaleSectorClip(portraitReveal, -1, radius);
+  finalePortraitReveal.style.setProperty('--portrait-reveal-opacity', portraitReveal > .0001
+    ? `${Math.min(1, .35 + portraitReveal * .65)}` : '0');
   finaleScan.style.setProperty('--scan-opacity', opacity.toFixed(4));
   finaleScanArm.style.width = `${radius.toFixed(2)}px`;
   finaleScanArm.style.setProperty('--scan-angle', `${state.angle.toFixed(3)}deg`);
@@ -1009,8 +1030,12 @@ function resetFinaleReveal() {
 }
 
 function revealOutro() {
-  const artworkSeparation = compactRuntime ? '11vw' : '18vw';
-  const portraitSeparation = compactRuntime ? '-11vw' : '-18vw';
+  const viewport = runtimeViewport();
+  const stackArtwork = compactRuntime && viewport.height > viewport.width * 1.15;
+  const artworkSeparation = stackArtwork ? '0px' : compactRuntime ? '13vw' : '18vw';
+  const portraitSeparation = stackArtwork ? '0px' : compactRuntime ? '-13vw' : '-18vw';
+  const artworkVertical = stackArtwork ? '8vh' : '-5vh';
+  const portraitVertical = stackArtwork ? '-13vh' : '-5vh';
   memoryWhale.classList.add('is-lit');
   finaleWhaleReveal.setAttribute('aria-hidden', 'false');
   finaleWorld.classList.add('is-complete');
@@ -1020,8 +1045,9 @@ function revealOutro() {
     finaleWorld.style.setProperty('--copy-reveal', '1');
     finaleWorld.style.setProperty('--outro', '1');
     finaleWorld.style.setProperty('--memory-x', artworkSeparation);
-    finaleWorld.style.setProperty('--memory-y', '-4vh');
+    finaleWorld.style.setProperty('--memory-y', artworkVertical);
     finaleWorld.style.setProperty('--portrait-x', portraitSeparation);
+    finaleWorld.style.setProperty('--portrait-y', portraitVertical);
     outroButtons.forEach((button) => { button.disabled = false; });
     return;
   }
@@ -1034,7 +1060,8 @@ function revealOutro() {
     .to(finaleWorld, { '--copy-reveal': 1, duration: 1, ease: 'power2.out' })
     .to(finaleWorld, { '--outro': 1, duration: 1.15, ease: 'power2.out' }, .28)
     .to(finaleWorld, {
-      '--memory-x': artworkSeparation, '--memory-y': '-5vh', '--portrait-x': portraitSeparation,
+      '--memory-x': artworkSeparation, '--memory-y': artworkVertical,
+      '--portrait-x': portraitSeparation, '--portrait-y': portraitVertical,
       duration: 2.35, ease: 'power1.inOut',
     }, 0)
     .fromTo('.finale-copy', { filter: 'brightness(1.8)' }, { filter: 'brightness(1)', duration: 1.5 }, .18);
@@ -1184,6 +1211,7 @@ function resetJourney() {
   finaleWorld.style.setProperty('--memory-x', '0px');
   finaleWorld.style.setProperty('--memory-y', '0px');
   finaleWorld.style.setProperty('--portrait-x', '0px');
+  finaleWorld.style.setProperty('--portrait-y', '0px');
   finaleWorld.style.setProperty('--copy-reveal', '0');
   sendLight.disabled = true;
   sendLight.classList.remove('is-ready');

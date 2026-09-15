@@ -33,6 +33,7 @@ await Promise.all([
   access(path.join(rootApp, 'main.css')),
   access(path.join(rootApp, 'main.js')),
   access(path.join(distRoot, 'public', 'assets', 'scene', 'blue-room.webp')),
+  access(path.join(distRoot, 'public', 'assets', 'scene', 'storm-ocean-v2.webp')),
   access(path.join(distRoot, 'public', 'assets', 'scene', 'finale-pastel.webp')),
   access(path.join(distRoot, 'public', 'assets', 'video', 'P.mp4')),
 ]);
