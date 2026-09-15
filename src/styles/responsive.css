@@ -89,19 +89,9 @@
     width: 62px;
   }
 
-  .memory-whale {
-    top: 48%;
-    width: min(76vmin, 330px);
-  }
-
   .finale-portrait {
     top: 48%;
     width: min(64vmin, 280px);
-  }
-
-  .memory-grid {
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(8, 1fr);
   }
 
   .tribute-sequence {
@@ -197,11 +187,6 @@
 
   .portal {
     width: 74vh;
-  }
-
-  .memory-whale {
-    top: 47%;
-    width: min(50vw, 70vmin);
   }
 
   .finale-portrait {
@@ -610,30 +595,9 @@ html[data-runtime-profile='compact'] .cosmic-current {
   display: none;
 }
 
-html[data-runtime-profile='compact'] .memory-whale {
-  filter: drop-shadow(0 0 16px rgba(76, 215, 255, .18));
-  will-change: transform, opacity;
-}
-
-html[data-runtime-profile='compact'] .memory-grid {
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  filter: none;
-}
-
-html[data-runtime-profile='compact'] .memory-tile::after {
-  mix-blend-mode: normal;
-  opacity: .26;
-}
-
-html[data-runtime-profile='compact'] .memory-tile img {
-  filter: brightness(.84) saturate(.84) contrast(1.04);
-  transition: none;
-}
-
-html[data-runtime-profile='compact'] .memory-whale.is-lit,
-html[data-runtime-profile='compact'] .finale-world.is-complete .memory-whale {
-  filter: drop-shadow(0 0 22px rgba(151, 241, 255, .54));
+html[data-runtime-profile='compact'] .finale-whale-reveal .intro-whale-swimmer {
+  width: min(92vw, 520px);
+  filter: drop-shadow(0 0 18px rgba(76, 215, 255, .3));
 }
 
 @media (max-height: 620px) and (orientation: landscape) {
@@ -733,7 +697,7 @@ html[data-runtime-profile='compact'] .finale-world.is-complete .memory-whale {
     height: 100svh;
   }
 
-  .memory-whale,
+  .finale-whale-reveal .intro-whale-swimmer,
   .finale-portrait,
   .portal,
   .companion-whale {

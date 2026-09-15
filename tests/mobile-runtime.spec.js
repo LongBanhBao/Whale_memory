@@ -154,7 +154,8 @@ test.describe('runtime điện thoại', () => {
 
       await page.locator('#scene-next').click();
       await expect(page.locator('#ocean-remembers')).toBeVisible({ timeout: 5_000 });
-      await expect(page.locator('.memory-tile')).toHaveCount(24);
+      await expect(page.locator('#finale-whale-reveal #intro-whale-swimmer')).toHaveCount(1);
+      await expect(page.locator('.memory-tile')).toHaveCount(0);
       await expectViewportContained(page);
     });
   }

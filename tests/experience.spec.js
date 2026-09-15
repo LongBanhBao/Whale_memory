@@ -30,7 +30,8 @@ test('tải đủ bốn cảnh và toàn bộ asset của phần mở đầu', a
   await goToProgress(page, '#ocean-remembers', 0.9);
   await page.waitForTimeout(350);
   await expect(page.locator('#portal-layer > .portal')).toHaveCount(3);
-  await expect(page.locator('.memory-tile')).toHaveCount(48);
+  await expect(page.locator('#finale-whale-reveal #intro-whale-swimmer')).toHaveCount(1);
+  await expect(page.locator('.memory-tile')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' })).toBeAttached();
   expect(failedResponses).toEqual([]);
   expect(runtimeErrors).toEqual([]);
@@ -106,8 +107,10 @@ test('ánh sáng cuối hành trình hoàn tất vòng quét ký ức', async ({
   const button = page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' });
   await expect(button).toBeEnabled();
   await button.click();
-  await expect(page.locator('#memory-whale')).toHaveClass(/is-lit/, { timeout: 12_000 });
-  await expect(page.locator('#finale-reveal')).toHaveAttribute('data-finale-phase', 'complete');
+  await expect(page.locator('#finale-whale-reveal #intro-whale-swimmer')).toBeVisible({ timeout: 12_000 });
+  await expect(page.locator('#finale-reveal')).toHaveAttribute('data-finale-phase', 'complete', {
+    timeout: 12_000,
+  });
   await expect.poll(() => page.locator('#outro-actions button').evaluateAll(
     nodes => nodes.every(node => !node.disabled),
   ), { timeout: 4_000 }).toBe(true);

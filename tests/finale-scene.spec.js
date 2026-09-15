@@ -33,6 +33,8 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   expect(portraitAlpha.center).toBeGreaterThan(245);
   expect(portraitAlpha.bottom).toBeLessThan(5);
   await expect(reveal).toHaveAttribute('data-finale-phase', 'idle');
+  await expect(page.locator('#finale-whale-reveal #intro-whale-swimmer')).toHaveCount(1);
+  await expect(page.locator('#memory-whale, .memory-grid, .memory-tile')).toHaveCount(0);
   await expect(page.locator('#finale-whale-reveal')).toHaveCSS('opacity', '0');
   await expect(page.locator('#finale-portrait-reveal')).toHaveCSS('opacity', '0');
   await expect(copy).toHaveCSS('opacity', '0');
@@ -136,6 +138,15 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect(reveal).toHaveClass(/has-portrait-reveal/);
   await expect.poll(() => copy.evaluate(node => Number(getComputedStyle(node).opacity))).toBeGreaterThan(.95);
   await expect.poll(allActionsEnabled, { timeout: 4_000 }).toBe(true);
+  const settledWhale = page.locator('#finale-whale-reveal #intro-whale-swimmer');
+  await expect.poll(() => settledWhale.evaluate(node => (
+    parseFloat(node.style.getPropertyValue('--whale-x'))
+  ))).toBeGreaterThan(68);
+  const idleY = await settledWhale.evaluate(node => parseFloat(node.style.getPropertyValue('--whale-y')));
+  await page.waitForTimeout(900);
+  await expect.poll(() => settledWhale.evaluate(node => (
+    parseFloat(node.style.getPropertyValue('--whale-y'))
+  ))).not.toBe(idleY);
   await page.screenshot({ path: testInfo.outputPath('finale-complete.png') });
 
   expect(await page.evaluate(() => window.__finalePhaseHistory)).toEqual([
@@ -171,7 +182,7 @@ test('giảm chuyển động vẫn hoàn tất đúng thứ tự và không gi�
   await expect(page.locator('.finale-portrait')).toHaveCSS('filter', 'none');
   await expect(page.locator('.finale-portrait')).toHaveCSS('mask-image', 'none');
   const stackedArtwork = await page.locator('#finale-reveal').evaluate(node => {
-    const whaleBox = node.querySelector('#memory-whale').getBoundingClientRect();
+    const whaleBox = node.querySelector('#intro-whale-swimmer').getBoundingClientRect();
     const portraitBox = node.querySelector('.finale-portrait').getBoundingClientRect();
     return {
       whaleCenterY: whaleBox.top + whaleBox.height / 2,
@@ -183,4 +194,26 @@ test('giảm chuyển động vẫn hoàn tất đúng thứ tự và không gi�
     nodes => nodes.every(node => !node.disabled),
   )).toBe(true);
   await context.close();
+});
+
+test('mobile đưa cá voi cảnh 2 bơi xuống và không dao động theo sóng sin', async ({ page }) => {
+  test.setTimeout(75_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await goToProgress(page, '#ocean-remembers', .91);
+  await page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' }).click();
+  await expect(page.locator('#finale-reveal')).toHaveAttribute('data-finale-phase', 'complete', {
+    timeout: 10_000,
+  });
+  await expect.poll(() => page.locator('#outro-actions button').evaluateAll(
+    nodes => nodes.every(node => !node.disabled),
+  ), { timeout: 4_000 }).toBe(true);
+
+  const whale = page.locator('#finale-whale-reveal #intro-whale-swimmer');
+  const firstY = await whale.evaluate(node => parseFloat(node.style.getPropertyValue('--whale-y')));
+  expect(firstY).toBeGreaterThan(62);
+  await page.waitForTimeout(1000);
+  const secondY = await whale.evaluate(node => parseFloat(node.style.getPropertyValue('--whale-y')));
+  expect(Math.abs(secondY - firstY)).toBeLessThan(.2);
+  await expect(whale).toHaveClass(/has-swim-mesh/);
 });

@@ -85,8 +85,6 @@ const finalePortraitReveal = document.querySelector('#finale-portrait-reveal');
 const finalePortraitImage = document.querySelector('#finale-portrait-image');
 const finaleScan = document.querySelector('#finale-scan');
 const finaleScanArm = document.querySelector('#finale-scan-arm');
-const memoryWhale = document.querySelector('#memory-whale');
-const memoryGrid = document.querySelector('#memory-grid');
 const sendLight = document.querySelector('#send-light');
 const finalMessage = document.querySelector('#final-message');
 const lightLayer = document.querySelector('#light-layer');
@@ -235,20 +233,6 @@ function buildStorm() {
   return { obstacles, companions, impacts };
 }
 
-function buildMemoryWhale() {
-  const tileCount = compactRuntime ? 24 : 48;
-  for (let index = 0; index < tileCount; index += 1) {
-    const image = images[index % images.length];
-    const tile = document.createElement('div');
-    tile.className = 'memory-tile';
-    tile.style.setProperty('--tile-color', image.color);
-    tile.append(makeImage(image, 'thumb'));
-    memoryGrid.append(tile);
-  }
-  memoryWhale.style.setProperty('--whale-mask', `url("${assetUrl(whale.still)}")`);
-  memoryWhale.style.setProperty('--whale-ratio', `${whale.frameWidth / whale.frameHeight}`);
-}
-
 function buildGallery() {
   images.forEach((image) => {
     const figure = document.createElement('figure');
@@ -307,7 +291,6 @@ let finalePrepared = false;
 function prepareFinale() {
   if (finalePrepared) return;
   finalePrepared = true;
-  buildMemoryWhale();
   buildGallery();
   finalePortraitImage.src = assetUrl('assets/scene/finale-pastel.webp');
   finalePortraitImage.loading = 'eager';
@@ -333,6 +316,7 @@ const HOLD_RING_LENGTH = 2 * Math.PI * 67;
 let activeScene = 0;
 let finalTimeline = null;
 let finaleSequenceTimeline = null;
+let finaleWhaleMotionTimeline = null;
 let finaleSequenceStarted = false;
 let stormEntryTimeline = null;
 let stormTransitionTimeline = null;
@@ -599,7 +583,8 @@ function setActiveScene(index) {
     if (index === 1) waterJourney.activateVideo();
     else waterJourney.deactivateVideo({ immediate: index === 0, reset: index === 0 });
   }
-  (index === 1 ? journeyWorld : introWorld).append(introWhaleSwimmer);
+  const swimmerHost = index === 1 ? journeyWorld : index === 3 ? finaleWhaleReveal : introWorld;
+  swimmerHost.append(introWhaleSwimmer);
   introWhale.setActive(index === 1 || (index === 0 && introComplete));
   sections.forEach((section, sectionIndex) => {
     section.hidden = sectionIndex !== index;
@@ -955,9 +940,6 @@ function renderFinale({ progress }) {
     finaleWorld.style.setProperty('--copy-reveal', '0');
   }
   finaleWorld.style.setProperty('--button-reveal', `${buttonReveal}`);
-  if (!compactRuntime) {
-    memoryGrid.style.translate = `${Math.sin(progress * Math.PI) * -1.2}% ${Math.sin(progress * Math.PI * 0.7) * 1.1}%`;
-  }
   sendLight.disabled = !ready;
   sendLight.classList.toggle('is-ready', ready);
   ambient.setMood('finale', 0.58 + progress * 0.38);
@@ -1032,35 +1014,60 @@ function resetFinaleReveal() {
 function revealOutro() {
   const viewport = runtimeViewport();
   const stackArtwork = compactRuntime && viewport.height > viewport.width * 1.15;
-  const artworkSeparation = stackArtwork ? '0px' : compactRuntime ? '13vw' : '18vw';
   const portraitSeparation = stackArtwork ? '0px' : compactRuntime ? '-13vw' : '-18vw';
-  const artworkVertical = stackArtwork ? '8vh' : '-5vh';
   const portraitVertical = stackArtwork ? '-13vh' : '-5vh';
-  memoryWhale.classList.add('is-lit');
   finaleWhaleReveal.setAttribute('aria-hidden', 'false');
   finaleWorld.classList.add('is-complete');
   finalMessage.textContent = 'Hành trình vẫn đang tiếp tục.';
 
+  const settleWhale = () => {
+    if (compactRuntime) {
+      waterJourney.pose(.5, stackArtwork ? .7 : .64, .62, 8, 0, .48, 0, .18);
+      return;
+    }
+    const idle = { y: .47 };
+    finaleWhaleMotionTimeline = gsap.to(idle, {
+      y: .53,
+      duration: 2.8,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
+      onUpdate: () => waterJourney.pose(.73, idle.y, .76, -5, 0, .42, 0, .2),
+    });
+  };
+
   if (reducedMotion) {
     finaleWorld.style.setProperty('--copy-reveal', '1');
     finaleWorld.style.setProperty('--outro', '1');
-    finaleWorld.style.setProperty('--memory-x', artworkSeparation);
-    finaleWorld.style.setProperty('--memory-y', artworkVertical);
     finaleWorld.style.setProperty('--portrait-x', portraitSeparation);
     finaleWorld.style.setProperty('--portrait-y', portraitVertical);
+    waterJourney.pose(compactRuntime ? .5 : .73, stackArtwork ? .7 : .5, compactRuntime ? .62 : .76, compactRuntime ? 8 : -5, 0, 0, 0, .1);
     outroButtons.forEach((button) => { button.disabled = false; });
     return;
   }
 
+  const whaleMotion = { progress: 0 };
   finalTimeline = gsap.timeline({
     onComplete: () => {
       outroButtons.forEach((button) => { button.disabled = false; });
+      settleWhale();
     },
   })
     .to(finaleWorld, { '--copy-reveal': 1, duration: 1, ease: 'power2.out' })
     .to(finaleWorld, { '--outro': 1, duration: 1.15, ease: 'power2.out' }, .28)
+    .to(whaleMotion, {
+      progress: 1,
+      duration: 2.35,
+      ease: 'power1.inOut',
+      onUpdate: () => {
+        const p = whaleMotion.progress;
+        const x = compactRuntime ? .5 : lerp(.5, .73, p);
+        const y = compactRuntime ? lerp(.49, stackArtwork ? .7 : .64, p) : lerp(.49, .47, p);
+        const rotation = compactRuntime ? lerp(-5, 8, p) : lerp(-7, -5, p);
+        waterJourney.pose(x, y, compactRuntime ? .62 : .76, rotation, Math.sin(p * Math.PI * 4) * .16, .88, compactRuntime ? 5 : -3, .24);
+      },
+    }, 0)
     .to(finaleWorld, {
-      '--memory-x': artworkSeparation, '--memory-y': artworkVertical,
       '--portrait-x': portraitSeparation, '--portrait-y': portraitVertical,
       duration: 2.35, ease: 'power1.inOut',
     }, 0)
@@ -1088,6 +1095,7 @@ function sendLightToWhale(event) {
   light.style.top = `${startY}px`;
   lightLayer.append(light);
   const scanState = { radius: 0, angle: 0, whale: 0, portrait: 0, opacity: 0 };
+  waterJourney.pose(.5, .49, compactRuntime ? .62 : .76, -7, 0, .5, 0, .16);
   renderFinaleScan(scanState);
   setFinalePhase('arriving');
 
@@ -1189,6 +1197,7 @@ function resetJourney() {
   introWhale.setActive(false);
   introWhale.reset();
   finaleSequenceTimeline?.kill();
+  finaleWhaleMotionTimeline?.kill();
   finalTimeline?.kill();
   postTimeline?.kill();
   introDrops.forEach(({ wrapper, ripple }) => {
@@ -1201,15 +1210,13 @@ function resetJourney() {
   lightLayer.replaceChildren();
   finaleSequenceStarted = false;
   finaleSequenceTimeline = null;
+  finaleWhaleMotionTimeline = null;
   finalTimeline = null;
   stormEntryTimeline = null;
   stormTransitionTimeline = null;
   finaleWorld.classList.remove('is-complete', 'is-sequencing');
-  memoryWhale.classList.remove('is-lit');
   resetFinaleReveal();
   finaleWorld.style.setProperty('--outro', '0');
-  finaleWorld.style.setProperty('--memory-x', '0px');
-  finaleWorld.style.setProperty('--memory-y', '0px');
   finaleWorld.style.setProperty('--portrait-x', '0px');
   finaleWorld.style.setProperty('--portrait-y', '0px');
   finaleWorld.style.setProperty('--copy-reveal', '0');

@@ -9,7 +9,7 @@
       content="The Blue Voyage — một hành trình ký ức dành cho Pastel."
     />
     <title>The Blue Voyage — Pastel</title>
-    <link rel="stylesheet" href="./app/main.css?v=20260915-cdn-cors" />
+    <link rel="stylesheet" href="./app/main.css?v=20260915-finale-swimmer" />
   </head>
   <body class="is-intro-locked">
     <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
@@ -180,11 +180,7 @@
 
           <div id="finale-reveal" class="finale-reveal" data-finale-phase="idle">
             <div id="finale-whale-reveal" class="finale-whale-reveal" aria-hidden="true">
-              <div id="memory-whale" class="memory-whale" role="img" aria-label="Cá voi được tạo nên từ những khoảnh khắc của Pastel">
-                <div id="memory-grid" class="memory-grid"></div>
-                <span class="memory-whale__shine" aria-hidden="true"></span>
-                <span class="memory-whale__heart" aria-hidden="true"></span>
-              </div>
+              <!-- Cá voi cảnh 2 được chuyển vào đây khi cảnh kết bắt đầu. -->
             </div>
             <div id="finale-portrait-reveal" class="finale-portrait-reveal" aria-hidden="true">
               <figure class="finale-portrait">
@@ -247,7 +243,7 @@
 
     <script type="module">
       const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const staticVersion = '20260915-cdn-cors';
+      const staticVersion = '20260915-finale-swimmer';
       const deploymentAssetRoot = 'https://cdn.jsdelivr.net/gh/LongBanhBao/Whale_memory@3013e5539a21326c2e72fff52a5daa6ddb8e1510/public/';
       const recoverBoot = (message = 'Không thể tải hành trình. Chạm để thử lại.') => {
         document.documentElement.dataset.appReady = 'failed';
