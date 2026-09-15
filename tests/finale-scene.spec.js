@@ -137,6 +137,10 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect(page.locator('.traveling-light')).toHaveCount(0);
   await expect(reveal).toHaveClass(/has-portrait-reveal/);
   await expect.poll(() => copy.evaluate(node => Number(getComputedStyle(node).opacity))).toBeGreaterThan(.95);
+  await expect(page.locator('.finale-title')).toHaveAttribute('aria-label', 'Pastel de Whale');
+  await expect(page.locator('.finale-title > span')).toHaveText(['PASTEL', 'WHALE']);
+  await expect(page.locator('.finale-title > em')).toHaveText('de');
+  await expect(page.locator('#outro-actions button')).toHaveCount(1);
   await expect.poll(allActionsEnabled, { timeout: 4_000 }).toBe(true);
   const settledWhale = page.locator('#finale-whale-reveal #intro-whale-swimmer');
   await expect.poll(() => settledWhale.evaluate(node => (
@@ -216,4 +220,10 @@ test('mobile đưa cá voi cảnh 2 bơi xuống và không dao động theo só
   const secondY = await whale.evaluate(node => parseFloat(node.style.getPropertyValue('--whale-y')));
   expect(Math.abs(secondY - firstY)).toBeLessThan(.2);
   await expect(whale).toHaveClass(/has-swim-mesh/);
+  const mobileLayout = await page.locator('.finale-world').evaluate(node => {
+    const title = node.querySelector('.finale-copy').getBoundingClientRect();
+    const whaleBox = node.querySelector('#intro-whale-swimmer').getBoundingClientRect();
+    return { titleBottom: title.bottom, whaleTop: whaleBox.top };
+  });
+  expect(mobileLayout.whaleTop - mobileLayout.titleBottom).toBeGreaterThan(4);
 });

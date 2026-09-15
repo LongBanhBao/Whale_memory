@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('chuyển cảnh bằng tiếp, không cuộn, và xem lại hành trình', async ({ page }) => {
+test('chuyển cảnh bằng tiếp, không cuộn, và chỉ giữ nút thư viện ở đoạn kết', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -19,10 +19,11 @@ test('chuyển cảnh bằng tiếp, không cuộn, và xem lại hành trình',
   }
   await expect(next).toBeHidden();
   await page.locator('#send-light').click();
+  await expect(page.locator('#replay-journey, #open-letter')).toHaveCount(0);
   await page.locator('#open-gallery').click();
   await expect(page.locator('#gallery-dialog')).toBeVisible();
   await page.getByRole('button', { name: 'Đóng thư viện ảnh' }).click();
-  await page.locator('#replay-journey').click();
+  await page.locator('.wordmark').click();
   await expect(page.locator('#memory-drops')).toBeVisible();
   await expect(next).toBeVisible();
   await expect(page.locator('#hold-control')).toBeEnabled();

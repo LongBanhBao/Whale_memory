@@ -9,7 +9,7 @@
       content="The Blue Voyage — một hành trình ký ức dành cho Pastel."
     />
     <title>The Blue Voyage — Pastel</title>
-    <link rel="stylesheet" href="./app/main.css?v=20260915-finale-swimmer" />
+    <link rel="stylesheet" href="./app/main.css?v=20260915-finale-title" />
   </head>
   <body class="is-intro-locked">
     <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
@@ -195,7 +195,11 @@
 
           <div class="finale-copy">
             <p class="eyebrow">THE OCEAN REMEMBERS</p>
-            <h2>PASTEL</h2>
+            <h2 class="finale-title" aria-label="Pastel de Whale">
+              <span aria-hidden="true">PASTEL</span>
+              <em aria-hidden="true">de</em>
+              <span aria-hidden="true">WHALE</span>
+            </h2>
             <p id="final-message" class="finale-copy__message" aria-live="polite">Hành trình vẫn đang tiếp tục.</p>
           </div>
 
@@ -204,8 +208,6 @@
             <span>GỬI MỘT ÁNH SÁNG</span>
           </button>
           <nav id="outro-actions" class="outro-actions" aria-label="Lựa chọn sau hành trình">
-            <button id="replay-journey" type="button">XEM LẠI HÀNH TRÌNH</button>
-            <button id="open-letter" type="button">MỞ THƯ TRI ÂN</button>
             <button id="open-gallery" type="button">XEM TOÀN BỘ KÝ ỨC</button>
           </nav>
           <div id="light-layer" class="light-layer" aria-hidden="true"></div>
@@ -243,7 +245,7 @@
 
     <script type="module">
       const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const staticVersion = '20260915-finale-swimmer';
+      const staticVersion = '20260915-finale-title';
       const deploymentAssetRoot = 'https://cdn.jsdelivr.net/gh/LongBanhBao/Whale_memory@3013e5539a21326c2e72fff52a5daa6ddb8e1510/public/';
       const recoverBoot = (message = 'Không thể tải hành trình. Chạm để thử lại.') => {
         document.documentElement.dataset.appReady = 'failed';

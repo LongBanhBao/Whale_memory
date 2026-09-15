@@ -90,8 +90,6 @@ const finalMessage = document.querySelector('#final-message');
 const lightLayer = document.querySelector('#light-layer');
 const outroActions = document.querySelector('#outro-actions');
 const outroButtons = [...outroActions.querySelectorAll('button')];
-const replayJourney = document.querySelector('#replay-journey');
-const openLetter = document.querySelector('#open-letter');
 const openGallery = document.querySelector('#open-gallery');
 const letterDialog = document.querySelector('#letter-dialog');
 const galleryDialog = document.querySelector('#gallery-dialog');
@@ -725,6 +723,12 @@ holdControl.addEventListener('pointerup', endHolding);
 holdControl.addEventListener('pointercancel', endHolding);
 holdControl.addEventListener('keydown', beginHolding);
 holdControl.addEventListener('keyup', endHolding);
+// Android's long-press assistant/text-selection UI cancels pointer capture and
+// interrupts the six-second hold. The control has no selectable or draggable
+// content, so suppress those native gestures only inside this interaction.
+for (const eventName of ['contextmenu', 'selectstart', 'dragstart']) {
+  holdControl.addEventListener(eventName, event => event.preventDefault());
+}
 window.addEventListener('blur', endHolding);
 
 if (reducedMotion) {
@@ -1022,7 +1026,7 @@ function revealOutro() {
 
   const settleWhale = () => {
     if (compactRuntime) {
-      waterJourney.pose(.5, stackArtwork ? .7 : .64, .62, 8, 0, .48, 0, .18);
+      waterJourney.pose(.66, stackArtwork ? .76 : .66, .48, 8, 0, .48, 0, .18);
       return;
     }
     const idle = { y: .47 };
@@ -1041,7 +1045,7 @@ function revealOutro() {
     finaleWorld.style.setProperty('--outro', '1');
     finaleWorld.style.setProperty('--portrait-x', portraitSeparation);
     finaleWorld.style.setProperty('--portrait-y', portraitVertical);
-    waterJourney.pose(compactRuntime ? .5 : .73, stackArtwork ? .7 : .5, compactRuntime ? .62 : .76, compactRuntime ? 8 : -5, 0, 0, 0, .1);
+    waterJourney.pose(compactRuntime ? .66 : .73, stackArtwork ? .76 : .5, compactRuntime ? .48 : .76, compactRuntime ? 8 : -5, 0, 0, 0, .1);
     outroButtons.forEach((button) => { button.disabled = false; });
     return;
   }
@@ -1061,10 +1065,10 @@ function revealOutro() {
       ease: 'power1.inOut',
       onUpdate: () => {
         const p = whaleMotion.progress;
-        const x = compactRuntime ? .5 : lerp(.5, .73, p);
-        const y = compactRuntime ? lerp(.49, stackArtwork ? .7 : .64, p) : lerp(.49, .47, p);
+        const x = compactRuntime ? lerp(.5, .66, p) : lerp(.5, .73, p);
+        const y = compactRuntime ? lerp(.49, stackArtwork ? .76 : .66, p) : lerp(.49, .47, p);
         const rotation = compactRuntime ? lerp(-5, 8, p) : lerp(-7, -5, p);
-        waterJourney.pose(x, y, compactRuntime ? .62 : .76, rotation, Math.sin(p * Math.PI * 4) * .16, .88, compactRuntime ? 5 : -3, .24);
+        waterJourney.pose(x, y, compactRuntime ? .48 : .76, rotation, Math.sin(p * Math.PI * 4) * .16, .88, compactRuntime ? 5 : -3, .24);
       },
     }, 0)
     .to(finaleWorld, {
@@ -1172,7 +1176,6 @@ function openMemoryDialog(dialog) {
   else dialog.setAttribute('open', '');
 }
 
-openLetter.addEventListener('click', () => openMemoryDialog(letterDialog));
 openGallery.addEventListener('click', () => openMemoryDialog(galleryDialog));
 document.querySelectorAll('[data-close-dialog]').forEach((button) => {
   button.addEventListener('click', () => button.closest('dialog').close());
@@ -1252,8 +1255,6 @@ function resetJourney() {
   renderHoldProgress(0);
   setWhaleEmergence(0);
 }
-
-replayJourney.addEventListener('click', resetJourney);
 
 document.querySelector('.wordmark').addEventListener('click', (event) => {
   event.preventDefault();

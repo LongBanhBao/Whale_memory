@@ -398,6 +398,18 @@
   cursor: pointer;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hold-control *,
+.hold-control img,
+.hold-control svg {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .hold-control:focus-visible {

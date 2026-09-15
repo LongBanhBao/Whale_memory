@@ -127,7 +127,7 @@ test('không thể kích hoạt nút kết khi chưa đến đoạn cuối', asy
   await expect(page.locator('.finale-world')).not.toHaveClass(/is-complete/);
 });
 
-test('đoạn kết mở thư viện và có thể bắt đầu lại', async ({ page }) => {
+test('đoạn kết chỉ mở thư viện và wordmark vẫn có thể bắt đầu lại', async ({ page }) => {
   test.setTimeout(55_000);
   await page.goto('/');
   await goToProgress(page, '#ocean-remembers', 0.92);
@@ -138,8 +138,9 @@ test('đoạn kết mở thư viện và có thể bắt đầu lại', async ({
   await page.getByRole('button', { name: 'XEM TOÀN BỘ KÝ ỨC' }).click();
   await expect(page.locator('#gallery-dialog')).toBeVisible();
   await expect(page.locator('#gallery-grid img')).toHaveCount(19);
+  await expect(page.locator('#replay-journey, #open-letter')).toHaveCount(0);
   await page.getByRole('button', { name: 'Đóng thư viện ảnh' }).click();
-  await page.getByRole('button', { name: 'XEM LẠI HÀNH TRÌNH' }).click();
+  await page.locator('.wordmark').click();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
   await expect(page.locator('body')).toHaveClass(/is-intro-locked/);
   await expect(page.locator('#hold-control')).toBeEnabled();

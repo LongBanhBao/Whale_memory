@@ -236,20 +236,47 @@
   z-index: 32;
   bottom: clamp(92px, 12vh, 140px);
   left: var(--safe-left);
-  max-width: min(54vw, 620px);
+  max-width: min(68vw, 980px);
   transform: translateY(calc((1 - var(--copy-reveal, 0)) * 22px));
   opacity: var(--copy-reveal, 0);
 }
 
-.finale-copy h2 {
-  margin: 4px 0 5px;
+.finale-title {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(10px, 1.25vw, 22px);
+  margin: 4px 0 8px;
+  color: #bcefff;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(46px, 8vw, 112px);
+  font-size: clamp(48px, 7.1vw, 104px);
   font-weight: 400;
-  letter-spacing: 0.11em;
-  line-height: 0.94;
-  text-indent: 0.11em;
-  text-shadow: 0 0 45px rgba(90, 216, 255, 0.28);
+  letter-spacing: .075em;
+  line-height: .92;
+  text-shadow: 0 0 18px rgba(147, 232, 255, .38), 0 0 54px rgba(66, 170, 255, .25);
+  white-space: nowrap;
+}
+
+.finale-title span {
+  color: transparent;
+  background: linear-gradient(180deg, #e7fbff 5%, #a8e8ff 52%, #78c8f2 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.finale-title span:last-child {
+  color: #9ddfff;
+  font-size: .76em;
+  letter-spacing: .13em;
+  -webkit-text-stroke: 1px rgba(221, 249, 255, .22);
+}
+
+.finale-title em {
+  position: relative;
+  top: -.12em;
+  color: #d7f6ff;
+  font-size: .4em;
+  font-weight: 400;
+  letter-spacing: .02em;
 }
 
 .finale-copy__message {

@@ -60,6 +60,25 @@ test.describe('runtime điện thoại', () => {
     await expect(page.locator('html')).toHaveAttribute('data-runtime-profile', 'compact');
     await expect(page.locator('#hold-control')).toBeVisible();
     await expect(page.locator('#hold-control')).toBeEnabled();
+    const nativeHoldGestures = await page.locator('#hold-control').evaluate(node => {
+      const style = getComputedStyle(node);
+      return {
+        userSelect: style.userSelect,
+        contextMenuAllowed: node.dispatchEvent(new Event('contextmenu', {
+          bubbles: true,
+          cancelable: true,
+        })),
+        selectionAllowed: node.dispatchEvent(new Event('selectstart', {
+          bubbles: true,
+          cancelable: true,
+        })),
+      };
+    });
+    expect(nativeHoldGestures).toEqual({
+      userSelect: 'none',
+      contextMenuAllowed: false,
+      selectionAllowed: false,
+    });
 
     const before = await page.locator('#hold-progress').evaluate(node => Number(node.style.strokeDashoffset));
     await page.locator('#hold-control').dispatchEvent('pointerdown');
