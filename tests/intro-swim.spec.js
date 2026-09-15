@@ -9,6 +9,7 @@ for (const [name, width, height] of [['desktop', 1440, 900], ['mobile', 390, 844
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/');
+    await expect(page.locator('#intro-whale-still')).toHaveAttribute('crossorigin', 'anonymous');
     await expect(page.locator('#intro-whale-swimmer')).toHaveClass(/has-swim-mesh/);
     await page.locator('#hold-control').hover();
     await page.mouse.down();

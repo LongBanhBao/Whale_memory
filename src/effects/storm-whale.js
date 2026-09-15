@@ -85,6 +85,7 @@ function createCanvasFallback(canvas, manifest, stillUrl, reducedMotion) {
   const compactRuntime = isCompactRuntime();
   const minimumFrameTime = compactRuntime && !reducedMotion ? 1000 / 30 : 0;
   const image = new Image();
+  image.crossOrigin = 'anonymous';
   const target = { ...POSE_DEFAULTS };
   const current = { ...target };
   const sourceWidth = manifest?.frameWidth || 754;
@@ -473,6 +474,7 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
   gl.disable(gl.BLEND);
 
   const image = new Image();
+  image.crossOrigin = 'anonymous';
   const target = { ...POSE_DEFAULTS };
   const current = { ...target };
   const aspect = (manifest?.frameHeight || 640) / (manifest?.frameWidth || 754);
@@ -573,11 +575,19 @@ export function createStormWhale(canvas, manifest, stillUrl, reducedMotion = fal
 
   function upload() {
     if (!image.naturalWidth || contextLost) return;
-    gl.useProgram(program);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    try {
+      gl.useProgram(program);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    } catch (error) {
+      console.warn('Storm whale texture upload failed:', error);
+      ready = false;
+      canvas.classList.add('is-unavailable');
+      window.__blueVoyageEmergencyUnlock?.();
+      return;
+    }
     ready = true;
     canvas.classList.remove('is-unavailable');
     schedule();

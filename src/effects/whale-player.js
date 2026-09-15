@@ -3,6 +3,7 @@ const lerp = (from, to, amount) => from + (to - from) * amount;
 export function createWhalePlayer(canvas, manifest, spriteUrl, reducedMotion = false) {
   const context = canvas.getContext('2d', { alpha: true });
   const sprite = new Image();
+  sprite.crossOrigin = 'anonymous';
   const target = {
     x: 0.5,
     y: 0.53,

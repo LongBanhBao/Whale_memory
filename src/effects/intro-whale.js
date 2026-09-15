@@ -4,6 +4,9 @@ import { isCompactRuntime, renderPixelRatio, runtimeViewport } from './runtime-p
 // UV coordinates refer to the original frame; its transparent top margin is
 // compensated in the vertex shader so the whale's body starts at the portal.
 export function createIntroWhale(canvas, image, reducedMotion = false) {
+  // WebGL rejects a cross-origin image unless CORS mode is selected before
+  // its src is assigned. Production assets are served from the pinned CDN.
+  if (!image.getAttribute('src')) image.crossOrigin = 'anonymous';
   const compactRuntime = isCompactRuntime();
   const gl = canvas.getContext('webgl', {
     alpha: true,
@@ -169,8 +172,17 @@ export function createIntroWhale(canvas, image, reducedMotion = false) {
 
   function upload() {
     if (!image.naturalWidth) return;
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    try {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    } catch (error) {
+      // Keep the regular <img> fallback visible and never let a texture error
+      // interrupt navigation between scenes.
+      console.warn('Intro whale texture upload failed:', error);
+      ready = false;
+      canvas.parentElement.classList.remove('has-swim-mesh');
+      return;
+    }
     ready = true;
     canvas.parentElement.classList.add('has-swim-mesh');
     schedule();
