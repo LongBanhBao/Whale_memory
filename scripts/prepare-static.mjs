@@ -8,7 +8,7 @@ const publicRoot = path.join(projectRoot, 'public');
 const rootApp = path.join(projectRoot, 'app');
 const sourceIndex = path.join(projectRoot, 'index.html');
 const developmentCheck = "const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);";
-const assetRootDeclaration = "const deploymentAssetRoot = './public/';";
+const assetRootDeclaration = /const deploymentAssetRoot = ['"][^'"\r\n]+['"];/;
 const githubRepository = process.env.GITHUB_REPOSITORY ?? '';
 const githubSha = process.env.GITHUB_SHA ?? '';
 const hasPinnedGithubRevision = (
@@ -28,7 +28,7 @@ const sourceHtml = await readFile(sourceIndex, 'utf8');
 if (!sourceHtml.includes(developmentCheck)) {
   throw new Error('Không tìm thấy dấu chuyển chế độ development trong index.html.');
 }
-if (!sourceHtml.includes(assetRootDeclaration)) {
+if (!assetRootDeclaration.test(sourceHtml)) {
   throw new Error('Không tìm thấy khai báo asset root trong index.html.');
 }
 const staticHtml = sourceHtml

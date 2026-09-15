@@ -25,9 +25,10 @@ Lệnh build tạo hai đầu ra tương đương: `dist/` cho GitHub Actions v�
 `app/` ở thư mục gốc cho trường hợp GitHub Pages đang xuất bản trực tiếp từ
 nhánh `main`. Nhờ vậy cả hai chế độ đều tải đủ CSS, JavaScript và hình ảnh.
 Khi GitHub Actions triển khai, ảnh và video được phục vụ qua jsDelivr bằng URL
-khóa theo đúng SHA của commit. GitHub Pages chỉ phải phục vụ HTML/CSS/JavaScript,
-giúp giảm mạnh số request và nguy cơ gặp phản hồi `429 Rate limit exceeded`.
-Build local hoặc chế độ xuất bản trực tiếp từ `main` vẫn dùng `./public/`.
+khóa theo đúng SHA của commit. Chế độ xuất bản trực tiếp từ `main` dùng một SHA
+asset ổn định tương tự, còn build local vẫn dùng `./public/`. GitHub Pages nhờ
+đó chỉ phải phục vụ HTML/CSS/JavaScript, giúp giảm mạnh số request và nguy cơ
+gặp phản hồi `429 Rate limit exceeded`.
 
 ## Asset
 
