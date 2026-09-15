@@ -1,7 +1,7 @@
 import { gsap } from 'gsap';
 import './styles/main.css';
 import { images, whale } from './data/assets.generated.js';
-import { dropIds, portalGroups } from './data/journey.js';
+import { dropIds, FINALE_DURATION, portalGroups } from './data/journey.js';
 import { createStormWhale } from './effects/storm-whale.js';
 import { createWaterJourney, JOURNEY_DURATION } from './effects/water-journey.js';
 import {
@@ -758,7 +758,7 @@ function advanceScene() {
   setActiveScene(activeScene + 1);
   const render = [null, renderJourney, renderStorm, renderFinale][activeScene];
   const state = { progress: 0 };
-  const reducedProgress = activeScene === 1 ? 1 : activeScene === 2 ? .94 : .92;
+  const reducedProgress = activeScene === 1 ? 1 : activeScene === 2 ? .94 : .96;
   if (activeScene === 2) {
     stormTransitionTimeline?.kill();
     stormTransitionLight.style.removeProperty('opacity');
@@ -767,7 +767,7 @@ function advanceScene() {
   if (!reducedMotion) {
     sceneTimeline = gsap.to(state, {
       progress: 1,
-      duration: [0, JOURNEY_DURATION, STORM_DURATION, 12][activeScene],
+      duration: [0, JOURNEY_DURATION, STORM_DURATION, FINALE_DURATION][activeScene],
       ease: 'none',
       onUpdate: () => render(state),
       onComplete: activeScene === 2 ? () => {
@@ -930,14 +930,14 @@ function renderStorm({ progress }) {
 
 function renderFinale({ progress }) {
   prepareFinale();
-  [0.1, 0.24, 0.38, 0.52].forEach((center, index) => {
-    const opacity = bell(progress, center - 0.085, center, center + 0.1);
+  [0.1, 0.29, 0.48, 0.67].forEach((center, index) => {
+    const opacity = bell(progress, center - 0.1, center, center + 0.12);
     finaleWorld.style.setProperty(`--tribute-${index + 1}`, opacity.toFixed(4));
     tributeLines[index].setAttribute('aria-hidden', opacity < 0.08 ? 'true' : 'false');
   });
 
   const cameraPullback = smoothstep((progress - 0.58) / 0.2);
-  const buttonReveal = smoothstep((progress - 0.78) / 0.12);
+  const buttonReveal = smoothstep((progress - 0.82) / 0.12);
   const targetScale = clamp(0.82 + (760 - runtimeViewport().width) / 2600, 0.82, 0.98);
   const ready = buttonReveal > 0.96 && !finaleSequenceStarted;
 
@@ -961,6 +961,12 @@ function renderFinale({ progress }) {
 function setFinalePhase(phase) {
   finaleReveal.dataset.finalePhase = phase;
   finaleWorld.dataset.finalePhase = phase;
+  if (phase === 'complete') {
+    finaleWhaleReveal.style.removeProperty('mask-image');
+    finaleWhaleReveal.style.removeProperty('-webkit-mask-image');
+    finalePortraitReveal.style.removeProperty('mask-image');
+    finalePortraitReveal.style.removeProperty('-webkit-mask-image');
+  }
 }
 
 function finaleScanRadius() {
@@ -975,9 +981,17 @@ function renderFinaleScan(state) {
   const opacity = clamp(state.opacity);
 
   finaleReveal.style.setProperty('--finale-scan-radius', `${radius.toFixed(2)}px`);
-  finaleWhaleReveal.style.setProperty('--whale-sweep', `${whaleReveal.toFixed(5)}turn`);
+  const whaleSweep = `${whaleReveal.toFixed(5)}turn`;
+  const whaleMask = `conic-gradient(from 90deg at 50% 50%, #000 0turn ${whaleSweep}, transparent ${whaleSweep} 1turn)`;
+  finaleWhaleReveal.style.setProperty('--whale-sweep', whaleSweep);
+  finaleWhaleReveal.style.maskImage = whaleMask;
+  finaleWhaleReveal.style.webkitMaskImage = whaleMask;
   finaleWhaleReveal.style.setProperty('--whale-reveal-opacity', whaleReveal > .0001 ? '1' : '0');
-  finalePortraitReveal.style.setProperty('--portrait-cut', `${(1 - portraitReveal).toFixed(5)}turn`);
+  const portraitCut = `${(1 - portraitReveal).toFixed(5)}turn`;
+  const portraitMask = `conic-gradient(from 90deg at 50% 50%, transparent 0turn ${portraitCut}, #000 ${portraitCut} 1turn)`;
+  finalePortraitReveal.style.setProperty('--portrait-cut', portraitCut);
+  finalePortraitReveal.style.maskImage = portraitMask;
+  finalePortraitReveal.style.webkitMaskImage = portraitMask;
   finalePortraitReveal.style.setProperty('--portrait-reveal-opacity', portraitReveal > .0001 ? '1' : '0');
   finaleScan.style.setProperty('--scan-opacity', opacity.toFixed(4));
   finaleScanArm.style.width = `${radius.toFixed(2)}px`;

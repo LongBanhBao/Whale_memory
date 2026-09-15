@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { goToProgress } from './scene-helpers.js';
 
 test('tải đủ bốn cảnh và toàn bộ asset của phần mở đầu', async ({ page }) => {
-  test.setTimeout(45_000);
+  test.setTimeout(55_000);
   const failedResponses = [];
   const runtimeErrors = [];
   page.on('response', (response) => {
@@ -100,7 +100,7 @@ test('năm giọt làm cảnh sáng dần rồi bay ngược vào vầng sáng',
 });
 
 test('ánh sáng cuối hành trình hoàn tất vòng quét ký ức', async ({ page }) => {
-  test.setTimeout(45_000);
+  test.setTimeout(55_000);
   await page.goto('/');
   await goToProgress(page, '#ocean-remembers', 0.9);
   const button = page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' });
@@ -125,7 +125,7 @@ test('không thể kích hoạt nút kết khi chưa đến đoạn cuối', asy
 });
 
 test('đoạn kết mở thư viện và có thể bắt đầu lại', async ({ page }) => {
-  test.setTimeout(45_000);
+  test.setTimeout(55_000);
   await page.goto('/');
   await goToProgress(page, '#ocean-remembers', 0.92);
   const sendButton = page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' });

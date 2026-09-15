@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { FINALE_DURATION } from '../src/data/journey.js';
 import { JOURNEY_DURATION } from '../src/effects/journey-motion.js';
 import { STORM_DURATION } from '../src/effects/storm-motion.js';
 
@@ -21,7 +22,7 @@ export async function goToProgress(page, selector, progress) {
     });
     elapsedByPage.set(page, 0);
   }
-  const target = progress * [0, JOURNEY_DURATION * 1000, STORM_DURATION * 1000, 12000][ids.indexOf(selector)];
+  const target = progress * [0, JOURNEY_DURATION * 1000, STORM_DURATION * 1000, FINALE_DURATION * 1000][ids.indexOf(selector)];
   await page.waitForTimeout(Math.max(0, target - (elapsedByPage.get(page) || 0)) + 100);
   elapsedByPage.set(page, target);
 }

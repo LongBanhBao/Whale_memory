@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { goToProgress } from './scene-helpers.js';
 
 test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi mới mở đoạn kết', async ({ page }, testInfo) => {
-  test.setTimeout(65_000);
+  test.setTimeout(75_000);
   await page.goto('/');
   await goToProgress(page, '#ocean-remembers', .91);
 
@@ -16,6 +16,22 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect.poll(() => page.locator('#finale-portrait-image').evaluate(image => (
     image.complete ? image.naturalWidth : 0
   ))).toBeGreaterThan(0);
+  const portraitAlpha = await page.locator('#finale-portrait-image').evaluate((image) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(image, 0, 0);
+    const alphaAt = (x, y) => context.getImageData(x, y, 1, 1).data[3];
+    return {
+      corner: alphaAt(0, 0),
+      center: alphaAt(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2)),
+      bottom: alphaAt(Math.floor(canvas.width / 2), canvas.height - 1),
+    };
+  });
+  expect(portraitAlpha.corner).toBeLessThan(5);
+  expect(portraitAlpha.center).toBeGreaterThan(245);
+  expect(portraitAlpha.bottom).toBeLessThan(5);
   await expect(reveal).toHaveAttribute('data-finale-phase', 'idle');
   await expect(page.locator('#finale-whale-reveal')).toHaveCSS('opacity', '0');
   await expect(page.locator('#finale-portrait-reveal')).toHaveCSS('opacity', '0');
@@ -60,6 +76,14 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
 
   await expect(reveal).toHaveAttribute('data-finale-phase', 'sweep-forward', { timeout: 2_500 });
   await expect.poll(() => reveal.evaluate(node => Number(node.dataset.whaleReveal))).toBeGreaterThan(.12);
+  const whaleLayer = await page.locator('#finale-whale-reveal').evaluate(node => ({
+    inlineMask: node.style.maskImage,
+    computedMask: getComputedStyle(node).maskImage,
+    opacity: Number(getComputedStyle(node).opacity),
+  }));
+  expect(whaleLayer.inlineMask).toContain('conic-gradient');
+  expect(whaleLayer.computedMask).toContain('conic-gradient');
+  expect(whaleLayer.opacity).toBeGreaterThan(.95);
   expect(Number(await reveal.getAttribute('data-portrait-reveal'))).toBe(0);
   await expect(copy).toHaveCSS('opacity', '0');
   await expect.poll(allActionsDisabled).toBe(true);
