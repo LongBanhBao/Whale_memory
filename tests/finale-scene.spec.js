@@ -106,6 +106,23 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   expect(reverseLayers.portraitClip).toContain('polygon');
   expect(reverseLayers.portraitOpacity).toBeGreaterThan(.35);
   expect(reverseLayers.portraitZ).toBeGreaterThan(reverseLayers.whaleZ);
+  const borderlessPortrait = await page.locator('.finale-portrait').evaluate(node => {
+    const style = getComputedStyle(node);
+    return {
+      background: style.backgroundColor,
+      border: style.borderTopWidth,
+      boxShadow: style.boxShadow,
+      filter: style.filter,
+      mask: style.maskImage || style.webkitMaskImage,
+    };
+  });
+  expect(borderlessPortrait).toEqual({
+    background: 'rgba(0, 0, 0, 0)',
+    border: '0px',
+    boxShadow: 'none',
+    filter: 'none',
+    mask: 'none',
+  });
   await expect(copy).toHaveCSS('opacity', '0');
   await expect.poll(allActionsDisabled).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('finale-sweep-reverse.png') });
@@ -151,6 +168,8 @@ test('giảm chuyển động vẫn hoàn tất đúng thứ tự và không gi�
   await expect(page.locator('#finale-scan')).toHaveCSS('visibility', 'hidden');
   await expect(page.locator('.traveling-light')).toHaveCount(0);
   await expect(page.locator('.finale-copy')).toHaveCSS('opacity', '1');
+  await expect(page.locator('.finale-portrait')).toHaveCSS('filter', 'none');
+  await expect(page.locator('.finale-portrait')).toHaveCSS('mask-image', 'none');
   const stackedArtwork = await page.locator('#finale-reveal').evaluate(node => {
     const whaleBox = node.querySelector('#memory-whale').getBoundingClientRect();
     const portraitBox = node.querySelector('.finale-portrait').getBoundingClientRect();

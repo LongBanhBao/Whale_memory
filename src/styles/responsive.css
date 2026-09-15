@@ -615,10 +615,6 @@ html[data-runtime-profile='compact'] .memory-whale {
   will-change: transform, opacity;
 }
 
-html[data-runtime-profile='compact'] .finale-portrait {
-  filter: drop-shadow(0 0 18px rgba(89, 217, 255, .18));
-}
-
 html[data-runtime-profile='compact'] .memory-grid {
   grid-template-columns: repeat(6, 1fr);
   grid-template-rows: repeat(4, 1fr);

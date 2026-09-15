@@ -125,11 +125,6 @@
   filter: saturate(1.04) brightness(1.08) contrast(1.03);
 }
 
-.finale-reveal[data-finale-phase='sweep-reverse'] .finale-portrait,
-.finale-reveal[data-finale-phase='fading'] .finale-portrait {
-  filter: drop-shadow(0 0 30px rgba(132, 232, 255, .46)) drop-shadow(0 0 72px rgba(93, 122, 218, .24));
-}
-
 .finale-reveal[data-finale-phase='sweep-reverse'] .finale-portrait img,
 .finale-reveal[data-finale-phase='fading'] .finale-portrait img {
   opacity: 1;
@@ -148,9 +143,9 @@
   border: 0;
   background: transparent;
   box-shadow: none;
-  filter: drop-shadow(0 0 28px rgba(89, 217, 255, .2));
-  mask-image: linear-gradient(to bottom, #000 0 74%, rgba(0, 0, 0, .88) 84%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0 74%, rgba(0, 0, 0, .88) 84%, transparent 100%);
+  filter: none;
+  mask-image: none;
+  -webkit-mask-image: none;
   will-change: transform;
 }
 

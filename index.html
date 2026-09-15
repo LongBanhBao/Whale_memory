@@ -9,7 +9,7 @@
       content="The Blue Voyage — một hành trình ký ức dành cho Pastel."
     />
     <title>The Blue Voyage — Pastel</title>
-    <link rel="stylesheet" href="./app/main.css?v=20260915-scene-reveal" />
+    <link rel="stylesheet" href="./app/main.css?v=20260915-borderless-portrait" />
   </head>
   <body class="is-intro-locked">
     <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
@@ -247,7 +247,7 @@
 
     <script type="module">
       const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const staticVersion = '20260915-scene-reveal';
+      const staticVersion = '20260915-borderless-portrait';
       const recoverBoot = (message = 'Không thể tải hành trình. Chạm để thử lại.') => {
         document.documentElement.dataset.appReady = 'failed';
         document.body.classList.remove('is-intro-locked');
