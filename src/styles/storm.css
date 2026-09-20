@@ -55,6 +55,33 @@
   height: 100%;
 }
 
+.storm-whale-control {
+  position: absolute;
+  z-index: 19;
+  top: var(--storm-whale-y);
+  left: var(--storm-whale-x);
+  width: min(42vw, 370px);
+  height: min(28vw, 240px);
+  min-height: 90px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transform: translate(-50%, -72%);
+  touch-action: manipulation;
+}
+
+.storm-whale-control[hidden] { display: none; }
+.storm-whale-control:focus-visible { outline: 2px solid #a6f3ff; outline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .storm-whale-control {
+    width: min(45vw, 180px);
+    height: min(38vw, 150px);
+  }
+}
+
 .storm-backdrop,
 .storm-backdrop-echo {
   position: absolute;

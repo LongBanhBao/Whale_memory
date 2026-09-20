@@ -1,6 +1,31 @@
 import { test, expect } from '@playwright/test';
 import { goToProgress } from './scene-helpers.js';
 
+test('ba lần nhấp cá voi mở lần lượt ba va chạm rồi cảnh tự tiếp diễn', async ({ page }) => {
+  test.setTimeout(35_000);
+  await page.goto('/');
+  await goToProgress(page, '#storm', 0);
+  const whale = page.locator('#storm-whale-control');
+  const progress = () => page.locator('.storm-world').evaluate(node => (
+    Number(node.style.getPropertyValue('--storm-progress'))
+  ));
+
+  for (const [index, restingPoint] of [.08, .225, .37].entries()) {
+    await expect(whale).toBeVisible({ timeout: 12_000 });
+    await expect.poll(progress).toBeGreaterThanOrEqual(restingPoint - .002);
+    const pausedAt = await progress();
+    await page.waitForTimeout(350);
+    expect(await progress()).toBe(pausedAt);
+    await whale.click();
+    await expect(whale).toBeHidden();
+    await expect.poll(progress).toBeGreaterThan(restingPoint + .025);
+    if (index < 2) await expect(whale).toBeVisible({ timeout: 7_000 });
+  }
+
+  await expect.poll(progress, { timeout: 8_000 }).toBeGreaterThan(.52);
+  await expect(page.locator('#family-current')).toHaveAttribute('data-active', 'true', { timeout: 8_000 });
+});
+
 test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và tự mở sang vùng sáng', async ({ page }, testInfo) => {
   test.setTimeout(80_000);
   const runtimeErrors = [];
@@ -52,7 +77,7 @@ test('cảnh bão kể đủ ba nhịp chống chọi, được hỗ trợ và t
 
   // Including the elapsed scene-2 sample above, this lands in the fatigue
   // trough: the large whale is visibly sad and the family has not arrived.
-  await goToProgress(page, '#storm', .57);
+  await goToProgress(page, '#storm', .53);
   const storm = page.locator('.storm-world');
   await expect(storm).toHaveAttribute('data-storm-phase', /struggle-3|fatigue/);
   await expect(page.locator('#whale-canvas')).toHaveAttribute('data-renderer', 'static-mesh');

@@ -152,6 +152,9 @@
             <div id="storm-obstacle-field" class="storm-obstacle-field" aria-hidden="true"></div>
             <div id="storm-companion-whales" class="storm-companion-whales" aria-hidden="true"></div>
             <canvas id="whale-canvas" class="whale-canvas" data-renderer="static-mesh" aria-hidden="true"></canvas>
+            <button id="storm-whale-control" class="storm-whale-control" type="button" aria-describedby="storm-whale-status" hidden>
+              <span class="sr-only">Nhấp cá voi để bơi tới vật cản thứ nhất</span>
+            </button>
             <div id="family-current" class="family-current" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
             <div id="storm-impact-field" class="storm-impact-field" aria-hidden="true"></div>
             <div id="storm-debris" class="storm-debris" aria-hidden="true"></div>
@@ -161,6 +164,7 @@
             <p class="storm-copy__line storm-copy__line--fatigue" aria-hidden="true">Có lúc, chỉ một nhịp thở cũng trở nên quá nặng.</p>
             <p class="storm-copy__line storm-copy__line--two" aria-hidden="true">Nhưng Family Nhà Cá chưa từng để bạn vượt qua tất cả một mình.</p>
           </div>
+          <p id="storm-whale-status" class="sr-only" aria-live="polite"></p>
           <div id="storm-destination" class="storm-destination" aria-hidden="true"><i></i><i></i><i></i></div>
           <div class="storm-vignette" aria-hidden="true"></div>
         </div>

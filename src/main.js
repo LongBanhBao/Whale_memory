@@ -10,6 +10,7 @@ import {
   STORM_DURATION,
   STORM_MOBILE_COMPANION_COUNT,
   STORM_OBSTACLES,
+  STORM_PHASES,
 } from './effects/storm-motion.js';
 import { createIntroWhale } from './effects/intro-whale.js';
 import { createAmbientCanvas } from './effects/ambient-canvas.js';
@@ -98,6 +99,8 @@ const reducedNext = document.querySelector('#scene-next');
 const sections = [...document.querySelectorAll('.scene')];
 let sceneTimeline = null;
 const whaleCanvas = document.querySelector('#whale-canvas');
+const stormWhaleControl = document.querySelector('#storm-whale-control');
+const stormWhaleStatus = document.querySelector('#storm-whale-status');
 const sceneDots = [...document.querySelectorAll('.scene-progress__dot')];
 const progressLine = document.querySelector('#progress-line');
 const stormBackgroundUrl = assetUrl('assets/scene/storm-ocean-v2.webp');
@@ -312,6 +315,8 @@ const DROP_IMPACTS = DROP_FALL_STARTS.map((start) => start + DROP_FALL_DURATION)
 const HOLD_DURATION = reducedMotion ? 700 : 6500;
 const HOLD_RING_LENGTH = 2 * Math.PI * 67;
 let activeScene = 0;
+let stormClickCount = 0;
+let stormAwaitingClick = false;
 let finalTimeline = null;
 let finaleSequenceTimeline = null;
 let finaleWhaleMotionTimeline = null;
@@ -577,6 +582,11 @@ function updateReducedNext() {
 function setActiveScene(index) {
   sceneTimeline?.kill();
   activeScene = index;
+  if (index !== 2) {
+    stormAwaitingClick = false;
+    stormWhaleControl.hidden = true;
+    stormWhaleStatus.textContent = '';
+  }
   if (waterJourney) {
     if (index === 1) waterJourney.activateVideo();
     else waterJourney.deactivateVideo({ immediate: index === 0, reset: index === 0 });
@@ -759,7 +769,7 @@ function advanceScene() {
   }
   render({ progress: reducedMotion ? reducedProgress : 0 });
   if (!reducedMotion) {
-    sceneTimeline = gsap.to(state, {
+    const animation = {
       progress: 1,
       duration: [0, JOURNEY_DURATION, STORM_DURATION, FINALE_DURATION][activeScene],
       ease: 'none',
@@ -767,12 +777,38 @@ function advanceScene() {
       onComplete: activeScene === 2 ? () => {
         if (activeScene === 2) advanceScene();
       } : undefined,
-    });
+    };
+    if (activeScene === 2) {
+      stormClickCount = 0;
+      stormAwaitingClick = false;
+      stormWhaleControl.hidden = true;
+      sceneTimeline = gsap.timeline().to(state, animation);
+      [STORM_PHASES.ENTRY[1], STORM_PHASES.STRUGGLE_ONE[1], STORM_PHASES.STRUGGLE_TWO[1]]
+        .forEach((point) => sceneTimeline.addPause(point * STORM_DURATION, () => {
+          stormAwaitingClick = true;
+          stormWhaleControl.querySelector('span').textContent = `Nhấp cá voi để bơi tới vật cản thứ ${['nhất', 'hai', 'ba'][stormClickCount]}`;
+          stormWhaleStatus.textContent = `Cá voi đã sẵn sàng. Nhấp vào cá voi để bơi tới vật cản thứ ${stormClickCount + 1}.`;
+          stormWhaleControl.hidden = false;
+        }));
+    } else {
+      sceneTimeline = gsap.to(state, animation);
+    }
   }
   if (leavingScene === 2) releaseStormTransitionLight();
   reducedNext.disabled = false;
   sections[activeScene].focus({ preventScroll: true });
 }
+
+stormWhaleControl.addEventListener('click', () => {
+  if (activeScene !== 2 || !stormAwaitingClick || stormClickCount >= 3) return;
+  stormAwaitingClick = false;
+  stormClickCount += 1;
+  stormWhaleControl.hidden = true;
+  stormWhaleStatus.textContent = stormClickCount === 3
+    ? 'Cá voi tiếp tục bơi và Family Nhà Cá đang đến giúp.'
+    : `Cá voi đang bơi tới vật cản thứ ${stormClickCount}.`;
+  sceneTimeline?.resume();
+});
 
 reducedNext.addEventListener('click', () => {
   if (activeScene >= 3 || reducedNext.disabled) return;
@@ -821,6 +857,7 @@ function renderStorm({ progress }) {
   stormWorld.style.setProperty('--storm-intensity', frame.storm.intensity.toFixed(4));
   stormWorld.style.setProperty('--storm-clear', frame.storm.clear.toFixed(4));
   stormWorld.style.setProperty('--storm-rain-near', frame.storm.rainNear.toFixed(4));
+  stormWorld.style.setProperty('--storm-progress', frame.progress.toFixed(4));
   stormWorld.style.setProperty('--storm-lightning', frame.storm.lightning.toFixed(4));
   stormWorld.style.setProperty('--storm-lightning-far', frame.storm.lightningFar.toFixed(4));
   stormWorld.style.setProperty('--storm-lightning-near', frame.storm.lightningNear.toFixed(4));
@@ -828,7 +865,6 @@ function renderStorm({ progress }) {
   stormWorld.style.setProperty('--storm-swell', frame.storm.swell.toFixed(4));
   stormWorld.style.setProperty('--storm-spray', frame.storm.spray.toFixed(4));
   if (!compactRuntime) {
-    stormWorld.style.setProperty('--storm-progress', frame.progress.toFixed(4));
     stormWorld.style.setProperty('--storm-rain-far', frame.storm.rainFar.toFixed(4));
     stormWorld.style.setProperty('--storm-rain-mid', frame.storm.rainMid.toFixed(4));
     stormWorld.style.setProperty('--storm-impact', frame.impact.toFixed(4));
@@ -1201,6 +1237,10 @@ function resetJourney() {
   resetStormEntryCurrent();
   resetStormTransitionLight();
   reducedNext.disabled = false;
+  stormClickCount = 0;
+  stormAwaitingClick = false;
+  stormWhaleControl.hidden = true;
+  stormWhaleStatus.textContent = '';
   introWhale.setActive(false);
   introWhale.reset();
   finaleSequenceTimeline?.kill();

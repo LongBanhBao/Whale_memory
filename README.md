@@ -46,7 +46,7 @@ Khi video được bổ sung, đặt bản nguồn trong thư mục `../Video`. 
 ## Tương tác
 
 - Nhấn “tiếp” để chuyển lần lượt qua các cảnh. Cảnh 3 tự mở cảnh 4 sau khi luồng sáng phủ kín màn hình. Cuộn chuột, vuốt và phím cuộn không điều khiển hay chuyển cảnh.
-- Cảnh 1 giữ thao tác nhấn giữ; cảnh 2–4 tự chạy hiệu ứng khi được mở, dừng khi rời cảnh. Thời lượng hiện tại là 28, 24 và 18 giây; cảnh cuối dành gần 4 giây cho mỗi lời cảm ơn.
+- Cảnh 1 giữ thao tác nhấn giữ; cảnh 2 tự chạy 28 giây. Ở cảnh 3, nhấp vào cá voi ba lần để lần lượt bơi tới ba vật cản; sau lần thứ ba, phần còn lại của cảnh 24 giây tự chạy và mở cảnh 4. Cảnh cuối tự chạy 18 giây, dành gần 4 giây cho mỗi lời cảm ơn.
 - Năm giọt ký ức lần lượt rơi xuống mặt nước, làm sáng đại dương rồi bay ngược vào vầng sáng để gọi cá voi xuất hiện.
 - Cá voi cảnh 1 bơi ra trong 4,8 giây bằng lưới WebGL: sóng chuyển động từ thân tới đuôi, vây đập lệch nhịp, quỹ đạo cong và phối cảnh xa–gần. Sau khi tới gần, cá voi tiếp tục bơi nhẹ. Trình duyệt không hỗ trợ WebGL dùng ảnh dự phòng; cảnh 2 dùng sprite như trước.
 - Cảnh 2 có ba dải nước nhiều lớp, các cụm bong bóng ở hai rìa và họa tiết sứa, rong, vỏ ốc trôi chậm để tạo chiều sâu mà không che cá voi hay chân dung ký ức.
