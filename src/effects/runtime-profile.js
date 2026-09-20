@@ -50,10 +50,15 @@ export function syncRuntimeProfile(force = false) {
     stableViewport = { ...candidate, orientation: nextOrientation };
   }
 
-  root.dataset.runtimeProfile = compact ? 'compact' : 'full';
-  root.dataset.runtimeOrientation = stableViewport.orientation;
-  root.style.setProperty('--app-width', `${stableViewport.width}px`);
-  root.style.setProperty('--app-height', `${stableViewport.height}px`);
+  const profile = compact ? 'compact' : 'full';
+  const width = `${stableViewport.width}px`;
+  const height = `${stableViewport.height}px`;
+  if (root.dataset.runtimeProfile !== profile) root.dataset.runtimeProfile = profile;
+  if (root.dataset.runtimeOrientation !== stableViewport.orientation) {
+    root.dataset.runtimeOrientation = stableViewport.orientation;
+  }
+  if (root.style.getPropertyValue('--app-width') !== width) root.style.setProperty('--app-width', width);
+  if (root.style.getPropertyValue('--app-height') !== height) root.style.setProperty('--app-height', height);
   return { width: stableViewport.width, height: stableViewport.height };
 }
 

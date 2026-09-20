@@ -272,6 +272,11 @@
   animation-duration: 5.8s;
 }
 
+/* These continuous strokes have no dash pattern, so animating their dash
+   offset only forces a full-screen SVG repaint without moving any pixels. */
+.storm-wave--surface,
+.storm-wave--deep { animation: none; }
+
 .storm-wave--middle {
   stroke: rgba(100, 170, 190, .25);
   stroke-width: 17;
@@ -1012,13 +1017,13 @@
 }
 
 @keyframes storm-rain-plane-far {
-  from { background-position: 0 -120px; }
-  to { background-position: -90px 190px; }
+  from { transform: translate3d(0, -120px, 0); }
+  to { transform: translate3d(-90px, 190px, 0); }
 }
 
 @keyframes storm-rain-plane-mid {
-  from { background-position: 0 -180px; }
-  to { background-position: -150px 260px; }
+  from { transform: translate3d(0, -180px, 0); }
+  to { transform: translate3d(-150px, 260px, 0); }
 }
 
 @keyframes storm-rain-sweep {
