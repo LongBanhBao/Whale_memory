@@ -100,6 +100,7 @@ const sections = [...document.querySelectorAll('.scene')];
 let sceneTimeline = null;
 const whaleCanvas = document.querySelector('#whale-canvas');
 const stormWhaleControl = document.querySelector('#storm-whale-control');
+const stormWhaleHint = document.querySelector('#storm-whale-hint');
 const stormWhaleStatus = document.querySelector('#storm-whale-status');
 const sceneDots = [...document.querySelectorAll('.scene-progress__dot')];
 const progressLine = document.querySelector('#progress-line');
@@ -585,6 +586,7 @@ function setActiveScene(index) {
   if (index !== 2) {
     stormAwaitingClick = false;
     stormWhaleControl.hidden = true;
+    stormWhaleHint.hidden = true;
     stormWhaleStatus.textContent = '';
   }
   if (waterJourney) {
@@ -782,6 +784,8 @@ function advanceScene() {
       stormClickCount = 0;
       stormAwaitingClick = false;
       stormWhaleControl.hidden = true;
+      stormWhaleHint.hidden = true;
+      stormWorld.dataset.awaitingClick = 'true';
       sceneTimeline = gsap.timeline().to(state, animation);
       [STORM_PHASES.ENTRY[1], STORM_PHASES.STRUGGLE_ONE[1], STORM_PHASES.STRUGGLE_TWO[1]]
         .forEach((point) => sceneTimeline.addPause(point * STORM_DURATION, () => {
@@ -789,6 +793,8 @@ function advanceScene() {
           stormWhaleControl.querySelector('span').textContent = `Nhấp cá voi để bơi tới vật cản thứ ${['nhất', 'hai', 'ba'][stormClickCount]}`;
           stormWhaleStatus.textContent = `Cá voi đã sẵn sàng. Nhấp vào cá voi để bơi tới vật cản thứ ${stormClickCount + 1}.`;
           stormWhaleControl.hidden = false;
+          stormWhaleHint.hidden = false;
+          stormWorld.dataset.awaitingClick = 'true';
         }));
     } else {
       sceneTimeline = gsap.to(state, animation);
@@ -804,6 +810,8 @@ stormWhaleControl.addEventListener('click', () => {
   stormAwaitingClick = false;
   stormClickCount += 1;
   stormWhaleControl.hidden = true;
+  stormWhaleHint.hidden = true;
+  stormWorld.dataset.awaitingClick = 'false';
   stormWhaleStatus.textContent = stormClickCount === 3
     ? 'Cá voi tiếp tục bơi và Family Nhà Cá đang đến giúp.'
     : `Cá voi đang bơi tới vật cản thứ ${stormClickCount}.`;
@@ -1240,6 +1248,8 @@ function resetJourney() {
   stormClickCount = 0;
   stormAwaitingClick = false;
   stormWhaleControl.hidden = true;
+  stormWhaleHint.hidden = true;
+  delete stormWorld.dataset.awaitingClick;
   stormWhaleStatus.textContent = '';
   introWhale.setActive(false);
   introWhale.reset();

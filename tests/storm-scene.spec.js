@@ -1,23 +1,31 @@
 import { test, expect } from '@playwright/test';
 import { goToProgress } from './scene-helpers.js';
 
-test('ba lần nhấp cá voi mở lần lượt ba va chạm rồi cảnh tự tiếp diễn', async ({ page }) => {
+test('ba lần nhấp cá voi mở lần lượt ba va chạm rồi cảnh tự tiếp diễn', async ({ page }, testInfo) => {
   test.setTimeout(35_000);
   await page.goto('/');
   await goToProgress(page, '#storm', 0);
   const whale = page.locator('#storm-whale-control');
+  const hint = page.locator('#storm-whale-hint');
+  const obstacleField = page.locator('#storm-obstacle-field');
   const progress = () => page.locator('.storm-world').evaluate(node => (
     Number(node.style.getPropertyValue('--storm-progress'))
   ));
 
   for (const [index, restingPoint] of [.08, .225, .37].entries()) {
     await expect(whale).toBeVisible({ timeout: 12_000 });
+    await expect(hint).toBeVisible();
+    await expect(obstacleField).toHaveCSS('opacity', '0');
+    if (index === 0) await page.screenshot({ path: testInfo.outputPath('storm-waiting-desktop.png') });
     await expect.poll(progress).toBeGreaterThanOrEqual(restingPoint - .002);
     const pausedAt = await progress();
     await page.waitForTimeout(350);
     expect(await progress()).toBe(pausedAt);
     await whale.click();
     await expect(whale).toBeHidden();
+    await expect(hint).toBeHidden();
+    await expect.poll(() => obstacleField.evaluate(node => Number(getComputedStyle(node).opacity)))
+      .toBeGreaterThan(.8);
     await expect.poll(progress).toBeGreaterThan(restingPoint + .025);
     if (index < 2) await expect(whale).toBeVisible({ timeout: 7_000 });
   }
@@ -176,6 +184,25 @@ test('cảnh bão mobile giữ mười sáu cá voi con sát đội hình và kh
   test.setTimeout(50_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
+  await goToProgress(page, '#storm', 0);
+  await expect(page.locator('#storm-whale-hint')).toBeVisible({ timeout: 12_000 });
+  await page.screenshot({ path: testInfo.outputPath('storm-waiting-mobile.png') });
+  const mobileObstacleStyle = await page.locator('.storm-obstacle').first().evaluate(node => {
+    const word = node.querySelector('strong');
+    const style = getComputedStyle(word);
+    return {
+      fontFamily: style.fontFamily,
+      gradient: style.backgroundImage,
+      depthText: getComputedStyle(word, '::before').content,
+      backing: getComputedStyle(node, '::before').maskImage,
+    };
+  });
+  expect(mobileObstacleStyle.fontFamily).toContain('Arial Black');
+  expect(mobileObstacleStyle.gradient).toContain('linear-gradient');
+  expect(mobileObstacleStyle.depthText).toContain('TOXIC');
+  expect(mobileObstacleStyle.backing).toContain('radial-gradient');
+  await goToProgress(page, '#storm', .16);
+  await page.screenshot({ path: testInfo.outputPath('storm-obstacle-mobile.png') });
   await goToProgress(page, '#storm', .8);
   await expect(page.locator('.storm-world')).toHaveAttribute('data-storm-phase', 'breakthrough');
   await expect(page.locator('.companion-whale')).toHaveCount(24);
