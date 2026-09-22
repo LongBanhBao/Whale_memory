@@ -622,6 +622,31 @@ html[data-runtime-profile='compact'] .cosmic-current {
   display: none;
 }
 
+html[data-runtime-profile='compact'] .finale-cosmos::before {
+  filter: blur(10px);
+}
+
+html[data-runtime-profile='compact'] .finale-cosmos__nebula {
+  filter: blur(14px);
+}
+
+html[data-runtime-profile='compact'] .finale-cosmos__stars--near,
+html[data-runtime-profile='compact'] .finale-memory-orbit {
+  animation: none;
+}
+
+html[data-runtime-profile='compact'] .finale-cosmic-gate {
+  width: min(94vw, 520px);
+}
+
+html[data-runtime-profile='compact'] .finale-memory-orbit {
+  width: 112vw;
+}
+
+html[data-runtime-profile='compact'] .finale-memory-orbit--two {
+  width: 86vw;
+}
+
 html[data-runtime-profile='compact'] .finale-whale-reveal .intro-whale-swimmer {
   width: min(92vw, 520px);
   filter: drop-shadow(0 0 18px rgba(76, 215, 255, .3));

@@ -63,17 +63,19 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect(reveal).toHaveAttribute('data-finale-phase', 'extending', { timeout: 2_500 });
   await expect.poll(() => reveal.evaluate(node => Number(node.dataset.scanRadius))).toBeGreaterThan(40);
   const radiusGeometry = await page.locator('#finale-scan-arm').evaluate((arm) => {
-    const rect = arm.getBoundingClientRect();
+    const style = getComputedStyle(arm);
     return {
       centerX: window.innerWidth / 2,
       centerY: window.innerHeight / 2,
-      lineStartX: rect.left,
-      lineMidY: rect.top + rect.height / 2,
+      lineStartX: parseFloat(style.left),
+      lineMidY: parseFloat(style.top),
+      transformOrigin: style.transformOrigin,
       radius: parseFloat(arm.style.width),
     };
   });
   expect(Math.abs(radiusGeometry.lineStartX - radiusGeometry.centerX)).toBeLessThan(2);
   expect(Math.abs(radiusGeometry.lineMidY - radiusGeometry.centerY)).toBeLessThan(2);
+  expect(radiusGeometry.transformOrigin).toMatch(/^0px /);
   expect(radiusGeometry.radius).toBeGreaterThan(40);
 
   await expect(reveal).toHaveAttribute('data-finale-phase', 'sweep-forward', { timeout: 2_500 });
@@ -132,7 +134,14 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect(reveal).toHaveAttribute('data-finale-phase', 'fading', { timeout: 4_000 });
   await expect(copy).toHaveCSS('opacity', '0');
   await expect.poll(allActionsDisabled).toBe(true);
-  await expect(reveal).toHaveAttribute('data-finale-phase', 'complete', { timeout: 2_500 });
+  await expect(reveal).toHaveAttribute('data-finale-phase', 'cosmic-opening', { timeout: 2_500 });
+  await expect.poll(() => page.locator('#finale-cosmos').evaluate(node => (
+    Number(getComputedStyle(node).opacity)
+  ))).toBeGreaterThan(.25);
+  await expect(copy).toHaveCSS('opacity', '0');
+  await expect.poll(allActionsDisabled).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('finale-cosmic-opening.png') });
+  await expect(reveal).toHaveAttribute('data-finale-phase', 'complete', { timeout: 3_000 });
   await expect(page.locator('#finale-scan')).toHaveCSS('visibility', 'hidden');
   await expect(page.locator('.traveling-light')).toHaveCount(0);
   await expect(reveal).toHaveClass(/has-portrait-reveal/);
@@ -159,7 +168,7 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await page.screenshot({ path: testInfo.outputPath('finale-complete.png') });
 
   expect(await page.evaluate(() => window.__finalePhaseHistory)).toEqual([
-    'arriving', 'extending', 'sweep-forward', 'sweep-reverse', 'fading', 'complete',
+    'arriving', 'extending', 'sweep-forward', 'sweep-reverse', 'fading', 'cosmic-opening', 'complete',
   ]);
 });
 
@@ -188,6 +197,7 @@ test('giảm chuyển động vẫn hoàn tất đúng thứ tự và không gi�
   await expect(page.locator('#finale-scan')).toHaveCSS('visibility', 'hidden');
   await expect(page.locator('.traveling-light')).toHaveCount(0);
   await expect(page.locator('.finale-copy')).toHaveCSS('opacity', '1');
+  await expect(page.locator('#finale-cosmos')).toHaveCSS('opacity', '1');
   await expect(page.locator('.finale-portrait')).toHaveCSS('filter', 'none');
   await expect(page.locator('.finale-portrait')).toHaveCSS('mask-image', 'none');
   const stackedArtwork = await page.locator('#finale-reveal').evaluate(node => {
@@ -205,7 +215,7 @@ test('giảm chuyển động vẫn hoàn tất đúng thứ tự và không gi�
   await context.close();
 });
 
-test('mobile đưa cá voi cảnh 2 bơi xuống và không dao động theo sóng sin', async ({ page }) => {
+test('mobile đưa cá voi cảnh 2 bơi xuống và không dao động theo sóng sin', async ({ page }, testInfo) => {
   test.setTimeout(75_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
@@ -231,4 +241,5 @@ test('mobile đưa cá voi cảnh 2 bơi xuống và không dao động theo só
     return { titleBottom: title.bottom, whaleTop: whaleBox.top };
   });
   expect(mobileLayout.whaleTop - mobileLayout.titleBottom).toBeGreaterThan(4);
+  await page.screenshot({ path: testInfo.outputPath('finale-cosmos-mobile.png') });
 });

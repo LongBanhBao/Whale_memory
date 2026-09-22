@@ -52,7 +52,7 @@ Khi video được bổ sung, đặt bản nguồn trong thư mục `../Video`. 
 - Cảnh 2 có ba dải nước nhiều lớp, các cụm bong bóng ở hai rìa và họa tiết sứa, rong, vỏ ốc trôi chậm để tạo chiều sâu mà không che cá voi hay chân dung ký ức.
 - Cảnh 3 dành 24 giây cho ba nhịp tiến lên–va chạm–bị đẩy lùi giữa biển động, một khoảng lặng mệt mỏi và khoảnh khắc Family xuất hiện. Cá voi lớn dùng lưới WebGL làm biến dạng ảnh tĩnh thay cho sprite: nhịp uốn truyền dọc thân, vây và đuôi tự chuyển động; dáng bơi, mí mắt và giọt nước mắt thể hiện sự buồn bã trước khi ánh cyan của hy vọng trở lại. Sáu vật cản là các chữ nổi `TOXIC`, `ÁP LỰC`, `BẾU`, `MỆT MỎI`, `SO SÁNH` và `TỰ NGHI NGỜ`; 18 cá voi con bơi vào từ mép trái theo ba làn sóng, hô “Hu raaaaa” luân phiên, tạo đội hình rồi cùng đánh bật chúng. Bản mobile hiển thị 12 cá voi con để giữ bố cục thoáng. Flash chuyển cảnh bắt đầu ngay khi cá voi lớn chạm vùng sáng.
 - Nhấn “Gửi một ánh sáng” ở cảnh cuối.
-- Ánh sáng bay vào tâm màn hình, kéo thành một bán kính rồi quét thuận để hiện cá voi ký ức và quét ngược để hiện chân dung Pastel. Chữ kết chỉ xuất hiện sau khi tia quét đã tan hoàn toàn.
+- Ánh sáng bay vào tâm màn hình, kéo thành một bán kính rồi quét thuận để hiện cá voi ký ức và quét ngược để hiện chân dung Pastel. Sau khi tia quét tan, cổng nước mở rộng thành đại dương ngân hà với tinh vân, quỹ đạo và các điểm sáng ký ức; chữ kết chỉ xuất hiện khi cổng đã mở hoàn toàn.
 - Sau đoạn kết có thể xem lại hành trình, mở thư tri ân hoặc xem toàn bộ thư viện ảnh.
 - Chế độ giảm chuyển động dùng cùng nút “tiếp” và hiển thị trực tiếp trạng thái tĩnh của mỗi cảnh.
 

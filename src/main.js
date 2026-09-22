@@ -81,6 +81,7 @@ const stormTransitionLight = document.querySelector('#storm-transition-light');
 const finaleWorld = document.querySelector('.finale-world');
 const tributeLines = [...document.querySelectorAll('.tribute-sequence p')];
 const finaleReveal = document.querySelector('#finale-reveal');
+const finaleCosmos = document.querySelector('#finale-cosmos');
 const finaleWhaleReveal = document.querySelector('#finale-whale-reveal');
 const finalePortraitReveal = document.querySelector('#finale-portrait-reveal');
 const finalePortraitImage = document.querySelector('#finale-portrait-image');
@@ -1056,6 +1057,7 @@ function resetFinaleReveal() {
   setFinalePhase('idle');
   finaleReveal.classList.remove('has-whale-reveal', 'has-portrait-reveal');
   finaleWhaleReveal.setAttribute('aria-hidden', 'true');
+  finaleWorld.style.setProperty('--cosmic-open', '0');
   renderFinaleScan({ radius: 0, angle: 0, whale: 0, portrait: 0, opacity: 0 });
 }
 
@@ -1156,6 +1158,7 @@ function sendLightToWhale(event) {
     Object.assign(scanState, { radius, angle: 0, whale: 1, portrait: 1, opacity: 0 });
     renderFinaleScan(scanState);
     finaleReveal.classList.add('has-whale-reveal', 'has-portrait-reveal');
+    finaleWorld.style.setProperty('--cosmic-open', '1');
     setFinalePhase('complete');
     revealOutro();
     return;
@@ -1210,6 +1213,15 @@ function sendLightToWhale(event) {
       ease: 'sine.out',
       onUpdate: () => renderFinaleScan(scanState),
     })
+    .call(() => setFinalePhase('cosmic-opening'))
+    .fromTo(finaleCosmos, { filter: 'brightness(1.8)' }, {
+      filter: 'brightness(1)', duration: 1.7, ease: 'sine.out',
+    })
+    .to(finaleWorld, {
+      '--cosmic-open': 1,
+      duration: 1.85,
+      ease: 'power3.inOut',
+    }, '<')
     .call(() => {
       setFinalePhase('complete');
       finaleSequenceTimeline = null;

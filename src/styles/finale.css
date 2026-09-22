@@ -85,6 +85,202 @@
   pointer-events: none;
 }
 
+.finale-cosmos {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  overflow: hidden;
+  opacity: var(--cosmic-open, 0);
+  clip-path: circle(calc(var(--cosmic-open, 0) * 145vmax) at 50% 50%);
+  background:
+    radial-gradient(circle at 50% 49%, rgba(191, 252, 255, .2) 0 4%, transparent 19%),
+    radial-gradient(ellipse at 73% 28%, rgba(96, 97, 255, .3), transparent 34%),
+    radial-gradient(ellipse at 23% 71%, rgba(25, 198, 239, .25), transparent 38%),
+    linear-gradient(145deg, #01030d 0%, #07142b 42%, #160e38 68%, #020613 100%);
+  will-change: clip-path, opacity, filter;
+}
+
+.finale-cosmos::before,
+.finale-cosmos::after {
+  position: absolute;
+  inset: -35%;
+  pointer-events: none;
+  content: '';
+}
+
+.finale-cosmos::before {
+  background:
+    conic-gradient(from 28deg at 50% 50%, transparent 0 8%, rgba(95, 225, 255, .12) 12%, transparent 18% 35%, rgba(172, 110, 255, .1) 41%, transparent 49% 67%, rgba(85, 176, 255, .09) 74%, transparent 82%),
+    repeating-radial-gradient(ellipse at 50% 50%, transparent 0 9%, rgba(129, 227, 255, .035) 10%, transparent 11% 17%);
+  filter: blur(18px);
+  transform: rotate(calc(var(--cosmic-open, 0) * 38deg)) scale(calc(.58 + var(--cosmic-open, 0) * .42));
+}
+
+.finale-cosmos::after {
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 0 42%, rgba(0, 2, 12, .48) 78%, rgba(0, 1, 8, .86) 100%);
+}
+
+.finale-cosmos__nebula {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: 136vmax;
+  height: 34vmax;
+  border-radius: 50%;
+  background:
+    linear-gradient(90deg, transparent 3%, rgba(68, 197, 255, .2) 21%, rgba(221, 162, 255, .24) 48%, rgba(76, 224, 255, .18) 74%, transparent 97%);
+  filter: blur(24px);
+  mix-blend-mode: screen;
+  opacity: calc(.25 + var(--cosmic-open, 0) * .75);
+  transform: translate(-50%, -50%) rotate(-13deg) scaleX(calc(.45 + var(--cosmic-open, 0) * .55));
+}
+
+.finale-cosmos__stars {
+  position: absolute;
+  z-index: 2;
+  inset: -20%;
+  background-repeat: repeat;
+  opacity: calc(var(--cosmic-open, 0) * .9);
+  transform: scale(calc(.72 + var(--cosmic-open, 0) * .28));
+  transform-origin: 50% 50%;
+}
+
+.finale-cosmos__stars--far {
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,.92) 0 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(121,224,255,.72) 0 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(197,161,255,.66) 0 1px, transparent 1.5px);
+  background-position: 9px 17px, 42px 63px, 83px 28px;
+  background-size: 97px 113px, 137px 151px, 173px 127px;
+}
+
+.finale-cosmos__stars--near {
+  background-image:
+    radial-gradient(circle, #fff 0 1.4px, rgba(138,238,255,.58) 1.7px, transparent 3.8px),
+    radial-gradient(circle, #eefcff 0 1px, rgba(169,139,255,.5) 1.6px, transparent 4px);
+  background-position: 31px 47px, 89px 21px;
+  background-size: 223px 197px, 281px 239px;
+  animation: finale-stars-drift 18s linear infinite;
+}
+
+.finale-cosmic-gate {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: min(77vmin, 720px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(184, 247, 255, calc(var(--cosmic-open, 0) * .42));
+  border-radius: 50%;
+  box-shadow:
+    0 0 calc(20px + var(--cosmic-open, 0) * 46px) rgba(93, 225, 255, .42),
+    inset 0 0 calc(24px + var(--cosmic-open, 0) * 64px) rgba(112, 151, 255, .22);
+  opacity: calc(.18 + var(--cosmic-open, 0) * .82);
+  transform: translate(-50%, -50%) scale(calc(.08 + var(--cosmic-open, 0) * .92));
+}
+
+.finale-cosmic-gate::before,
+.finale-cosmic-gate::after,
+.finale-cosmic-gate > i {
+  position: absolute;
+  border-radius: 50%;
+  content: '';
+}
+
+.finale-cosmic-gate::before {
+  inset: -8%;
+  border: 2px solid rgba(110, 231, 255, .3);
+  border-right-color: rgba(210, 174, 255, .68);
+  border-left-color: rgba(255, 255, 255, .08);
+  animation: finale-gate-spin 13s linear infinite;
+}
+
+.finale-cosmic-gate::after {
+  inset: 8%;
+  border: 1px dashed rgba(188, 242, 255, .36);
+  box-shadow: 0 0 32px rgba(78, 211, 255, .26);
+  animation: finale-gate-spin 19s linear infinite reverse;
+}
+
+.finale-cosmic-gate > i:nth-child(1) {
+  inset: -1%;
+  border-top: 5px solid rgba(239, 255, 255, .64);
+  border-right: 2px solid transparent;
+  transform: rotate(34deg);
+  filter: drop-shadow(0 0 12px #6feaff);
+}
+
+.finale-cosmic-gate > i:nth-child(2) {
+  inset: 17%;
+  border-bottom: 3px solid rgba(183, 139, 255, .52);
+  border-left: 1px solid transparent;
+  transform: rotate(-18deg);
+  filter: drop-shadow(0 0 10px rgba(195, 146, 255, .75));
+}
+
+.finale-cosmic-gate > i:nth-child(3) {
+  inset: 31%;
+  background: radial-gradient(circle, rgba(226, 254, 255, .2), rgba(78, 180, 255, .07) 46%, transparent 72%);
+  box-shadow: 0 0 90px rgba(95, 211, 255, .18);
+}
+
+.finale-memory-orbit {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  width: min(112vmin, 980px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(132, 224, 255, .1);
+  border-radius: 50%;
+  opacity: var(--cosmic-open, 0);
+  transform: translate(-50%, -50%) rotate(-12deg) scale(calc(.22 + var(--cosmic-open, 0) * .78));
+  animation: finale-memory-orbit 26s linear infinite;
+}
+
+.finale-memory-orbit--two {
+  width: min(86vmin, 760px);
+  transform: translate(-50%, -50%) rotate(22deg) scale(calc(.18 + var(--cosmic-open, 0) * .82));
+  animation-direction: reverse;
+  animation-duration: 19s;
+}
+
+.finale-memory-orbit i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px;
+  border-radius: 50%;
+  background: #eaffff;
+  box-shadow: 0 0 8px #fff, 0 0 20px #66dfff, 0 0 42px rgba(145, 121, 255, .65);
+}
+
+.finale-memory-orbit i:nth-child(1) { transform: rotate(0deg) translateX(50vmin); }
+.finale-memory-orbit i:nth-child(2) { transform: rotate(58deg) translateX(50vmin); }
+.finale-memory-orbit i:nth-child(3) { transform: rotate(119deg) translateX(50vmin); }
+.finale-memory-orbit i:nth-child(4) { transform: rotate(177deg) translateX(50vmin); }
+.finale-memory-orbit i:nth-child(5) { transform: rotate(236deg) translateX(50vmin); }
+.finale-memory-orbit i:nth-child(6) { transform: rotate(302deg) translateX(50vmin); }
+.finale-memory-orbit i:nth-child(7) { transform: rotate(82deg) translateX(38vmin); }
+.finale-memory-orbit i:nth-child(8) { transform: rotate(264deg) translateX(38vmin); }
+
+.finale-memory-orbit--two i:nth-child(1) { transform: rotate(17deg) translateX(38vmin); }
+.finale-memory-orbit--two i:nth-child(2) { transform: rotate(66deg) translateX(38vmin); }
+.finale-memory-orbit--two i:nth-child(3) { transform: rotate(112deg) translateX(38vmin); }
+.finale-memory-orbit--two i:nth-child(4) { transform: rotate(161deg) translateX(38vmin); }
+.finale-memory-orbit--two i:nth-child(5) { transform: rotate(207deg) translateX(38vmin); }
+.finale-memory-orbit--two i:nth-child(6) { transform: rotate(251deg) translateX(38vmin); }
+.finale-memory-orbit--two i:nth-child(7) { transform: rotate(296deg) translateX(38vmin); }
+.finale-memory-orbit--two i:nth-child(8) { transform: rotate(342deg) translateX(38vmin); }
+
+.finale-reveal[data-finale-phase='cosmic-opening'] .finale-portrait img {
+  filter: saturate(1.03) contrast(1.04) brightness(1.08) drop-shadow(0 0 22px rgba(205, 251, 255, .42));
+}
+
 .finale-whale-reveal,
 .finale-portrait-reveal {
   position: absolute;
@@ -515,6 +711,19 @@
 @keyframes cosmic-drift {
   from { opacity: 0.35; translate: -4% -2%; scale: 0.9; }
   to { opacity: 0.75; translate: 5% 3%; scale: 1.1; }
+}
+
+@keyframes finale-stars-drift {
+  from { translate: -1.5% -1%; }
+  to { translate: 1.5% 1%; }
+}
+
+@keyframes finale-gate-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes finale-memory-orbit {
+  to { rotate: 360deg; }
 }
 
 @keyframes heart-pulse {
