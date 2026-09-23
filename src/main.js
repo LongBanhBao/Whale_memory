@@ -1,4 +1,5 @@
 import { gsap } from 'gsap';
+import { createUnderwaterFireworks, FIREWORKS_DURATION } from './effects/underwater-fireworks.js';
 import './styles/main.css';
 import { images, whale } from './data/assets.generated.js';
 import { dropIds, FINALE_DURATION, portalGroups } from './data/journey.js';
@@ -82,6 +83,7 @@ const finaleWorld = document.querySelector('.finale-world');
 const tributeLines = [...document.querySelectorAll('.tribute-sequence p')];
 const finaleReveal = document.querySelector('#finale-reveal');
 const finaleCosmos = document.querySelector('#finale-cosmos');
+const finaleFireworks = createUnderwaterFireworks(document.querySelector('#finale-fireworks'), compactRuntime);
 const finaleWhaleReveal = document.querySelector('#finale-whale-reveal');
 const finalePortraitReveal = document.querySelector('#finale-portrait-reveal');
 const finalePortraitImage = document.querySelector('#finale-portrait-image');
@@ -1059,6 +1061,7 @@ function renderFinaleScan(state) {
 }
 
 function resetFinaleReveal() {
+  finaleFireworks.reset();
   setFinalePhase('idle');
   finaleReveal.classList.remove('has-whale-reveal', 'has-portrait-reveal');
   finaleWhaleReveal.setAttribute('aria-hidden', 'true');
@@ -1154,6 +1157,7 @@ function sendLightToWhale(event) {
   light.style.top = `${startY}px`;
   lightLayer.append(light);
   const scanState = { radius: 0, angle: 0, whale: 0, portrait: 0, opacity: 0 };
+  const fireworksState = { time: 0 };
   waterJourney.pose(.5, .49, compactRuntime ? .62 : .76, -7, 0, .5, 0, .16);
   renderFinaleScan(scanState);
   setFinalePhase('arriving');
@@ -1210,8 +1214,10 @@ function sendLightToWhale(event) {
     })
     .call(() => {
       finaleReveal.classList.add('has-portrait-reveal');
+      finaleFireworks.start();
       setFinalePhase('fading');
     })
+    .addLabel('celebration')
     .to(scanState, {
       opacity: 0,
       duration: .72,
@@ -1227,7 +1233,15 @@ function sendLightToWhale(event) {
       duration: 1.85,
       ease: 'power3.inOut',
     }, '<')
+    .call(() => setFinalePhase('fireworks'))
+    .to(fireworksState, {
+      time: FIREWORKS_DURATION,
+      duration: FIREWORKS_DURATION,
+      ease: 'none',
+      onUpdate: () => finaleFireworks.render(fireworksState.time),
+    }, 'celebration')
     .call(() => {
+      finaleFireworks.reset();
       setFinalePhase('complete');
       finaleSequenceTimeline = null;
       revealOutro();
