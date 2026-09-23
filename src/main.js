@@ -106,7 +106,7 @@ const stormWhaleStatus = document.querySelector('#storm-whale-status');
 const sceneDots = [...document.querySelectorAll('.scene-progress__dot')];
 const progressLine = document.querySelector('#progress-line');
 const stormBackgroundUrl = assetUrl('assets/scene/storm-ocean-v2.webp');
-const finaleVortexUrl = assetUrl('assets/finale-water-vortex.webp');
+const finaleVortexUrl = assetUrl('assets/finale-water-vortex-v2.webp');
 
 // Keep only the lightweight handoff artwork ready at boot. Building every
 // hidden scene (including WebGL and hundreds of animated nodes) during the

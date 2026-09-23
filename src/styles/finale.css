@@ -1,4 +1,6 @@
 .finale-world {
+  /* Rotating artwork must not create a scrollable scene when focus moves. */
+  overflow: clip;
   background:
     radial-gradient(circle at 50% 46%, rgba(38, 95, 151, 0.28), transparent 35%),
     radial-gradient(circle at 17% 24%, rgba(100, 73, 169, 0.16), transparent 24%),
@@ -170,219 +172,71 @@
   z-index: 3;
   top: 50%;
   left: 50%;
-  width: min(112vmin, 1000px);
+  width: min(96vmin, 900px);
   aspect-ratio: 1;
-  border-radius: 50%;
-  opacity: calc(.08 + var(--cosmic-open, 0) * .92);
+  opacity: var(--cosmic-open, 0);
   transform: translate(-50%, -50%) scale(calc(.12 + var(--cosmic-open, 0) * .88));
-  filter: drop-shadow(0 0 28px rgba(41, 188, 255, .42));
-  isolation: isolate;
 }
 
 .finale-cosmic-aureole::before,
-.finale-cosmic-aureole::after,
-.finale-cosmic-aureole > i {
+.finale-cosmic-aureole::after {
   position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  content: '';
-}
-
-.finale-cosmic-aureole::before {
-  inset: -4%;
+  inset: 0;
   background: var(--finale-vortex-image) center / contain no-repeat;
-  filter: invert(1) hue-rotate(180deg) saturate(2.25) contrast(1.22) brightness(1.08);
-  mix-blend-mode: screen;
-  opacity: .9;
-  mask-image: radial-gradient(circle, transparent 0 29%, #000 39% 67%, transparent 74%);
-  -webkit-mask-image: radial-gradient(circle, transparent 0 29%, #000 39% 67%, transparent 74%);
+  content: '';
+  pointer-events: none;
   animation: finale-vortex-spin 18s linear infinite;
 }
 
+/* Preserve the original white water highlights and deep blue core. The
+   transparent asset supplies the irregular edge, without a circular crop. */
+.finale-cosmic-aureole::before {
+  will-change: transform;
+}
+
+/* A faint flowing crest drifts over the outer water at a different speed. */
 .finale-cosmic-aureole::after {
-  inset: 2%;
-  background:
-    var(--finale-vortex-image) center / contain no-repeat,
-    conic-gradient(from 14deg, transparent 0 9%, rgba(137, 238, 255, .8) 14%, transparent 22% 36%, rgba(219, 179, 255, .64) 43%, transparent 51% 70%, rgba(234, 252, 255, .76) 78%, transparent 88%);
-  filter: invert(1) hue-rotate(180deg) saturate(1.75) contrast(1.16) brightness(.92) blur(.35px);
+  opacity: .22;
   mix-blend-mode: screen;
-  opacity: .46;
-  mask-image: radial-gradient(circle, transparent 0 38%, #000 45% 59%, transparent 66%);
-  -webkit-mask-image: radial-gradient(circle, transparent 0 38%, #000 45% 59%, transparent 66%);
-  animation: finale-vortex-spin-reverse 27s linear infinite;
+  mask-image: radial-gradient(circle, transparent 47%, #000 57% 63%, transparent 71%);
+  -webkit-mask-image: radial-gradient(circle, transparent 47%, #000 57% 63%, transparent 71%);
+  animation-duration: 25s;
 }
 
 .finale-cosmic-aureole > i {
-  inset: var(--aureole-inset);
-  border: var(--aureole-width) solid transparent;
-  border-top-color: var(--aureole-color);
-  border-right-color: rgba(230, 252, 255, .3);
-  box-shadow: inset 0 0 20px rgba(52, 198, 255, .12), 0 0 16px rgba(100, 226, 255, .12);
-  filter: drop-shadow(0 0 7px var(--aureole-color)) drop-shadow(0 0 15px rgba(113, 223, 255, .5));
-  transform: rotate(var(--aureole-angle));
-  animation: finale-water-ribbon var(--aureole-speed) linear infinite;
+  position: absolute;
+  inset: 8%;
+  animation: finale-vortex-spin 14s linear infinite;
+  pointer-events: none;
+}
+
+.finale-cosmic-aureole > i:nth-child(2) {
+  inset: 17%;
+  animation-duration: 21s;
+  animation-delay: -8s;
 }
 
 .finale-cosmic-aureole > i::before,
 .finale-cosmic-aureole > i::after {
   position: absolute;
-  width: clamp(4px, .68vmin, 8px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff 0 17%, #6ce4ff 31%, #0877d7 66%, rgba(0, 77, 153, .2) 72%);
-  box-shadow: 0 0 7px #fff, 0 0 19px #47d8ff, 0 0 32px rgba(70, 136, 255, .76);
   content: '';
-}
-
-.finale-cosmic-aureole > i::before { top: 8%; right: 13%; }
-.finale-cosmic-aureole > i::after { right: 4%; bottom: 24%; transform: scale(.62); }
-
-.finale-cosmic-aureole > i:nth-child(1) {
-  --aureole-inset: 3%;
-  --aureole-width: 6px;
-  --aureole-color: rgba(193, 250, 255, .88);
-  --aureole-angle: 18deg;
-  --aureole-speed: 13s;
-}
-
-.finale-cosmic-aureole > i:nth-child(2) {
-  --aureole-inset: 10%;
-  --aureole-width: 4px;
-  --aureole-color: rgba(203, 155, 255, .82);
-  --aureole-angle: 116deg;
-  --aureole-speed: 17s;
-  animation-direction: reverse;
-}
-
-.finale-cosmic-aureole > i:nth-child(3) {
-  --aureole-inset: 17%;
-  --aureole-width: 3px;
-  --aureole-color: rgba(255, 237, 175, .86);
-  --aureole-angle: 232deg;
-  --aureole-speed: 21s;
-}
-
-.finale-cosmic-aureole > i:nth-child(4) {
-  --aureole-inset: 24%;
-  --aureole-width: 2px;
-  --aureole-color: rgba(112, 232, 255, .8);
-  --aureole-angle: 310deg;
-  --aureole-speed: 15s;
-  animation-direction: reverse;
-}
-
-.finale-cosmic-gate {
-  position: absolute;
-  z-index: 4;
-  top: 50%;
-  left: 50%;
-  width: min(77vmin, 720px);
+  width: 12px;
   aspect-ratio: 1;
-  border: 1px solid rgba(255, 246, 205, calc(var(--cosmic-open, 0) * .62));
+  background: radial-gradient(ellipse, #fff 0 6%, #a8edff 10%, transparent 65%);
+  box-shadow: 0 0 12px rgba(103, 222, 255, .65);
   border-radius: 50%;
-  box-shadow:
-    0 0 calc(20px + var(--cosmic-open, 0) * 58px) rgba(93, 225, 255, .52),
-    0 0 calc(12px + var(--cosmic-open, 0) * 92px) rgba(173, 116, 255, .2),
-    inset 0 0 calc(24px + var(--cosmic-open, 0) * 70px) rgba(112, 151, 255, .26);
-  opacity: calc(.18 + var(--cosmic-open, 0) * .82);
-  transform: translate(-50%, -50%) scale(calc(.08 + var(--cosmic-open, 0) * .92));
+  top: 15%;
+  left: 15%;
+  animation: finale-water-glint 3s ease-in-out infinite alternate;
 }
 
-.finale-cosmic-gate::before,
-.finale-cosmic-gate::after,
-.finale-cosmic-gate > i {
-  position: absolute;
-  border-radius: 50%;
-  content: '';
+.finale-cosmic-aureole > i::after {
+  top: auto;
+  left: auto;
+  bottom: 15%;
+  right: 15%;
+  animation-delay: -1.5s;
 }
-
-.finale-cosmic-gate::before {
-  inset: -8%;
-  border: 2px solid rgba(110, 231, 255, .3);
-  border-right-color: rgba(210, 174, 255, .68);
-  border-left-color: rgba(255, 255, 255, .08);
-  animation: finale-gate-spin 13s linear infinite;
-}
-
-.finale-cosmic-gate::after {
-  inset: 8%;
-  border: 1px dashed rgba(188, 242, 255, .36);
-  box-shadow: 0 0 32px rgba(78, 211, 255, .26);
-  animation: finale-gate-spin 19s linear infinite reverse;
-}
-
-.finale-cosmic-gate > i:nth-child(1) {
-  inset: -1%;
-  border-top: 5px solid rgba(239, 255, 255, .64);
-  border-right: 2px solid transparent;
-  transform: rotate(34deg);
-  filter: drop-shadow(0 0 12px #6feaff);
-}
-
-.finale-cosmic-gate > i:nth-child(2) {
-  inset: 17%;
-  border-bottom: 3px solid rgba(183, 139, 255, .52);
-  border-left: 1px solid transparent;
-  transform: rotate(-18deg);
-  filter: drop-shadow(0 0 10px rgba(195, 146, 255, .75));
-}
-
-.finale-cosmic-gate > i:nth-child(3) {
-  inset: 31%;
-  background: radial-gradient(circle, rgba(255, 250, 220, .29), rgba(148, 228, 255, .14) 35%, rgba(112, 104, 255, .06) 58%, transparent 74%);
-  box-shadow: 0 0 90px rgba(95, 211, 255, .26), 0 0 140px rgba(203, 139, 255, .16);
-}
-
-.finale-memory-orbit {
-  position: absolute;
-  z-index: 3;
-  top: 50%;
-  left: 50%;
-  width: min(112vmin, 980px);
-  aspect-ratio: 1;
-  border: 1px solid rgba(132, 224, 255, .1);
-  border-radius: 50%;
-  opacity: var(--cosmic-open, 0);
-  transform: translate(-50%, -50%) rotate(-12deg) scale(calc(.22 + var(--cosmic-open, 0) * .78));
-  animation: finale-memory-orbit 26s linear infinite;
-}
-
-.finale-memory-orbit--two {
-  width: min(86vmin, 760px);
-  transform: translate(-50%, -50%) rotate(22deg) scale(calc(.18 + var(--cosmic-open, 0) * .82));
-  animation-direction: reverse;
-  animation-duration: 19s;
-}
-
-.finale-memory-orbit i {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 6px;
-  height: 6px;
-  margin: -3px;
-  border-radius: 50%;
-  background: #eaffff;
-  box-shadow: 0 0 8px #fff, 0 0 20px #66dfff, 0 0 42px rgba(145, 121, 255, .65);
-}
-
-.finale-memory-orbit i:nth-child(1) { transform: rotate(0deg) translateX(50vmin); }
-.finale-memory-orbit i:nth-child(2) { transform: rotate(58deg) translateX(50vmin); }
-.finale-memory-orbit i:nth-child(3) { transform: rotate(119deg) translateX(50vmin); }
-.finale-memory-orbit i:nth-child(4) { transform: rotate(177deg) translateX(50vmin); }
-.finale-memory-orbit i:nth-child(5) { transform: rotate(236deg) translateX(50vmin); }
-.finale-memory-orbit i:nth-child(6) { transform: rotate(302deg) translateX(50vmin); }
-.finale-memory-orbit i:nth-child(7) { transform: rotate(82deg) translateX(38vmin); }
-.finale-memory-orbit i:nth-child(8) { transform: rotate(264deg) translateX(38vmin); }
-
-.finale-memory-orbit--two i:nth-child(1) { transform: rotate(17deg) translateX(38vmin); }
-.finale-memory-orbit--two i:nth-child(2) { transform: rotate(66deg) translateX(38vmin); }
-.finale-memory-orbit--two i:nth-child(3) { transform: rotate(112deg) translateX(38vmin); }
-.finale-memory-orbit--two i:nth-child(4) { transform: rotate(161deg) translateX(38vmin); }
-.finale-memory-orbit--two i:nth-child(5) { transform: rotate(207deg) translateX(38vmin); }
-.finale-memory-orbit--two i:nth-child(6) { transform: rotate(251deg) translateX(38vmin); }
-.finale-memory-orbit--two i:nth-child(7) { transform: rotate(296deg) translateX(38vmin); }
-.finale-memory-orbit--two i:nth-child(8) { transform: rotate(342deg) translateX(38vmin); }
 
 .finale-reveal[data-finale-phase='cosmic-opening'] .finale-portrait img {
   filter: saturate(1.03) contrast(1.04) brightness(1.08) drop-shadow(0 0 22px rgba(205, 251, 255, .42));
@@ -825,26 +679,13 @@
   to { translate: 1.5% 1%; }
 }
 
-@keyframes finale-gate-spin {
-  to { transform: rotate(360deg); }
-}
-
 @keyframes finale-vortex-spin {
   to { transform: rotate(360deg); }
 }
 
-@keyframes finale-vortex-spin-reverse {
-  to { transform: rotate(-360deg) scale(1.035); }
-}
-
-@keyframes finale-water-ribbon {
-  0% { rotate: 0deg; scale: .98; opacity: .62; }
-  50% { scale: 1.025; opacity: 1; }
-  100% { rotate: 360deg; scale: .98; opacity: .62; }
-}
-
-@keyframes finale-memory-orbit {
-  to { rotate: 360deg; }
+@keyframes finale-water-glint {
+  from { opacity: .25; transform: scale(.7); }
+  to { opacity: .85; transform: scale(1.2); }
 }
 
 @keyframes heart-pulse {

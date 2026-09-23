@@ -630,39 +630,16 @@ html[data-runtime-profile='compact'] .finale-cosmos__nebula {
   filter: blur(14px);
 }
 
-html[data-runtime-profile='compact'] .finale-cosmos__stars--near,
-html[data-runtime-profile='compact'] .finale-memory-orbit {
+html[data-runtime-profile='compact'] .finale-cosmos__stars--near {
   animation: none;
 }
 
 html[data-runtime-profile='compact'] .finale-cosmic-aureole {
-  width: min(124vw, 650px);
-  filter: drop-shadow(0 0 13px rgba(91, 225, 255, .25));
+  width: min(112vw, 620px);
 }
 
-html[data-runtime-profile='compact'] .finale-cosmic-aureole::before {
-  animation-duration: 24s;
-}
-
-html[data-runtime-profile='compact'] .finale-cosmic-aureole::after,
-html[data-runtime-profile='compact'] .finale-cosmic-aureole > i:nth-child(n + 3) {
+html[data-runtime-profile='compact'] .finale-cosmic-aureole::after {
   display: none;
-}
-
-html[data-runtime-profile='compact'] .finale-cosmic-aureole > i {
-  animation-duration: 20s;
-}
-
-html[data-runtime-profile='compact'] .finale-cosmic-gate {
-  width: min(94vw, 520px);
-}
-
-html[data-runtime-profile='compact'] .finale-memory-orbit {
-  width: 112vw;
-}
-
-html[data-runtime-profile='compact'] .finale-memory-orbit--two {
-  width: 86vw;
 }
 
 html[data-runtime-profile='compact'] .finale-whale-reveal .intro-whale-swimmer {
