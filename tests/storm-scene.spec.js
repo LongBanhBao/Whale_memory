@@ -7,7 +7,7 @@ test('ba lần nhấp cá voi mở lần lượt ba va chạm rồi cảnh tự 
   await goToProgress(page, '#storm', 0);
   const whale = page.locator('#storm-whale-control');
   const hint = page.locator('#storm-whale-hint');
-  const obstacleField = page.locator('#storm-obstacle-field');
+  const obstacles = page.locator('#storm-obstacle-field .storm-obstacle');
   const progress = () => page.locator('.storm-world').evaluate(node => (
     Number(node.style.getPropertyValue('--storm-progress'))
   ));
@@ -15,7 +15,12 @@ test('ba lần nhấp cá voi mở lần lượt ba va chạm rồi cảnh tự 
   for (const [index, restingPoint] of [.08, .225, .37].entries()) {
     await expect(whale).toBeVisible({ timeout: 12_000 });
     await expect(hint).toBeVisible();
-    await expect(obstacleField).toHaveCSS('opacity', '0');
+    await expect(page.locator('.storm-world')).toHaveAttribute('data-waiting-step', String(index));
+    for (let obstacleIndex = 0; obstacleIndex < 3; obstacleIndex += 1) {
+      const opacity = await obstacles.nth(obstacleIndex).evaluate(node => Number(getComputedStyle(node).opacity));
+      if (obstacleIndex < index) expect(opacity).toBeGreaterThan(.8);
+      else expect(opacity).toBe(0);
+    }
     if (index === 0) await page.screenshot({ path: testInfo.outputPath('storm-waiting-desktop.png') });
     await expect.poll(progress).toBeGreaterThanOrEqual(restingPoint - .002);
     const pausedAt = await progress();
@@ -24,7 +29,7 @@ test('ba lần nhấp cá voi mở lần lượt ba va chạm rồi cảnh tự 
     await whale.click();
     await expect(whale).toBeHidden();
     await expect(hint).toBeHidden();
-    await expect.poll(() => obstacleField.evaluate(node => Number(getComputedStyle(node).opacity)))
+    await expect.poll(() => obstacles.nth(index).evaluate(node => Number(getComputedStyle(node).opacity)))
       .toBeGreaterThan(.8);
     await expect.poll(progress).toBeGreaterThan(restingPoint + .025);
     if (index < 2) await expect(whale).toBeVisible({ timeout: 7_000 });

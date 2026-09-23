@@ -465,7 +465,11 @@
   transition: opacity .28s ease-out;
 }
 
-.storm-world[data-awaiting-click='true'] .storm-obstacle-field { opacity: 0; }
+.storm-world[data-awaiting-click='true'][data-waiting-step='0'] .storm-obstacle,
+.storm-world[data-awaiting-click='true'][data-waiting-step='1'] .storm-obstacle:nth-child(n + 2),
+.storm-world[data-awaiting-click='true'][data-waiting-step='2'] .storm-obstacle:nth-child(n + 3) {
+  opacity: 0;
+}
 
 .storm-world[data-storm-phase='family-arrival'] .storm-obstacle-field,
 .storm-world[data-storm-phase='breakthrough'] .storm-obstacle-field,

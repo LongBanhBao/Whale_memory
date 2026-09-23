@@ -588,6 +588,7 @@ function setActiveScene(index) {
     stormAwaitingClick = false;
     stormWhaleControl.hidden = true;
     stormWhaleHint.hidden = true;
+    delete stormWorld.dataset.waitingStep;
     stormWhaleStatus.textContent = '';
   }
   if (waterJourney) {
@@ -787,6 +788,7 @@ function advanceScene() {
       stormWhaleControl.hidden = true;
       stormWhaleHint.hidden = true;
       stormWorld.dataset.awaitingClick = 'true';
+      stormWorld.dataset.waitingStep = '0';
       sceneTimeline = gsap.timeline().to(state, animation);
       [STORM_PHASES.ENTRY[1], STORM_PHASES.STRUGGLE_ONE[1], STORM_PHASES.STRUGGLE_TWO[1]]
         .forEach((point) => sceneTimeline.addPause(point * STORM_DURATION, () => {
@@ -796,6 +798,7 @@ function advanceScene() {
           stormWhaleControl.hidden = false;
           stormWhaleHint.hidden = false;
           stormWorld.dataset.awaitingClick = 'true';
+          stormWorld.dataset.waitingStep = String(stormClickCount);
         }));
     } else {
       sceneTimeline = gsap.to(state, animation);
@@ -1262,6 +1265,7 @@ function resetJourney() {
   stormWhaleControl.hidden = true;
   stormWhaleHint.hidden = true;
   delete stormWorld.dataset.awaitingClick;
+  delete stormWorld.dataset.waitingStep;
   stormWhaleStatus.textContent = '';
   introWhale.setActive(false);
   introWhale.reset();

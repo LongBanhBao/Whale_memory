@@ -165,6 +165,104 @@
   animation: finale-stars-drift 18s linear infinite;
 }
 
+.finale-cosmic-aureole {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  width: min(103vmin, 920px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: calc(.08 + var(--cosmic-open, 0) * .92);
+  transform: translate(-50%, -50%) scale(calc(.12 + var(--cosmic-open, 0) * .88));
+  filter: drop-shadow(0 0 24px rgba(91, 225, 255, .28));
+}
+
+.finale-cosmic-aureole::before,
+.finale-cosmic-aureole::after,
+.finale-cosmic-aureole > i {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  content: '';
+}
+
+.finale-cosmic-aureole::before {
+  inset: -17%;
+  background: repeating-conic-gradient(from 7deg, rgba(221, 253, 255, .7) 0 .35deg, rgba(105, 222, 255, .18) .65deg 1.4deg, transparent 1.8deg 8deg);
+  opacity: .48;
+  mask-image: radial-gradient(circle, transparent 0 46%, #000 55%, rgba(0, 0, 0, .32) 68%, transparent 76%);
+  -webkit-mask-image: radial-gradient(circle, transparent 0 46%, #000 55%, rgba(0, 0, 0, .32) 68%, transparent 76%);
+  animation: finale-aureole-spin 38s linear infinite;
+}
+
+.finale-cosmic-aureole::after {
+  inset: -5%;
+  background: conic-gradient(from 218deg, transparent 0 4%, rgba(126, 237, 255, .86) 8%, rgba(242, 255, 255, .96) 9.5%, transparent 14% 27%, rgba(194, 145, 255, .72) 33%, rgba(255, 240, 188, .92) 36%, transparent 41% 57%, rgba(88, 214, 255, .8) 63%, transparent 70% 82%, rgba(221, 180, 255, .72) 88%, transparent 94%);
+  filter: blur(1.5px) drop-shadow(0 0 13px rgba(133, 231, 255, .72));
+  mask-image: radial-gradient(circle, transparent 0 44%, #000 45% 48.5%, transparent 50% 55%, #000 57% 59%, transparent 61%);
+  -webkit-mask-image: radial-gradient(circle, transparent 0 44%, #000 45% 48.5%, transparent 50% 55%, #000 57% 59%, transparent 61%);
+  animation: finale-aureole-spin 17s linear infinite reverse;
+}
+
+.finale-cosmic-aureole > i {
+  inset: var(--aureole-inset);
+  border: var(--aureole-width) solid transparent;
+  border-top-color: var(--aureole-color);
+  border-right-color: color-mix(in srgb, var(--aureole-color) 48%, transparent);
+  filter: drop-shadow(0 0 8px var(--aureole-color)) drop-shadow(0 0 18px rgba(113, 223, 255, .42));
+  transform: rotate(var(--aureole-angle));
+  animation: finale-water-ribbon var(--aureole-speed) ease-in-out infinite alternate;
+}
+
+.finale-cosmic-aureole > i::before,
+.finale-cosmic-aureole > i::after {
+  position: absolute;
+  width: clamp(5px, .75vmin, 9px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff9dc;
+  box-shadow: 0 0 7px #fff, 0 0 19px #7ce9ff, 0 0 34px rgba(207, 159, 255, .86);
+  content: '';
+}
+
+.finale-cosmic-aureole > i::before { top: 8%; right: 13%; }
+.finale-cosmic-aureole > i::after { right: 4%; bottom: 24%; transform: scale(.62); }
+
+.finale-cosmic-aureole > i:nth-child(1) {
+  --aureole-inset: 1%;
+  --aureole-width: 5px;
+  --aureole-color: rgba(193, 250, 255, .88);
+  --aureole-angle: 18deg;
+  --aureole-speed: 5.8s;
+}
+
+.finale-cosmic-aureole > i:nth-child(2) {
+  --aureole-inset: 9%;
+  --aureole-width: 3px;
+  --aureole-color: rgba(203, 155, 255, .82);
+  --aureole-angle: 116deg;
+  --aureole-speed: 7.2s;
+  animation-direction: alternate-reverse;
+}
+
+.finale-cosmic-aureole > i:nth-child(3) {
+  --aureole-inset: 17%;
+  --aureole-width: 2px;
+  --aureole-color: rgba(255, 237, 175, .86);
+  --aureole-angle: 232deg;
+  --aureole-speed: 6.4s;
+}
+
+.finale-cosmic-aureole > i:nth-child(4) {
+  --aureole-inset: 25%;
+  --aureole-width: 2px;
+  --aureole-color: rgba(112, 232, 255, .8);
+  --aureole-angle: 310deg;
+  --aureole-speed: 8.6s;
+  animation-direction: alternate-reverse;
+}
+
 .finale-cosmic-gate {
   position: absolute;
   z-index: 4;
@@ -172,11 +270,12 @@
   left: 50%;
   width: min(77vmin, 720px);
   aspect-ratio: 1;
-  border: 1px solid rgba(184, 247, 255, calc(var(--cosmic-open, 0) * .42));
+  border: 1px solid rgba(255, 246, 205, calc(var(--cosmic-open, 0) * .62));
   border-radius: 50%;
   box-shadow:
-    0 0 calc(20px + var(--cosmic-open, 0) * 46px) rgba(93, 225, 255, .42),
-    inset 0 0 calc(24px + var(--cosmic-open, 0) * 64px) rgba(112, 151, 255, .22);
+    0 0 calc(20px + var(--cosmic-open, 0) * 58px) rgba(93, 225, 255, .52),
+    0 0 calc(12px + var(--cosmic-open, 0) * 92px) rgba(173, 116, 255, .2),
+    inset 0 0 calc(24px + var(--cosmic-open, 0) * 70px) rgba(112, 151, 255, .26);
   opacity: calc(.18 + var(--cosmic-open, 0) * .82);
   transform: translate(-50%, -50%) scale(calc(.08 + var(--cosmic-open, 0) * .92));
 }
@@ -222,8 +321,8 @@
 
 .finale-cosmic-gate > i:nth-child(3) {
   inset: 31%;
-  background: radial-gradient(circle, rgba(226, 254, 255, .2), rgba(78, 180, 255, .07) 46%, transparent 72%);
-  box-shadow: 0 0 90px rgba(95, 211, 255, .18);
+  background: radial-gradient(circle, rgba(255, 250, 220, .29), rgba(148, 228, 255, .14) 35%, rgba(112, 104, 255, .06) 58%, transparent 74%);
+  box-shadow: 0 0 90px rgba(95, 211, 255, .26), 0 0 140px rgba(203, 139, 255, .16);
 }
 
 .finale-memory-orbit {
@@ -720,6 +819,15 @@
 
 @keyframes finale-gate-spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes finale-aureole-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes finale-water-ribbon {
+  from { rotate: -5deg; scale: .975; opacity: .64; }
+  to { rotate: 7deg; scale: 1.025; opacity: 1; }
 }
 
 @keyframes finale-memory-orbit {
