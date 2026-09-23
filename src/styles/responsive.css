@@ -631,24 +631,26 @@ html[data-runtime-profile='compact'] .finale-cosmos__nebula {
 }
 
 html[data-runtime-profile='compact'] .finale-cosmos__stars--near,
-html[data-runtime-profile='compact'] .finale-memory-orbit,
-html[data-runtime-profile='compact'] .finale-cosmic-aureole::before,
-html[data-runtime-profile='compact'] .finale-cosmic-aureole::after,
-html[data-runtime-profile='compact'] .finale-cosmic-aureole > i {
+html[data-runtime-profile='compact'] .finale-memory-orbit {
   animation: none;
 }
 
 html[data-runtime-profile='compact'] .finale-cosmic-aureole {
-  width: min(112vw, 590px);
-  filter: drop-shadow(0 0 14px rgba(91, 225, 255, .22));
+  width: min(124vw, 650px);
+  filter: drop-shadow(0 0 13px rgba(91, 225, 255, .25));
 }
 
-html[data-runtime-profile='compact'] .finale-cosmic-aureole::after {
-  filter: drop-shadow(0 0 10px rgba(133, 231, 255, .58));
+html[data-runtime-profile='compact'] .finale-cosmic-aureole::before {
+  animation-duration: 24s;
 }
 
-html[data-runtime-profile='compact'] .finale-cosmic-aureole > i:nth-child(n + 4) {
+html[data-runtime-profile='compact'] .finale-cosmic-aureole::after,
+html[data-runtime-profile='compact'] .finale-cosmic-aureole > i:nth-child(n + 3) {
   display: none;
+}
+
+html[data-runtime-profile='compact'] .finale-cosmic-aureole > i {
+  animation-duration: 20s;
 }
 
 html[data-runtime-profile='compact'] .finale-cosmic-gate {

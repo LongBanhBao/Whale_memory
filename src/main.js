@@ -106,12 +106,14 @@ const stormWhaleStatus = document.querySelector('#storm-whale-status');
 const sceneDots = [...document.querySelectorAll('.scene-progress__dot')];
 const progressLine = document.querySelector('#progress-line');
 const stormBackgroundUrl = assetUrl('assets/scene/storm-ocean-v2.webp');
+const finaleVortexUrl = assetUrl('assets/finale-water-vortex.webp');
 
 // Keep only the lightweight handoff artwork ready at boot. Building every
 // hidden scene (including WebGL and hundreds of animated nodes) during the
 // intro created long tasks that looked like random animation freezes.
 stormWorld.style.setProperty('--storm-background', `url("${stormBackgroundUrl}")`);
 stormEntryCurrent.style.setProperty('--storm-entry-background', `url("${stormBackgroundUrl}")`);
+finaleCosmos.style.setProperty('--finale-vortex-image', `url("${finaleVortexUrl}")`);
 
 const ambient = createAmbientCanvas(document.querySelector('#ambient-canvas'), reducedMotion);
 let stormWhale = { setPose() {}, snapPose() {}, destroy() {} };

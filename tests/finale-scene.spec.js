@@ -138,6 +138,22 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect.poll(() => page.locator('#finale-cosmos').evaluate(node => (
     Number(getComputedStyle(node).opacity)
   ))).toBeGreaterThan(.25);
+  const waterVortex = await page.locator('.finale-cosmic-aureole').evaluate((node) => {
+    const outerWater = getComputedStyle(node, '::before');
+    const innerWater = getComputedStyle(node, '::after');
+    return {
+      outerImage: outerWater.backgroundImage,
+      outerAnimation: outerWater.animationName,
+      outerDuration: parseFloat(outerWater.animationDuration),
+      innerAnimation: innerWater.animationName,
+      innerDuration: parseFloat(innerWater.animationDuration),
+    };
+  });
+  expect(waterVortex.outerImage).toContain('finale-water-vortex.webp');
+  expect(waterVortex.outerAnimation).toBe('finale-vortex-spin');
+  expect(waterVortex.outerDuration).toBe(18);
+  expect(waterVortex.innerAnimation).toBe('finale-vortex-spin-reverse');
+  expect(waterVortex.innerDuration).toBe(27);
   await expect(copy).toHaveCSS('opacity', '0');
   await expect.poll(allActionsDisabled).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('finale-cosmic-opening.png') });
