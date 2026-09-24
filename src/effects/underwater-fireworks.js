@@ -1,5 +1,5 @@
 // One timeline-driven canvas: no timers or animation loop survive the finale.
-export const FIREWORKS_DURATION = 7.2;
+export const FIREWORKS_DURATION = 11.8;
 
 export function createUnderwaterFireworks(canvas, compact) {
   const ctx = canvas.getContext('2d');
@@ -8,6 +8,106 @@ export function createUnderwaterFireworks(canvas, compact) {
   let height = 0;
   let bursts = [];
   let bubbles = [];
+  let lettering = [];
+  const clamp = value => Math.max(0, Math.min(1, value));
+  const glow = document.createElement('canvas');
+  glow.width = glow.height = 24;
+  const glowContext = glow.getContext('2d');
+  const glowGradient = glowContext.createRadialGradient(12, 12, 0, 12, 12, 12);
+  glowGradient.addColorStop(0, '#ffffff');
+  glowGradient.addColorStop(.16, '#fff3cf');
+  glowGradient.addColorStop(.4, 'rgba(159,226,255,.55)');
+  glowGradient.addColorStop(1, 'rgba(159,226,255,0)');
+  glowContext.fillStyle = glowGradient;
+  glowContext.fillRect(0, 0, 24, 24);
+
+  function buildLettering() {
+    const mask = document.createElement('canvas');
+    mask.width = Math.ceil(width);
+    mask.height = Math.ceil(height);
+    const c = mask.getContext('2d', { willReadFrequently: true });
+    const scale = Math.min(width / (compact ? 600 : 850), height / 650, 1.15);
+    const lines = [
+      ['chúc mừng', 42, -112],
+      ['Pastel', 108, -32],
+      ['1 năm debut', 48, 45],
+      ['1/10/2025 - 1/10/2026', 28, 109],
+    ];
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillStyle = '#fff';
+    for (const [text, size, y] of lines) {
+      // System serif supports Vietnamese without waiting on a remote font.
+      c.font = `bold ${size * scale}px Georgia, "Times New Roman", serif`;
+      c.fillText(text, width / 2, height * .48 + y * scale);
+    }
+    const pixels = c.getImageData(0, 0, mask.width, mask.height).data;
+    const step = compact ? 1.8 : 3;
+    lettering = [];
+    for (let y = Math.floor(height * .48 - 155 * scale); y < height * .48 + 140 * scale; y += step) {
+      for (let x = 0; x < width; x += step) {
+        if (pixels[(Math.floor(y) * mask.width + Math.floor(x)) * 4 + 3] > 100) {
+          const seed = lettering.length + 900;
+          lettering.push({ x, y, angle: random(seed) * Math.PI * 2, spread: random(seed + 1), flicker: random(seed + 2) });
+        }
+      }
+    }
+  }
+
+  function renderCenterpiece(time) {
+    const age = time - 3.2;
+    if (age < -.9) return;
+    const cx = width / 2;
+    const cy = height * .48;
+    if (age < 0) {
+      const p = clamp(1 + age / .9);
+      ctx.globalAlpha = p;
+      ctx.drawImage(glow, cx - 26, height - (height - cy) * p - 26, 52, 52);
+      return;
+    }
+    const formed = clamp((age - .35) / 1.35);
+    const ease = 1 - Math.pow(1 - formed, 3);
+    const dissolve = clamp((time - 8.6) / 2.7);
+    const visibility = clamp(age / .45) * (1 - dissolve);
+    canvas.dataset.messagePhase = formed < 1 ? 'forming' : dissolve > 0 ? 'dissolving' : 'readable';
+    // A soft ocean veil lets the particle lettering take center stage.
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = visibility * .88;
+    const veil = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(width * .65, height * .45));
+    veil.addColorStop(0, '#020b22');
+    veil.addColorStop(.55, 'rgba(2,11,34,.9)');
+    veil.addColorStop(1, 'rgba(2,11,34,0)');
+    ctx.fillStyle = veil;
+    ctx.fillRect(0, 0, width, height);
+    ctx.globalCompositeOperation = 'lighter';
+    const radius = Math.min(width, height) * .58;
+    const expansion = 1 - Math.exp(-age * 1.5);
+    for (let ring = 0; ring < 3; ring++) {
+      ctx.globalAlpha = Math.max(0, 1 - age / 3.1) * .65;
+      ctx.strokeStyle = colors[ring];
+      ctx.lineWidth = ring === 0 ? 3 : 1;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, radius * expansion * (1 + ring * .16), radius * expansion * (.72 + ring * .13), 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    for (let j = 0; j < (compact ? 90 : 160); j++) {
+      const angle = j * 2.39996;
+      const distance = radius * expansion * (.6 + random(j + 880) * .5);
+      ctx.globalAlpha = Math.max(0, 1 - age / 4) * .95;
+      ctx.drawImage(sprites[j % 5][j % 3], cx + Math.cos(angle) * distance - 12, cy + Math.sin(angle) * distance * .8 - 12, 24, 24);
+    }
+    for (const point of lettering) {
+      const launchRadius = radius * (.35 + point.spread * .6);
+      const originX = cx + Math.cos(point.angle) * launchRadius;
+      const originY = cy + Math.sin(point.angle) * launchRadius * .7;
+      const drift = dissolve * dissolve * (55 + point.spread * 140);
+      const x = originX + (point.x - originX) * ease + Math.cos(point.angle) * drift;
+      const y = originY + (point.y - originY) * ease + Math.sin(point.angle) * drift - dissolve * 45;
+      ctx.globalAlpha = visibility * (.78 + .22 * Math.sin(time * 3 + point.flicker * 12));
+      const size = compact ? 3.7 : 6;
+      ctx.drawImage(glow, x - size / 2, y - size / 2, size, size);
+    }
+  }
   const random = (n) => {
     const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
     return x - Math.floor(x);
@@ -45,6 +145,8 @@ export function createUnderwaterFireworks(canvas, compact) {
     ctx?.clearRect(0, 0, width, height);
     bursts = [];
     bubbles = [];
+    lettering = [];
+    canvas.dataset.messagePhase = 'hidden';
   }
 
   function start() {
@@ -57,10 +159,11 @@ export function createUnderwaterFireworks(canvas, compact) {
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    bursts = Array.from({ length: compact ? 10 : 14 }, (_, i) => ({
+    buildLettering();
+    bursts = Array.from({ length: compact ? 14 : 22 }, (_, i) => ({
       x: ((i % 2 ? .68 : .1) + random(i + 1) * .22) * width,
       y: (.12 + random(i + 40) * .48) * height,
-      time: 1.05 + i * .19,
+      time: 1.05 + i * .24,
       color: i % colors.length,
       radius: Math.min(width, height) * (.15 + random(i + 60) * .1),
     }));
@@ -115,7 +218,7 @@ export function createUnderwaterFireworks(canvas, compact) {
         ctx.ellipse(burst.x, burst.y, r, r * .72, 0, 0, Math.PI * 2);
         ctx.stroke();
       }
-      const count = compact ? 26 : 42;
+      const count = compact ? 34 : 54;
       for (let j = 0; j < count; j++) {
         const angle = j / count * Math.PI * 2 + burst.time;
         const radius = burst.radius * spread * (.4 + random(j + burst.time * 10) * .6);
@@ -132,6 +235,7 @@ export function createUnderwaterFireworks(canvas, compact) {
         ctx.restore();
       }
     }
+    renderCenterpiece(time);
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
   }

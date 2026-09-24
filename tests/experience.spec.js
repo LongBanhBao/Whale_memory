@@ -111,7 +111,7 @@ test('ánh sáng cuối hành trình hoàn tất vòng quét ký ức', async ({
   await button.click();
   await expect(page.locator('#finale-whale-reveal #intro-whale-swimmer')).toBeVisible({ timeout: 12_000 });
   await expect(page.locator('#finale-reveal')).toHaveAttribute('data-finale-phase', 'complete', {
-    timeout: 18_000,
+    timeout: 24_000,
   });
   await expect.poll(() => page.locator('#outro-actions button').evaluateAll(
     nodes => nodes.every(node => !node.disabled),
@@ -136,7 +136,7 @@ test('đoạn kết chỉ mở thư viện và wordmark vẫn có thể bắt đ
   const sendButton = page.getByRole('button', { name: 'GỬI MỘT ÁNH SÁNG' });
   await expect(sendButton).toBeEnabled();
   await sendButton.click();
-  await expect(page.getByRole('button', { name: 'XEM TOÀN BỘ KÝ ỨC' })).toBeEnabled({ timeout: 20_000 });
+  await expect(page.getByRole('button', { name: 'XEM TOÀN BỘ KÝ ỨC' })).toBeEnabled({ timeout: 26_000 });
   await page.getByRole('button', { name: 'XEM TOÀN BỘ KÝ ỨC' }).click();
   await expect(page.locator('#gallery-dialog')).toBeVisible();
   await expect(page.locator('#gallery-grid img')).toHaveCount(19);

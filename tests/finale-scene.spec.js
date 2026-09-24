@@ -162,8 +162,9 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect.poll(allActionsDisabled).toBe(true);
   expect(await page.locator('.finale-world').evaluate(node =>
     parseFloat(node.style.getPropertyValue('--portrait-x')) || 0)).toBe(0);
+  await expect(page.locator('#finale-fireworks')).toHaveAttribute('data-message-phase', 'readable', { timeout: 5_000 });
   await page.screenshot({ path: testInfo.outputPath('finale-fireworks.png') });
-  await expect(reveal).toHaveAttribute('data-finale-phase', 'complete', { timeout: 7_000 });
+  await expect(reveal).toHaveAttribute('data-finale-phase', 'complete', { timeout: 13_000 });
   await expect(page.locator('#finale-fireworks')).toBeHidden();
   await expect(page.locator('#finale-scan')).toHaveCSS('visibility', 'hidden');
   await expect(page.locator('.traveling-light')).toHaveCount(0);
@@ -259,9 +260,10 @@ test('mobile đưa cá voi cảnh 2 bơi xuống và không dao động theo só
     timeout: 12_000,
   });
   await expect(page.locator('#finale-fireworks')).toBeVisible();
+  await expect(page.locator('#finale-fireworks')).toHaveAttribute('data-message-phase', 'readable', { timeout: 5_000 });
   await page.screenshot({ path: testInfo.outputPath('finale-fireworks-mobile.png') });
   await expect(page.locator('#finale-reveal')).toHaveAttribute('data-finale-phase', 'complete', {
-    timeout: 7_000,
+    timeout: 13_000,
   });
   await expect.poll(() => page.locator('#outro-actions button').evaluateAll(
     nodes => nodes.every(node => !node.disabled),
