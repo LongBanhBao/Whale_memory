@@ -146,6 +146,8 @@ test('đoạn kết chỉ mở thư viện và wordmark vẫn có thể bắt đ
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5);
   await expect(page.locator('body')).toHaveClass(/is-intro-locked/);
   await expect(page.locator('#hold-control')).toBeEnabled();
+  await expect(page.locator('#outro-fireworks')).toBeHidden();
+  await expect(page.locator('#outro-fireworks')).toHaveAttribute('data-active', 'false');
   await expect(page.locator('.falling-memory')).toHaveCount(5);
 });
 

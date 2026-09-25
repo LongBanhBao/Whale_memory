@@ -1,4 +1,5 @@
 import { gsap } from 'gsap';
+import { createOutroFireworks } from './effects/outro-fireworks.js';
 import { createUnderwaterFireworks, FIREWORKS_DURATION } from './effects/underwater-fireworks.js';
 import './styles/main.css';
 import { images, whale } from './data/assets.generated.js';
@@ -108,6 +109,11 @@ const stormWhaleStatus = document.querySelector('#storm-whale-status');
 const sceneDots = [...document.querySelectorAll('.scene-progress__dot')];
 const progressLine = document.querySelector('#progress-line');
 const stormBackgroundUrl = assetUrl('assets/scene/storm-ocean-v2.webp');
+const outroFireworks = createOutroFireworks(document.querySelector('#outro-fireworks'), [
+  document.querySelector('.finale-portrait'), introWhaleSwimmer,
+  document.querySelector('.finale-copy'), outroActions,
+  document.querySelector('.ambient-header'),
+], compactRuntime);
 const finaleVortexUrl = assetUrl('assets/finale-water-vortex-v2.webp');
 
 // Keep only the lightweight handoff artwork ready at boot. Building every
@@ -1062,6 +1068,7 @@ function renderFinaleScan(state) {
 }
 
 function resetFinaleReveal() {
+  outroFireworks.stop();
   finaleFireworks.reset();
   setFinalePhase('idle');
   finaleReveal.classList.remove('has-whale-reveal', 'has-portrait-reveal');
@@ -1114,6 +1121,7 @@ function revealOutro() {
     onComplete: () => {
       outroButtons.forEach((button) => { button.disabled = false; });
       settleWhale();
+      outroFireworks.start();
     },
   })
     .to(finaleWorld, { '--copy-reveal': 1, duration: 1, ease: 'power2.out' })

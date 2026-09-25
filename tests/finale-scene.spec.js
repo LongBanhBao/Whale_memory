@@ -201,6 +201,11 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   });
   expect(Math.abs(vortexLayout.center - vortexLayout.viewportCenter)).toBeLessThan(2);
   await page.screenshot({ path: testInfo.outputPath('finale-complete.png') });
+  const recurring = page.locator('#outro-fireworks');
+  await expect(recurring).toHaveAttribute('data-active', 'true');
+  await expect.poll(() => recurring.evaluate(node => Number(node.dataset.burstCount)), { timeout: 8_000 }).toBeGreaterThanOrEqual(2);
+  await page.waitForTimeout(950);
+  await page.screenshot({ path: testInfo.outputPath('finale-recurring.png') });
 
   expect(await page.evaluate(() => window.__finalePhaseHistory)).toEqual([
     'arriving', 'extending', 'sweep-forward', 'sweep-reverse', 'fading', 'cosmic-opening', 'fireworks', 'complete',
@@ -288,4 +293,8 @@ test('mobile đưa cá voi cảnh 2 bơi xuống và không dao động theo só
   const mobileVortexStart = await mobileVortexTransform();
   await expect.poll(mobileVortexTransform).not.toBe(mobileVortexStart);
   await page.screenshot({ path: testInfo.outputPath('finale-cosmos-mobile.png') });
+  await expect(page.locator('#outro-fireworks')).toHaveAttribute('data-active', 'true');
+  await expect.poll(() => page.locator('#outro-fireworks').evaluate(node => Number(node.dataset.burstCount)), { timeout: 8_000 }).toBeGreaterThanOrEqual(2);
+  await page.waitForTimeout(950);
+  await page.screenshot({ path: testInfo.outputPath('finale-recurring-mobile.png') });
 });
