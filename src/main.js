@@ -892,6 +892,7 @@ function renderStorm({ progress }) {
   stormWorld.style.setProperty('--storm-breakthrough', frame.breakthrough.toFixed(4));
   stormWorld.style.setProperty('--storm-debris', bell(frame.progress, .65, .78, .92).toFixed(4));
   stormWorld.style.setProperty('--storm-copy-one', frame.copy.struggle.toFixed(4));
+  stormWorld.style.setProperty('--storm-copy-pressure', frame.copy.pressure.toFixed(4));
   stormWorld.style.setProperty('--storm-copy-fatigue', frame.copy.fatigue.toFixed(4));
   stormWorld.style.setProperty('--storm-copy-two', frame.copy.family.toFixed(4));
   stormWorld.style.setProperty('--storm-whale-x', `${(frame.whale.x * 100).toFixed(3)}%`);
@@ -953,7 +954,7 @@ function renderStorm({ progress }) {
     impact.style.setProperty('--impact', obstacleFrame.impact.toFixed(4));
   });
 
-  const copyVisibilities = [frame.copy.struggle, frame.copy.fatigue, frame.copy.family];
+  const copyVisibilities = [frame.copy.struggle, frame.copy.pressure, frame.copy.fatigue, frame.copy.family];
   stormCopyLines.forEach((line, index) => {
     const visibility = copyVisibilities[index];
     const hidden = visibility < .08 ? 'true' : 'false';

@@ -264,8 +264,9 @@ export function stormMotion(value, { mobile = false } = {}) {
       y: mobile ? 10 : 8,
     },
     copy: {
-      struggle: bell(progress, .09, .18, .36),
-      fatigue: bell(progress, .43, .535, .625),
+      struggle: bell(progress, .09, .155, .225),
+      pressure: bell(progress, .225, .3, .37),
+      fatigue: bell(progress, .37, .445, .585),
       family: bell(progress, .575, .69, .9),
     },
   };

@@ -16,6 +16,7 @@
   --storm-family: 0;
   --storm-breakthrough: 0;
   --storm-copy-one: 0;
+  --storm-copy-pressure: 0;
   --storm-copy-fatigue: 0;
   --storm-copy-two: 0;
   --storm-whale-x: 20%;
@@ -814,6 +815,11 @@
   transform: translateY(calc((1 - var(--storm-copy-fatigue)) * 15px));
   opacity: var(--storm-copy-fatigue);
   color: rgba(211, 221, 235, .89);
+}
+
+.storm-copy__line--pressure {
+  transform: translateY(calc((1 - var(--storm-copy-pressure)) * 15px));
+  opacity: var(--storm-copy-pressure);
 }
 
 .storm-copy__line--two {

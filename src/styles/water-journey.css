@@ -144,15 +144,6 @@
 }
 .water-gate--memories-rear::after { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
 .water-gate--memories-near::after { clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); }
-.water-gate--memories::before {
-  content: 'CHẶNG 0' attr(data-gate);
-  position: absolute; z-index: 5; left: 50%; top: 7%;
-  transform: translateX(-50%);
-  color: color-mix(in srgb, var(--gate-accent) 74%, white);
-  font-size: 8px; font-weight: 600; letter-spacing: .34em;
-  text-shadow: 0 0 10px rgb(99 224 245 / .46);
-  opacity: calc(var(--memory-visibility, 0) * .72);
-}
 .memory-current {
   position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
   fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
