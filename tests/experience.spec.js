@@ -139,7 +139,7 @@ test('đoạn kết chỉ mở thư viện và wordmark vẫn có thể bắt đ
   await expect(page.getByRole('button', { name: 'XEM TOÀN BỘ KÝ ỨC' })).toBeEnabled({ timeout: 26_000 });
   await page.getByRole('button', { name: 'XEM TOÀN BỘ KÝ ỨC' }).click();
   await expect(page.locator('#gallery-dialog')).toBeVisible();
-  await expect(page.locator('#gallery-grid img')).toHaveCount(19);
+  await expect(page.locator('#gallery-grid img')).toHaveCount(18);
   await expect(page.locator('#replay-journey, #open-letter')).toHaveCount(0);
   await page.getByRole('button', { name: 'Đóng thư viện ảnh' }).click();
   await page.locator('.wordmark').click();

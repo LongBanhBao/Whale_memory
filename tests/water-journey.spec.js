@@ -308,7 +308,7 @@ for (const width of [1440, 390]) {
     const ids = await page.locator('.gate-memory').evaluateAll(nodes => nodes.map(n => n.dataset.image));
     expect(new Set(ids).size).toBe(12);
     expect([...ids].sort()).toEqual([
-      'p01', 'p13', 'p03', 'p14', 'p15', 'p16',
+      'p01', 'p13', 'p09', 'p14', 'p15', 'p16',
       'p07', 'p08', 'p17', 'p19', 'p11', 'p12',
     ].sort());
     await expect.poll(() => page.locator('.journey-backdrop').evaluate(n => n.naturalWidth)).toBeGreaterThan(0);

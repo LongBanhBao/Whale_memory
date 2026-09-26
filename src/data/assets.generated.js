@@ -25,18 +25,6 @@ export const images = [
     "alt": "Khoảnh khắc của Pastel 2"
   },
   {
-    "id": "p03",
-    "width": 335,
-    "height": 745,
-    "aspectRatio": 0.4497,
-    "src": "assets/images/full/p03.webp",
-    "avif": "assets/images/full/p03.avif",
-    "thumb": "assets/images/thumb/p03.webp",
-    "placeholder": "data:image/webp;base64,UklGRiQBAABXRUJQVlA4WAoAAAAQAAAAEwAAGwAAQUxQSHMAAAARb6C4bSQ1tW+GY4yIACy/VpzNv2+Bm1rb1ia0xkBUZM6phUrgnQz8e5kF1MJvIXsnpsfN+6VkIKL/E0AaSPi/bmTkr8xYHeqGp2GU9IwTDeNGT+UvnBrCXPkKp++5Cg1VglN7IBEeqIkjUIjdaDSKRCABAFZQOCCKAAAAsAQAnQEqFAAcAD8BcK1QqyakIrAYCAFgIAlAA7QAEyxC9W0KZZs0cUNxh4TKmAD+9Xeh+3M2zye5bDj8YnSQszcGvOA0BFZS14TWJrqcmQ1G2AuKuKP9y7RD4Wz+pKF0jgheG3lUuaZPpCAcYTwQgRXwoqwGeIoeSk9kz8H4Fh6Lnsk9Oz0QgAAA",
-    "color": "rgb(8 8 8)",
-    "alt": "Khoảnh khắc của Pastel 3"
-  },
-  {
     "id": "p04",
     "width": 339,
     "height": 735,

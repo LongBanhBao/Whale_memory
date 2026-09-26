@@ -1,4 +1,4 @@
-import { mkdir, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, writeFile, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -47,6 +47,7 @@ await sharp(path.join(sceneSource, 'Water.png'), { limitInputPixels: false })
 
 const sourcePhotos = (await readdir(photoSource))
   .filter((file) => /^p\d+\.png$/i.test(file))
+  .filter((file) => Number(file.match(/\d+/)[0]) !== 3)
   .sort((a, b) => Number(a.match(/\d+/)[0]) - Number(b.match(/\d+/)[0]));
 
 if (!sourcePhotos.length) {
@@ -55,9 +56,17 @@ if (!sourcePhotos.length) {
 
 const imageManifest = [];
 
-for (const [index, file] of sourcePhotos.entries()) {
+// The removed portrait must not survive a later asset regeneration.
+await Promise.all([
+  rm(path.join(fullOutput, 'p03.webp'), { force: true }),
+  rm(path.join(fullOutput, 'p03.avif'), { force: true }),
+  rm(path.join(thumbOutput, 'p03.webp'), { force: true }),
+]);
+
+for (const file of sourcePhotos) {
   const input = path.join(photoSource, file);
-  const id = `p${String(index + 1).padStart(2, '0')}`;
+  const photoNumber = Number(file.match(/\d+/)[0]);
+  const id = `p${String(photoNumber).padStart(2, '0')}`;
   const pipeline = sharp(input, { limitInputPixels: false }).rotate().ensureAlpha();
   const metadata = await pipeline.metadata();
   const stats = await pipeline.stats();
@@ -101,7 +110,7 @@ for (const [index, file] of sourcePhotos.entries()) {
     thumb: `assets/images/thumb/${id}.webp`,
     placeholder: `data:image/webp;base64,${placeholder.toString('base64')}`,
     color: `rgb(${stats.dominant.r} ${stats.dominant.g} ${stats.dominant.b})`,
-    alt: `Khoảnh khắc của Pastel ${index + 1}`,
+    alt: `Khoảnh khắc của Pastel ${photoNumber}`,
   });
 }
 

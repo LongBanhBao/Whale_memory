@@ -15,7 +15,7 @@ const memorySlots = [
 ];
 const portraitTuning = {
   p01: { x: 0, y: -6, scale: .98 },
-  p03: { x: 0, y: -8, scale: .96 },
+  p09: { x: 0, y: 2, scale: .8 },
   p07: { x: 0, y: -2, scale: .9 },
   p08: { x: 2, y: -2, scale: .86 },
   p11: { x: 0, y: 5, scale: .78 },
