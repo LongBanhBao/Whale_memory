@@ -224,6 +224,13 @@
             <span>GỬI MỘT ÁNH SÁNG</span>
           </button>
           <nav id="outro-actions" class="outro-actions" aria-label="Lựa chọn sau hành trình">
+            <div class="letter-courier" id="letter-courier">
+              <img id="boa-courier" alt="Chú bò mang một lá thư" width="520" height="520" decoding="async">
+              <button id="take-letter" class="letter-courier__control" type="button" aria-label="Nhận thư từ chú bò" aria-haspopup="dialog" aria-controls="letter-dialog" disabled>
+                <span id="courier-scroll" class="courier-scroll" aria-hidden="true"><i></i></span>
+              </button>
+              <span class="letter-courier__hint" aria-hidden="true">Chạm vào cuộn thư</span>
+            </div>
             <button id="open-gallery" type="button">XEM TOÀN BỘ KÝ ỨC</button>
           </nav>
           <div id="light-layer" class="light-layer" aria-hidden="true"></div>
@@ -235,13 +242,17 @@
       <span>tiếp</span><i aria-hidden="true"></i>
     </button>
 
-    <dialog id="letter-dialog" class="memory-dialog memory-dialog--letter">
+    <dialog id="letter-dialog" class="memory-dialog memory-dialog--letter" aria-labelledby="letter-title">
       <button class="dialog-close" type="button" data-close-dialog aria-label="Đóng thư tri ân">×</button>
-      <div class="letter-mark" aria-hidden="true"></div>
-      <p class="eyebrow">A LETTER FOR PASTEL</p>
-      <h2>Đại dương này vẫn nhớ.</h2>
-      <p>Mỗi ký ức là một giọt nước. Những giọt nước đã tạo nên một đại dương, và đại dương ấy sẽ luôn ghi nhớ hành trình của người đã không ngừng bơi về phía trước.</p>
-      <p>Cảm ơn vì đã bắt đầu, đã lựa chọn tiếp tục và đã trở thành một phần thanh xuân của chúng tôi.</p>
+      <div class="letter-parchment">
+        <img id="letter-scroll-art" class="letter-parchment__art" alt="" width="900" height="1350" decoding="async">
+        <article class="letter-parchment__words" tabindex="0" aria-label="Nội dung thư tri ân">
+          <p class="eyebrow">A LETTER FOR PASTEL</p>
+          <h2 id="letter-title">Đại dương này vẫn nhớ.</h2>
+          <p>Mỗi ký ức là một giọt nước. Những giọt nước đã tạo nên một đại dương, và đại dương ấy sẽ luôn ghi nhớ hành trình của người đã không ngừng bơi về phía trước.</p>
+          <p>Cảm ơn vì đã bắt đầu, đã lựa chọn tiếp tục và đã trở thành một phần thanh xuân của chúng tôi.</p>
+        </article>
+      </div>
     </dialog>
 
     <dialog id="gallery-dialog" class="memory-dialog memory-dialog--gallery">
@@ -261,8 +272,8 @@
 
     <script type="module">
       const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const staticVersion = '20260915-hold-whale-motion';
-      const deploymentAssetRoot = 'https://cdn.jsdelivr.net/gh/LongBanhBao/Whale_memory@3013e5539a21326c2e72fff52a5daa6ddb8e1510/public/';
+      const staticVersion = '20260927-whale-letter-courier';
+      const deploymentAssetRoot = 'https://cdn.jsdelivr.net/gh/LongBanhBao/Whale_memory@ce64aa6fb21b65443b4cfeda4be93900159f10e1/public/';
       const recoverBoot = (message = 'Không thể tải hành trình. Chạm để thử lại.') => {
         document.documentElement.dataset.appReady = 'failed';
         document.body.classList.remove('is-intro-locked');

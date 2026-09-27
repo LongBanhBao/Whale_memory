@@ -129,7 +129,7 @@ test('không thể kích hoạt nút kết khi chưa đến đoạn cuối', asy
   await expect(page.locator('.finale-world')).not.toHaveClass(/is-complete/);
 });
 
-test('đoạn kết chỉ mở thư viện và wordmark vẫn có thể bắt đầu lại', async ({ page }) => {
+test('đoạn kết mở thư viện và wordmark vẫn có thể bắt đầu lại', async ({ page }) => {
   test.setTimeout(55_000);
   await page.goto('/');
   await goToProgress(page, '#ocean-remembers', 0.92);

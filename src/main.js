@@ -1,4 +1,5 @@
 import { gsap } from 'gsap';
+import { createLetterCourier } from './effects/letter-courier.js';
 import { createOutroFireworks } from './effects/outro-fireworks.js';
 import { createUnderwaterFireworks, FIREWORKS_DURATION } from './effects/underwater-fireworks.js';
 import './styles/main.css';
@@ -112,7 +113,7 @@ const stormBackgroundUrl = assetUrl('assets/scene/storm-ocean-v2.webp');
 const outroFireworks = createOutroFireworks(document.querySelector('#outro-fireworks'), [
   document.querySelector('.finale-portrait'), introWhaleSwimmer,
   document.querySelector('.finale-copy'), outroActions,
-  document.querySelector('.ambient-header'),
+  document.querySelector('.ambient-header'), document.querySelector('#letter-courier'),
 ], compactRuntime);
 const finaleVortexUrl = assetUrl('assets/finale-water-vortex-v2.webp');
 
@@ -309,6 +310,8 @@ function prepareFinale() {
   finalePortraitImage.loading = 'eager';
   finalePortraitImage.decoding = 'async';
   finalePortraitImage.fetchPriority = 'high';
+  document.querySelector('#boa-courier').src = assetUrl('assets/scene/boa-courier.webp');
+  document.querySelector('#letter-scroll-art').src = assetUrl('assets/scene/whale-letter-scroll.webp');
   document.documentElement.dataset.finaleReady = 'true';
 }
 
@@ -332,6 +335,17 @@ let stormAwaitingClick = false;
 let finalTimeline = null;
 let finaleSequenceTimeline = null;
 let finaleWhaleMotionTimeline = null;
+const letterCourier = createLetterCourier({
+  world: finaleWorld, swimmer: introWhaleSwimmer, dialog: letterDialog,
+  button: document.querySelector('#take-letter'), galleryButton: openGallery,
+  reducedMotion,
+  pose: (...args) => waterJourney?.pose(...args),
+  pause: () => { finaleWhaleMotionTimeline?.pause(); outroFireworks.stop(); },
+  resume: () => {
+    finaleWhaleMotionTimeline?.resume();
+    if (!reducedMotion) outroFireworks.start();
+  },
+});
 let finaleSequenceStarted = false;
 let stormEntryTimeline = null;
 let stormTransitionTimeline = null;
@@ -1277,6 +1291,7 @@ for (const dialog of [letterDialog, galleryDialog]) {
 }
 
 function resetJourney() {
+  letterCourier.reset();
   sceneTransition?.kill();
   stormEntryTimeline?.kill();
   stormTransitionTimeline?.kill();

@@ -173,7 +173,7 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect(page.locator('.finale-title')).toHaveAttribute('aria-label', 'Pastel de Whale');
   await expect(page.locator('.finale-title > span')).toHaveText(['PASTEL', 'WHALE']);
   await expect(page.locator('.finale-title > em')).toHaveText('de');
-  await expect(page.locator('#outro-actions button')).toHaveCount(1);
+  await expect(page.locator('#outro-actions button')).toHaveCount(2);
   await expect.poll(allActionsEnabled, { timeout: 4_000 }).toBe(true);
   const settledWhale = page.locator('#finale-whale-reveal #intro-whale-swimmer');
   await expect.poll(() => settledWhale.evaluate(node => (
