@@ -207,10 +207,10 @@
   content: '';
   pointer-events: none;
   animation: finale-vortex-spin 18s linear infinite;
+  animation-play-state: paused;
 }
 
-/* Preserve the original white water highlights and deep blue core. The
-   transparent asset supplies the irregular edge, without a circular crop. */
+/* The image is a fallback during texture loading or a lost GPU context. */
 .finale-cosmic-aureole::before {
   will-change: transform;
 }
@@ -224,39 +224,31 @@
   animation-duration: 25s;
 }
 
-.finale-cosmic-aureole > i {
+.finale-cosmic-aureole.is-water-active::before,
+.finale-cosmic-aureole.is-water-active::after {
+  animation-play-state: running;
+}
+
+.finale-water {
   position: absolute;
-  inset: 8%;
-  animation: finale-vortex-spin 14s linear infinite;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
   pointer-events: none;
 }
 
-.finale-cosmic-aureole > i:nth-child(2) {
-  inset: 17%;
-  animation-duration: 21s;
-  animation-delay: -8s;
+.has-flowing-water .finale-water { opacity: 1; }
+.finale-cosmic-aureole.has-flowing-water::before,
+.finale-cosmic-aureole.has-flowing-water::after {
+  display: none;
+  animation: none;
 }
 
-.finale-cosmic-aureole > i::before,
-.finale-cosmic-aureole > i::after {
-  position: absolute;
-  content: '';
-  width: 12px;
-  aspect-ratio: 1;
-  background: radial-gradient(ellipse, #fff 0 6%, #a8edff 10%, transparent 65%);
-  box-shadow: 0 0 12px rgba(103, 222, 255, .65);
-  border-radius: 50%;
-  top: 15%;
-  left: 15%;
-  animation: finale-water-glint 3s ease-in-out infinite alternate;
-}
-
-.finale-cosmic-aureole > i::after {
-  top: auto;
-  left: auto;
-  bottom: 15%;
-  right: 15%;
-  animation-delay: -1.5s;
+@media (prefers-reduced-motion: reduce) {
+  .finale-cosmic-aureole::before,
+  .finale-cosmic-aureole::after { animation: none; }
 }
 
 .finale-reveal[data-finale-phase='cosmic-opening'] .finale-portrait img {
@@ -702,11 +694,6 @@
 
 @keyframes finale-vortex-spin {
   to { transform: rotate(360deg); }
-}
-
-@keyframes finale-water-glint {
-  from { opacity: .25; transform: scale(.7); }
-  to { opacity: .85; transform: scale(1.2); }
 }
 
 @keyframes heart-pulse {
