@@ -336,11 +336,12 @@ let finaleWhaleMotionTimeline = null;
 const letterCourier = createLetterCourier({
   world: finaleWorld, swimmer: introWhaleSwimmer, dialog: letterDialog,
   button: document.querySelector('#take-letter'), galleryButton: openGallery,
-  reducedMotion,
+  reducedMotion, compactRuntime,
   pose: (...args) => waterJourney?.pose(...args),
   pause: () => { finaleWhaleMotionTimeline?.pause(); outroFireworks.stop(); },
   resume: () => {
     finaleWhaleMotionTimeline?.resume();
+    if (compactRuntime) settleMobileFinaleWhale();
     if (!reducedMotion) outroFireworks.start();
   },
 });
@@ -1089,6 +1090,46 @@ function resetFinaleReveal() {
   renderFinaleScan({ radius: 0, angle: 0, whale: 0, portrait: 0, opacity: 0 });
 }
 
+function mobileFinaleWhalePose() {
+  const viewport = runtimeViewport();
+  // Place the mobile whale in the left column below the entire title/caption.
+  // Measure the untransformed copy so its reveal animation cannot shift the
+  // resting position. Reserve a separate column for the cow and its scroll.
+  const copy = document.querySelector('.finale-copy');
+  const cow = document.querySelector('#letter-courier');
+  const rotation = 8 * Math.PI / 180;
+  const whaleWidth = introWhaleSwimmer.offsetWidth;
+  const whaleHeight = introWhaleSwimmer.offsetHeight;
+  const rotatedWidth = whaleWidth * Math.cos(rotation) + whaleHeight * Math.sin(rotation);
+  const rotatedHeight = whaleHeight * Math.cos(rotation) + whaleWidth * Math.sin(rotation);
+  const copyBottom = copy.offsetTop + copy.offsetHeight;
+  const left = copy.offsetLeft + 6;
+  const availableWidth = cow.getBoundingClientRect().left - finaleWorld.getBoundingClientRect().left - left - 18;
+  const mobileScale = Math.min(.48, availableWidth / rotatedWidth,
+    Math.max(30, viewport.height - copyBottom - 42) / rotatedHeight);
+  const mobileX = (left + rotatedWidth * mobileScale / 2) / viewport.width;
+  const mobileY = Math.min(viewport.height - rotatedHeight * mobileScale / 2 - 20,
+    Math.max(viewport.height * .76, copyBottom + rotatedHeight * mobileScale / 2 + 18)) / viewport.height;
+  return { x: mobileX, y: mobileY, scale: mobileScale };
+}
+
+function settleMobileFinaleWhale() {
+  const { x, y, scale } = mobileFinaleWhalePose();
+  waterJourney.pose(x, y, scale, 8, 0, .48, 0, .18);
+}
+
+let mobileFinaleResizeFrame = 0;
+function resizeMobileFinaleWhale() {
+  if (!compactRuntime) return;
+  cancelAnimationFrame(mobileFinaleResizeFrame);
+  mobileFinaleResizeFrame = requestAnimationFrame(() => {
+    if (activeScene === 3 && finaleWorld.classList.contains('is-complete')
+      && !finaleWorld.dataset.letterPhase && !finalTimeline?.isActive()) settleMobileFinaleWhale();
+  });
+}
+window.addEventListener('resize', resizeMobileFinaleWhale, { passive: true });
+window.addEventListener('bluevoyage:viewportchange', resizeMobileFinaleWhale);
+
 function revealOutro() {
   const viewport = runtimeViewport();
   const stackArtwork = compactRuntime && viewport.height > viewport.width * 1.15;
@@ -1097,10 +1138,11 @@ function revealOutro() {
   finaleWhaleReveal.setAttribute('aria-hidden', 'false');
   finaleWorld.classList.add('is-complete');
   finalMessage.textContent = 'Hành trình vẫn đang tiếp tục.';
+  const { x: mobileX, y: mobileY, scale: mobileScale } = compactRuntime ? mobileFinaleWhalePose() : {};
 
   const settleWhale = () => {
     if (compactRuntime) {
-      waterJourney.pose(.66, stackArtwork ? .76 : .66, .48, 8, 0, .48, 0, .18);
+      settleMobileFinaleWhale();
       return;
     }
     const idle = { phase: 0 };
@@ -1122,7 +1164,7 @@ function revealOutro() {
     finaleWorld.style.setProperty('--outro', '1');
     finaleWorld.style.setProperty('--portrait-x', portraitSeparation);
     finaleWorld.style.setProperty('--portrait-y', portraitVertical);
-    waterJourney.pose(compactRuntime ? .66 : .73, stackArtwork ? .76 : .5, compactRuntime ? .48 : .76, compactRuntime ? 8 : -5, 0, 0, 0, .1);
+    waterJourney.pose(compactRuntime ? mobileX : .73, compactRuntime ? mobileY : .5, compactRuntime ? mobileScale : .76, compactRuntime ? 8 : -5, 0, 0, 0, .1);
     outroButtons.forEach((button) => { button.disabled = false; });
     if (!compactRuntime) settleWhale();
     return;
@@ -1144,10 +1186,10 @@ function revealOutro() {
       ease: 'power1.inOut',
       onUpdate: () => {
         const p = whaleMotion.progress;
-        const x = compactRuntime ? lerp(.5, .66, p) : lerp(.5, .73, p);
-        const y = compactRuntime ? lerp(.49, stackArtwork ? .76 : .66, p) : lerp(.49, .47, p);
+        const x = compactRuntime ? lerp(.5, mobileX, p) : lerp(.5, .73, p);
+        const y = compactRuntime ? lerp(.49, mobileY, p) : lerp(.49, .47, p);
         const rotation = compactRuntime ? lerp(-5, 8, p) : lerp(-7, -5, p);
-        waterJourney.pose(x, y, compactRuntime ? .48 : .76, rotation, Math.sin(p * Math.PI * 4) * .16, .88, compactRuntime ? 5 : -3, .24);
+        waterJourney.pose(x, y, compactRuntime ? lerp(.48, mobileScale, p) : .76, rotation, Math.sin(p * Math.PI * 4) * .16, .88, compactRuntime ? 5 : -3, .24);
       },
     }, 0)
     .to(finaleWorld, {

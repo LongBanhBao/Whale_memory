@@ -647,6 +647,15 @@ html[data-runtime-profile='compact'] .finale-whale-reveal .intro-whale-swimmer {
     --safe-left: max(14px, env(safe-area-inset-left));
   }
 
+  html[data-runtime-profile='compact'] .finale-copy {
+    top: 44%;
+    bottom: auto;
+  }
+
+  html[data-runtime-profile='compact'] .finale-title {
+    font-size: clamp(24px, 4vw, 34px);
+  }
+
   html[data-runtime-profile='compact'] .intro-copy {
     top: 50%;
     left: 20%;

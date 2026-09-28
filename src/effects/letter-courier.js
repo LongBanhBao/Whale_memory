@@ -2,7 +2,7 @@ import { gsap } from 'gsap';
 
 // One owner for the whale while it delivers the letter; the finale's idle
 // motion and fireworks resume only after the whale has returned home.
-export function createLetterCourier({ world, swimmer, dialog, button, galleryButton, reducedMotion, pose, pause, resume }) {
+export function createLetterCourier({ world, swimmer, dialog, button, galleryButton, reducedMotion, compactRuntime = false, pose, pause, resume }) {
   const scroll = document.querySelector('#courier-scroll');
   const parchment = dialog.querySelector('.letter-parchment');
   const words = dialog.querySelector('.letter-parchment__words');
@@ -74,12 +74,15 @@ export function createLetterCourier({ world, swimmer, dialog, button, galleryBut
     phase('approaching');
     const bounds = world.getBoundingClientRect();
     const target = button.getBoundingClientRect();
-    const scale = bounds.width < 700 ? .55 : .38;
+    const scale = compactRuntime ? Math.min(.48, saved.scale) : bounds.width < 700 ? .55 : .38;
     const mouthOffset = swimmer.offsetWidth * scale * .36;
     const x = (target.left + target.width / 2 - bounds.left - mouthOffset) / bounds.width;
     const y = (target.top + target.height / 2 - bounds.top - swimmer.offsetHeight * scale * .1) / bounds.height;
+    const approach = compactRuntime
+      ? { x: (saved.x + x) / 2, y: y - .018, scale, rotation: 4 }
+      : { x: x - .12, y: y - .1, scale, rotation: 12 };
     timeline = gsap.timeline()
-      .to(motion, { x: x - .12, y: y - .1, scale, rotation: 12,
+      .to(motion, { ...approach,
         duration: 1.2, ease: 'power1.inOut', onUpdate: render })
       .to(motion, { x, y, rotation: 0, duration: .8, ease: 'power2.out', onUpdate: render })
       .call(() => {
