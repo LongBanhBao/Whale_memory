@@ -634,14 +634,6 @@ html[data-runtime-profile='compact'] .finale-cosmos__stars--near {
   animation: none;
 }
 
-html[data-runtime-profile='compact'] .finale-cosmic-aureole {
-  width: min(112vw, 620px);
-}
-
-html[data-runtime-profile='compact'] .finale-cosmic-aureole::after {
-  display: none;
-}
-
 html[data-runtime-profile='compact'] .finale-whale-reveal .intro-whale-swimmer {
   width: min(92vw, 520px);
   filter: drop-shadow(0 0 18px rgba(76, 215, 255, .3));

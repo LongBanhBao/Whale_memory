@@ -188,69 +188,6 @@
   animation: finale-stars-drift 18s linear infinite;
 }
 
-.finale-cosmic-aureole {
-  position: absolute;
-  z-index: 3;
-  top: 50%;
-  left: 50%;
-  width: min(96vmin, 900px);
-  aspect-ratio: 1;
-  opacity: var(--cosmic-open, 0);
-  transform: translate(-50%, -50%) scale(calc(.12 + var(--cosmic-open, 0) * .88));
-}
-
-.finale-cosmic-aureole::before,
-.finale-cosmic-aureole::after {
-  position: absolute;
-  inset: 0;
-  background: var(--finale-vortex-image) center / contain no-repeat;
-  content: '';
-  pointer-events: none;
-  animation: finale-vortex-spin 18s linear infinite;
-  animation-play-state: paused;
-}
-
-/* The image is a fallback during texture loading or a lost GPU context. */
-.finale-cosmic-aureole::before {
-  will-change: transform;
-}
-
-/* A faint flowing crest drifts over the outer water at a different speed. */
-.finale-cosmic-aureole::after {
-  opacity: .22;
-  mix-blend-mode: screen;
-  mask-image: radial-gradient(circle, transparent 47%, #000 57% 63%, transparent 71%);
-  -webkit-mask-image: radial-gradient(circle, transparent 47%, #000 57% 63%, transparent 71%);
-  animation-duration: 25s;
-}
-
-.finale-cosmic-aureole.is-water-active::before,
-.finale-cosmic-aureole.is-water-active::after {
-  animation-play-state: running;
-}
-
-.finale-water {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.has-flowing-water .finale-water { opacity: 1; }
-.finale-cosmic-aureole.has-flowing-water::before,
-.finale-cosmic-aureole.has-flowing-water::after {
-  display: none;
-  animation: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .finale-cosmic-aureole::before,
-  .finale-cosmic-aureole::after { animation: none; }
-}
-
 .finale-reveal[data-finale-phase='cosmic-opening'] .finale-portrait img {
   filter: saturate(1.03) contrast(1.04) brightness(1.08) drop-shadow(0 0 22px rgba(205, 251, 255, .42));
 }
@@ -690,10 +627,6 @@
 @keyframes finale-stars-drift {
   from { translate: -1.5% -1%; }
   to { translate: 1.5% 1%; }
-}
-
-@keyframes finale-vortex-spin {
-  to { transform: rotate(360deg); }
 }
 
 @keyframes heart-pulse {

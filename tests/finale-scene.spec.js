@@ -138,10 +138,7 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect.poll(() => page.locator('#finale-cosmos').evaluate(node => (
     Number(getComputedStyle(node).opacity)
   ))).toBeGreaterThan(.25);
-  await expect(page.locator('#finale-water')).toHaveAttribute('data-renderer', 'webgl');
-  await expect(page.locator('#finale-water')).toHaveAttribute('data-running', 'true');
-  expect(await page.locator('.finale-cosmic-aureole').evaluate(node =>
-    getComputedStyle(node, '::before').display)).toBe('none');
+  await expect(page.locator('#finale-water, .finale-cosmic-aureole')).toHaveCount(0);
   await expect(copy).toHaveCSS('opacity', '0');
   await expect.poll(allActionsDisabled).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('finale-cosmic-opening.png') });
@@ -177,15 +174,7 @@ test('tia sáng quét thuận hiện cá voi, quét ngược hiện Pastel rồi
   await expect.poll(() => settledWhale.evaluate(node => (
     parseFloat(node.style.getPropertyValue('--whale-x'))
   ))).not.toBe(idleX);
-  const flowTime = () => page.locator('#finale-water').getAttribute('data-flow-time');
-  const initialFlowTime = await flowTime();
-  await expect.poll(flowTime).not.toBe(initialFlowTime);
   await expect.poll(() => page.locator('.finale-world').evaluate(node => node.getBoundingClientRect().x)).toBe(0);
-  const vortexLayout = await page.locator('.finale-cosmic-aureole').evaluate(node => {
-    const bounds = node.getBoundingClientRect();
-    return { center: bounds.x + bounds.width / 2, viewportCenter: innerWidth / 2 };
-  });
-  expect(Math.abs(vortexLayout.center - vortexLayout.viewportCenter)).toBeLessThan(2);
   await page.screenshot({ path: testInfo.outputPath('finale-complete.png') });
   const recurring = page.locator('#outro-fireworks');
   await expect(recurring).toHaveAttribute('data-active', 'true');
@@ -273,10 +262,7 @@ test('mobile đưa cá voi cảnh 2 bơi xuống và không dao động theo só
     return { titleBottom: title.bottom, whaleTop: whaleBox.top };
   });
   expect(mobileLayout.whaleTop - mobileLayout.titleBottom).toBeGreaterThan(4);
-  await expect(page.locator('#finale-water')).toHaveAttribute('data-renderer', 'webgl');
-  const mobileFlow = () => page.locator('#finale-water').getAttribute('data-flow-time');
-  const mobileFlowStart = await mobileFlow();
-  await expect.poll(mobileFlow).not.toBe(mobileFlowStart);
+  await expect(page.locator('#finale-water, .finale-cosmic-aureole')).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath('finale-cosmos-mobile.png') });
   await expect(page.locator('#outro-fireworks')).toHaveAttribute('data-active', 'true');
   await expect.poll(() => page.locator('#outro-fireworks').evaluate(node => Number(node.dataset.burstCount)), { timeout: 8_000 }).toBeGreaterThanOrEqual(2);

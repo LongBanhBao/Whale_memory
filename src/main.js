@@ -1,6 +1,5 @@
 import { gsap } from 'gsap';
 import { createLetterCourier } from './effects/letter-courier.js';
-import { createFinaleWater } from './effects/finale-water.js';
 import { createOutroFireworks } from './effects/outro-fireworks.js';
 import { createUnderwaterFireworks, FIREWORKS_DURATION } from './effects/underwater-fireworks.js';
 import './styles/main.css';
@@ -116,15 +115,12 @@ const outroFireworks = createOutroFireworks(document.querySelector('#outro-firew
   document.querySelector('.finale-copy'), outroActions,
   document.querySelector('.ambient-header'), document.querySelector('#letter-courier'),
 ], compactRuntime);
-const finaleVortexUrl = assetUrl('assets/finale-water-vortex-v2.webp');
-const finaleWater = createFinaleWater(document.querySelector('.finale-cosmic-aureole'), finaleVortexUrl, reducedMotion);
 
 // Keep only the lightweight handoff artwork ready at boot. Building every
 // hidden scene (including WebGL and hundreds of animated nodes) during the
 // intro created long tasks that looked like random animation freezes.
 stormWorld.style.setProperty('--storm-background', `url("${stormBackgroundUrl}")`);
 stormEntryCurrent.style.setProperty('--storm-entry-background', `url("${stormBackgroundUrl}")`);
-finaleCosmos.style.setProperty('--finale-vortex-image', `url("${finaleVortexUrl}")`);
 
 const ambient = createAmbientCanvas(document.querySelector('#ambient-canvas'), reducedMotion);
 let stormWhale = { setPose() {}, snapPose() {}, destroy() {} };
@@ -308,7 +304,6 @@ function prepareFinale() {
   if (finalePrepared) return;
   finalePrepared = true;
   buildGallery();
-  finaleWater.prepare();
   finalePortraitImage.src = assetUrl('assets/scene/finale-pastel.webp');
   finalePortraitImage.loading = 'eager';
   finalePortraitImage.decoding = 'async';
@@ -611,7 +606,6 @@ function updateReducedNext() {
 function setActiveScene(index) {
   sceneTimeline?.kill();
   activeScene = index;
-  if (index !== 3) finaleWater.setActive(false);
   if (index !== 2) {
     stormAwaitingClick = false;
     stormWhaleControl.hidden = true;
@@ -1029,7 +1023,6 @@ function renderFinale({ progress }) {
 function setFinalePhase(phase) {
   finaleReveal.dataset.finalePhase = phase;
   finaleWorld.dataset.finalePhase = phase;
-  finaleWater.setActive(['cosmic-opening', 'fireworks', 'complete'].includes(phase));
   if (phase === 'complete') {
     finaleWhaleReveal.style.removeProperty('clip-path');
     finalePortraitReveal.style.removeProperty('clip-path');
@@ -1087,7 +1080,6 @@ function renderFinaleScan(state) {
 }
 
 function resetFinaleReveal() {
-  finaleWater.reset();
   outroFireworks.stop();
   finaleFireworks.reset();
   setFinalePhase('idle');
