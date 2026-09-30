@@ -84,7 +84,8 @@
 .memory-dialog.memory-dialog--letter {
   --letter-gutter-x: max(12px, env(safe-area-inset-left), env(safe-area-inset-right));
   --letter-gutter-y: max(12px, env(safe-area-inset-top), env(safe-area-inset-bottom));
-  width: min(760px, calc(100vw - 2 * var(--letter-gutter-x)), calc((100svh - 2 * var(--letter-gutter-y)) * .8));
+  --letter-width: min(760px, calc(100vw - 2 * var(--letter-gutter-x)), calc((100svh - 2 * var(--letter-gutter-y)) * .8));
+  width: var(--letter-width);
   height: auto;
   aspect-ratio: 4 / 5;
   max-height: calc(100svh - 2 * var(--letter-gutter-y));
@@ -99,6 +100,10 @@
 }
 .memory-dialog--letter::backdrop { background: #010817d9; backdrop-filter: blur(7px); }
 .letter-parchment { position: absolute; inset: 0; }
+.letter-parchment__artwork,
+.letter-parchment__head { position: absolute; inset: 0; }
+.letter-parchment__paper,
+.letter-parchment__foot { display: none; }
 .letter-parchment::after {
   content: '';
   position: absolute;
@@ -152,6 +157,48 @@
 }
 .memory-dialog--letter .letter-parchment__content > p:last-child { margin-bottom: 0; }
 .memory-dialog--letter .dialog-close { z-index: 3; top: 4%; right: 1%; color: #ffe4ae; border-color: #f1ce8266; }
+@media (max-width: 760px), (pointer: coarse) {
+  .memory-dialog.memory-dialog--letter {
+    height: min(calc(var(--letter-width) * 1.7), calc(100svh - 2 * var(--letter-gutter-y)));
+    aspect-ratio: auto;
+  }
+
+  /* Extend only the blank paper. The whale and both rollers keep the same
+     proportions by displaying the original top 32% and bottom 16% at 1:1. */
+  .letter-parchment__artwork { display: flex; flex-direction: column; }
+  .letter-parchment__head,
+  .letter-parchment__paper,
+  .letter-parchment__foot {
+    position: relative;
+    inset: auto;
+    display: block;
+    overflow: hidden;
+    width: 100%;
+  }
+  .letter-parchment__head { flex: 0 0 auto; aspect-ratio: 5 / 2; }
+  .letter-parchment__foot { flex: 0 0 auto; aspect-ratio: 5 / 1; }
+  .letter-parchment__paper { flex: 1; min-height: 0; }
+  .letter-parchment__head .letter-parchment__art,
+  .letter-parchment__foot img {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: auto;
+  }
+  .letter-parchment__foot img { bottom: 0; }
+  .letter-parchment__paper img {
+    position: absolute;
+    left: 0;
+    top: -61.53846%;
+    width: 100%;
+    height: 192.30769%;
+    object-fit: fill;
+  }
+  .letter-parchment::after {
+    top: calc(var(--letter-width) * .25 + var(--letter-unroll, 1) * (100% - var(--letter-width) * .4375));
+    height: calc(var(--letter-width) * .0875);
+  }
+}
 @media (max-width: 600px) {
   .letter-courier { width: 100px; bottom: calc(100% + 22px); right: 10px; }
   .memory-dialog--letter h2 { font-size: 22px; margin-bottom: 12px; }

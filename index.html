@@ -9,7 +9,7 @@
       content="The Blue Voyage — một hành trình ký ức dành cho Pastel."
     />
     <title>The Blue Voyage — Pastel</title>
-    <link rel="stylesheet" href="./app/main.css?v=20260930-wide-letter-scroll" />
+    <link rel="stylesheet" href="./app/main.css?v=20260930-taller-mobile-letter" />
   </head>
   <body class="is-intro-locked">
     <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
@@ -242,7 +242,13 @@
     <dialog id="letter-dialog" class="memory-dialog memory-dialog--letter" aria-labelledby="letter-title">
       <button class="dialog-close" type="button" data-close-dialog aria-label="Đóng thư tri ân">×</button>
       <div class="letter-parchment">
-        <img id="letter-scroll-art" class="letter-parchment__art" alt="" width="1120" height="1400" decoding="async">
+        <div class="letter-parchment__artwork" aria-hidden="true">
+          <div class="letter-parchment__head">
+            <img id="letter-scroll-art" class="letter-parchment__art" alt="" width="1120" height="1400" decoding="async">
+          </div>
+          <div class="letter-parchment__paper"><img data-letter-scroll-part alt="" width="1120" height="1400" decoding="async"></div>
+          <div class="letter-parchment__foot"><img data-letter-scroll-part alt="" width="1120" height="1400" decoding="async"></div>
+        </div>
         <article class="letter-parchment__words" tabindex="0" aria-label="Nội dung thư tri ân">
           <div class="letter-parchment__content">
             <p class="eyebrow">A LETTER FOR PASTEL</p>
@@ -271,7 +277,7 @@
 
     <script type="module">
       const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const staticVersion = '20260930-wide-letter-scroll';
+      const staticVersion = '20260930-taller-mobile-letter';
       const deploymentAssetRoot = 'https://cdn.jsdelivr.net/gh/LongBanhBao/Whale_memory@9da47ed670de56bf52038f8a0f0f323e31fd5998/public/';
       const recoverBoot = (message = 'Không thể tải hành trình. Chạm để thử lại.') => {
         document.documentElement.dataset.appReady = 'failed';

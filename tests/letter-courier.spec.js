@@ -124,6 +124,7 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 360, height: 740 }
     expect(letterBox.y).toBeGreaterThanOrEqual(10);
     expect(letterBox.x + letterBox.width).toBeLessThanOrEqual(viewport.width - 10);
     expect(letterBox.y + letterBox.height).toBeLessThanOrEqual(viewport.height - 10);
+    if (viewport.height > viewport.width) expect(letterBox.height / letterBox.width).toBeGreaterThan(1.6);
     await page.screenshot({ path: testInfo.outputPath('wide-letter.png') });
     const textLayout = await page.locator('.letter-parchment__words').evaluate(node => {
       node.scrollTop = node.scrollHeight;
