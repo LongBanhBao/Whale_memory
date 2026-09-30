@@ -170,6 +170,11 @@
   margin: 0 0 1em;
 }
 .memory-dialog--letter .letter-parchment__content > p:last-child { margin-bottom: 0; }
+.memory-dialog--letter .letter-parchment__signature {
+  text-align: left;
+  text-indent: 0;
+  margin-inline: 0;
+}
 .memory-dialog--letter .dialog-close { z-index: 3; top: 4%; right: 1%; color: #ffe4ae; border-color: #f1ce8266; }
 @media (max-width: 760px), (pointer: coarse) {
   .memory-dialog.memory-dialog--letter {

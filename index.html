@@ -9,7 +9,7 @@
       content="The Blue Voyage — một hành trình ký ức dành cho Pastel."
     />
     <title>The Blue Voyage — Pastel</title>
-    <link rel="stylesheet" href="./app/main.css?v=20260930-full-tribute-letter" />
+    <link rel="stylesheet" href="./app/main.css?v=20260930-left-letter-signature" />
   </head>
   <body class="is-intro-locked">
     <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
@@ -266,7 +266,7 @@
             <p>Một năm đầu tiên của em đã qua, nhưng chuyến hành trình của Cá Voi chắc chắn còn nhiều trang thú vị ở phía trước. Con Boà này chẳng biết mai sau biển sẽ đưa em đến những đâu, chỉ mong trên những chặng đường phía trước, Con Boà vẫn sẽ có mặt trong gia đình nhà Cá, động viên và chia vui cùng em. Có thêm một bài nhảy mới thì Con Boà xem, có chuyện vui thì kể Con Boà, còn hôm nào sóng hơi lớn, Con Boà sẽ ngồi đây và tâm sự với em.</p>
             <p>Mong rằng hành trình phía trước, đầu tiên vẫn là có sức khoẻ, tiếp theo là đầy niềm vui và những cơ hội rộng mở đang chờ đón. Mọi nỗ lực của em mọi người đều thấy và trân trọng, hãy tự tin và toả sáng theo cách riêng của mình nhé.</p>
             <p>Chức mừng 1 năm debut của Pastel!</p>
-            <p>ConBoàCôĐơn</p>
+            <p class="letter-parchment__signature">ConBoàCôĐơn</p>
           </div>
         </article>
         <div id="letter-scroll-hint" class="letter-parchment__hint" aria-live="polite">Cuộn xuống để đọc tiếp thư</div>
@@ -290,7 +290,7 @@
 
     <script type="module">
       const isDevelopment = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const staticVersion = '20260930-full-tribute-letter';
+      const staticVersion = '20260930-left-letter-signature';
       const deploymentAssetRoot = 'https://cdn.jsdelivr.net/gh/LongBanhBao/Whale_memory@9da47ed670de56bf52038f8a0f0f323e31fd5998/public/';
       const recoverBoot = (message = 'Không thể tải hành trình. Chạm để thử lại.') => {
         document.documentElement.dataset.appReady = 'failed';
