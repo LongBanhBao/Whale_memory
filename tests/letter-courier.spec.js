@@ -115,6 +115,23 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 360, height: 740 }
     await expect.poll(() => page.locator('#boa-courier, #finale-portrait-image').evaluateAll(nodes => nodes.every(img => img.naturalWidth > 0))).toBe(true);
     await page.locator('#boa-courier, #finale-portrait-image').evaluateAll(nodes => Promise.all(nodes.map(img => img.decode())));
     await page.screenshot({ path: testInfo.outputPath('mobile-whale-layout.png') });
+    await page.locator('#take-letter').click();
+    const letter = page.locator('#letter-dialog');
+    await expect(letter).toBeVisible();
+    await page.locator('#letter-scroll-art').evaluate(img => img.decode());
+    const letterBox = await letter.boundingBox();
+    expect(letterBox.x).toBeGreaterThanOrEqual(10);
+    expect(letterBox.y).toBeGreaterThanOrEqual(10);
+    expect(letterBox.x + letterBox.width).toBeLessThanOrEqual(viewport.width - 10);
+    expect(letterBox.y + letterBox.height).toBeLessThanOrEqual(viewport.height - 10);
+    await page.screenshot({ path: testInfo.outputPath('wide-letter.png') });
+    const textLayout = await page.locator('.letter-parchment__words').evaluate(node => {
+      node.scrollTop = node.scrollHeight;
+      return { fitsWidth: node.scrollWidth <= node.clientWidth, endVisible: node.querySelector('p:last-child').getBoundingClientRect().bottom <= node.getBoundingClientRect().bottom + 1 };
+    });
+    expect(textLayout).toEqual({ fitsWidth: true, endVisible: true });
+    await page.getByRole('button', { name: 'Đóng thư tri ân' }).click();
+    await expect(letter).not.toBeVisible();
     if (viewport.width === 430) {
       await page.setViewportSize({ width: 844, height: 390 });
       await expect.poll(() => page.locator('#intro-whale-swimmer').evaluate(node => node.getBoundingClientRect().right)).toBeLessThan(250);

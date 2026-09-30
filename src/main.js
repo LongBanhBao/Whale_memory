@@ -309,7 +309,7 @@ function prepareFinale() {
   finalePortraitImage.decoding = 'async';
   finalePortraitImage.fetchPriority = 'high';
   document.querySelector('#boa-courier').src = assetUrl('assets/scene/boa-courier.webp');
-  document.querySelector('#letter-scroll-art').src = assetUrl('assets/scene/whale-letter-scroll.webp');
+  document.querySelector('#letter-scroll-art').src = assetUrl('assets/scene/whale-letter-scroll-wide.webp');
   document.documentElement.dataset.finaleReady = 'true';
 }
 
