@@ -96,7 +96,7 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  color: #49331e;
+  color: #000;
 }
 .memory-dialog--letter::backdrop { background: #010817d9; backdrop-filter: blur(7px); }
 .letter-parchment { position: absolute; inset: 0; }
@@ -128,7 +128,7 @@
 .letter-parchment__words {
   position: absolute;
   top: 30%;
-  bottom: 17%;
+  bottom: 20%;
   left: 13%;
   right: 13%;
   display: flex;
@@ -137,23 +137,37 @@
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: #b68e51 transparent;
-  text-align: center;
+  scrollbar-gutter: stable;
+  padding-right: 6px;
+  text-align: left;
+  color: #000;
   font-family: 'Times New Roman', Times, serif;
-  text-shadow: 0 1px 0 #fff5;
+  letter-spacing: 0;
+  text-shadow: none;
 }
-.letter-parchment__content { flex: 0 0 auto; margin-block: auto; padding-block: 6px; }
-.memory-dialog--letter .eyebrow { color: #816338; font-size: 9px; letter-spacing: .15em; margin: 0 0 12px; }
+.letter-parchment__content { flex: 0 0 auto; margin-block: 0; padding-block: 6px; }
+.letter-parchment__hint {
+  position: absolute;
+  bottom: 16.5%;
+  left: 13%;
+  right: 13%;
+  color: #000;
+  font: 400 12px/1.3 'Times New Roman', Times, serif;
+  text-align: center;
+  letter-spacing: 0;
+  pointer-events: none;
+}
 .memory-dialog--letter h2 {
-  color: #47301e;
-  font: italic 400 clamp(22px, 3.5svh, 34px)/1.25 'Times New Roman', Times, serif;
+  color: #000;
+  font: 700 clamp(22px, 3.5svh, 28px)/1.3 'Times New Roman', Times, serif;
   margin: 0 0 18px;
   letter-spacing: 0;
   text-wrap: balance;
 }
 .memory-dialog--letter p:not(.eyebrow) {
-  color: #49331e;
-  font: 400 clamp(15px, 2.1svh, 19px)/1.6 'Times New Roman', Times, serif;
-  margin: 0 0 15px;
+  color: #000;
+  font: 400 clamp(17px, 2.4svh, 19px)/1.7 'Times New Roman', Times, serif;
+  margin: 0 0 1em;
 }
 .memory-dialog--letter .letter-parchment__content > p:last-child { margin-bottom: 0; }
 .memory-dialog--letter .dialog-close { z-index: 3; top: 4%; right: 1%; color: #ffe4ae; border-color: #f1ce8266; }
@@ -162,6 +176,11 @@
     height: min(calc(var(--letter-width) * 1.7), calc(100svh - 2 * var(--letter-gutter-y)));
     aspect-ratio: auto;
   }
+  .letter-parchment__words {
+    top: calc(var(--letter-width) * .4 + 14px);
+    bottom: calc(var(--letter-width) * .2 + 32px);
+  }
+  .letter-parchment__hint { bottom: calc(var(--letter-width) * .2 + 8px); }
 
   /* Extend only the blank paper. The whale and both rollers keep the same
      proportions by displaying the original top 32% and bottom 16% at 1:1. */
@@ -202,8 +221,7 @@
 @media (max-width: 600px) {
   .letter-courier { width: 100px; bottom: calc(100% + 22px); right: 10px; }
   .memory-dialog--letter h2 { font-size: 22px; margin-bottom: 12px; }
-  .memory-dialog--letter .eyebrow { font-size: 8px; margin-bottom: 10px; }
-  .memory-dialog--letter p:not(.eyebrow) { font-size: 15px; line-height: 1.5; margin-bottom: 12px; }
+  .memory-dialog--letter p:not(.eyebrow) { font-size: 16px; line-height: 1.65; }
 }
 @media (prefers-reduced-motion: reduce) {
   .finale-world[data-letter-phase] .finale-copy { transition: none; }

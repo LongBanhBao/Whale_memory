@@ -57,8 +57,12 @@ for (const mobile of [false, true]) {
     const dialog = page.locator('#letter-dialog');
     await expect(dialog).toBeVisible({ timeout: 7_000 });
     await expect(page.locator('.letter-parchment__words')).toHaveCSS('opacity', '1');
-    await expect(dialog).toContainText('Đại dương này vẫn nhớ.');
-    await expect(dialog).toContainText('Cảm ơn vì đã bắt đầu');
+    await expect(dialog).toContainText('Chào em Tel nhá!');
+    await expect(dialog).toContainText('Chức mừng 1 năm debut của Pastel!');
+    for (const selector of ['#letter-title', '.letter-parchment__content p']) {
+      await expect(dialog.locator(selector).first()).toHaveCSS('color', 'rgb(0, 0, 0)');
+      await expect(dialog.locator(selector).first()).toHaveCSS('font-family', /"Times New Roman", Times, serif/);
+    }
     await expect.poll(() => page.locator('#letter-scroll-art').evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
     const box = await dialog.boundingBox();
     const viewport = page.viewportSize();
@@ -95,10 +99,15 @@ test('thư mở trực tiếp khi giảm chuyển động và có thể đọc l
   const button = page.locator('#take-letter');
   await button.click();
   await expect(page.locator('#letter-dialog')).toBeVisible();
+  const words = page.locator('.letter-parchment__words');
+  await words.evaluate(node => { node.scrollTop = node.scrollHeight; });
+  await expect(page.locator('#letter-scroll-hint')).toHaveText('Bạn đã đọc hết thư');
   await page.keyboard.press('Escape');
   await expect(button).toBeEnabled();
   await button.click();
   await expect(page.locator('#letter-dialog')).toBeVisible();
+  await expect.poll(() => words.evaluate(node => node.scrollTop)).toBe(0);
+  await expect(page.locator('#letter-scroll-hint')).toHaveText('Cuộn xuống để đọc tiếp thư');
   await page.getByRole('button', { name: 'Đóng thư tri ân' }).click();
   await expect(button).toBeFocused();
 });

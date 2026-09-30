@@ -6,12 +6,22 @@ export function createLetterCourier({ world, swimmer, dialog, button, galleryBut
   const scroll = document.querySelector('#courier-scroll');
   const parchment = dialog.querySelector('.letter-parchment');
   const words = dialog.querySelector('.letter-parchment__words');
+  const readingHint = dialog.querySelector('#letter-scroll-hint');
   let timeline;
   let saved;
   let motion;
   let active = false;
   const phase = value => { world.dataset.letterPhase = value; };
   const render = () => pose(motion.x, motion.y, motion.scale, motion.rotation, 0, .65, 0, .18);
+
+  function updateReadingHint() {
+    if (!dialog.open) return;
+    const atEnd = words.scrollTop + words.clientHeight >= words.scrollHeight - 2;
+    const message = atEnd ? 'Bạn đã đọc hết thư' : 'Cuộn xuống để đọc tiếp thư';
+    if (readingHint.textContent !== message) readingHint.textContent = message;
+  }
+  words.addEventListener('scroll', updateReadingHint, { passive: true });
+  new ResizeObserver(updateReadingHint).observe(words);
 
   function putScrollBack() {
     button.append(scroll);
@@ -46,6 +56,7 @@ export function createLetterCourier({ world, swimmer, dialog, button, galleryBut
     scroll.style.visibility = 'hidden';
     dialog.showModal();
     words.scrollTop = 0;
+    updateReadingHint();
     timeline = gsap.timeline()
       .fromTo(parchment, { clipPath: 'inset(0 0 72% 0)', opacity: 0, '--letter-unroll': 0 }, {
         clipPath: 'inset(0 0 0% 0)', opacity: 1, '--letter-unroll': 1,
